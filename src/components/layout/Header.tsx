@@ -1,7 +1,8 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard,
   Lightbulb,
@@ -13,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const navItems = [
   { path: '/', label: 'Kanban Board', icon: LayoutDashboard },
@@ -24,7 +26,19 @@ const navItems = [
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { signOut, user } = useAuth();
+
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error('Failed to sign out');
+    } else {
+      toast.success('Signed out successfully');
+      navigate('/auth', { replace: true });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 glass-strong">
@@ -59,8 +73,19 @@ export function Header() {
 
           {/* Right Section */}
           <div className="flex items-center gap-2">
+            {user && (
+              <span className="text-xs text-muted-foreground hidden sm:block truncate max-w-[120px]">
+                {user.email}
+              </span>
+            )}
             <ThemeToggle />
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-destructive"
+              onClick={handleLogout}
+              title="Sign out"
+            >
               <LogOut className="w-4 h-4" />
             </Button>
             
