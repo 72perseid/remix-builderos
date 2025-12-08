@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import AuthPage from "./pages/AuthPage";
 import AppIdeaPage from "./pages/AppIdeaPage";
 import BusinessModelPage from "./pages/BusinessModelPage";
 import DatabaseDesignPage from "./pages/DatabaseDesignPage";
@@ -19,11 +21,12 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/app-idea" element={<AppIdeaPage />} />
-          <Route path="/business-model" element={<BusinessModelPage />} />
-          <Route path="/database-design" element={<DatabaseDesignPage />} />
-          <Route path="/ai-kanban-assistant" element={<AIKanbanAssistantPage />} />
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/app-idea" element={<ProtectedRoute><AppIdeaPage /></ProtectedRoute>} />
+          <Route path="/business-model" element={<ProtectedRoute><BusinessModelPage /></ProtectedRoute>} />
+          <Route path="/database-design" element={<ProtectedRoute><DatabaseDesignPage /></ProtectedRoute>} />
+          <Route path="/ai-kanban-assistant" element={<ProtectedRoute><AIKanbanAssistantPage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
