@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useXanoSync } from '@/hooks/useXanoSync';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -7,7 +8,10 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
+
+  // Auto-sync Xano data when user is authenticated
+  useXanoSync(user);
 
   if (loading) {
     return (
