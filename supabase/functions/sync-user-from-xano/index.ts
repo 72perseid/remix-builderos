@@ -300,49 +300,84 @@ serve(async (req) => {
     }
 
     // Step 6: Sync App Idea (if exists)
+    // DEBUG: Log the entire app_idea_of_user object
+    console.log("DEBUG - app_idea_of_user from Xano:", JSON.stringify(xanoUser.app_idea_of_user, null, 2));
+    
     if (xanoUser.app_idea_of_user) {
       console.log("Syncing app idea...");
       const appIdea = xanoUser.app_idea_of_user;
+      
+      // Explicit field mapping - DO NOT use Xano integer ID as Supabase UUID
+      // Let Supabase auto-generate UUID, use user_id for conflict resolution
       const appIdeaData = {
-        id: appIdea.id,
-        user_id: supabaseUserId, // Use Supabase UUID, not Xano ID
-        app_name: appIdea.app_name,
+        user_id: supabaseUserId, // Supabase UUID, NOT Xano ID
+        app_name: appIdea.app_name || null,
+        app_description: appIdea.app_description || null,
         app_category: appIdea.app_category || null,
         app_for: appIdea.app_for || null,
-        app_description: appIdea.app_description || null,
+        persona_description: appIdea.persona_description || null,
+        user_demography: appIdea.user_demography || null,
+        is_board_active: appIdea.isBoardActive || false,
+        is_artifact_active: appIdea.isArtifactActive || false,
         idea_generation: appIdea.idea_generation || null,
         figma_link: appIdea.figma_link || null,
         app_type: appIdea.app_type || null,
-        persona_description: appIdea.persona_description || null,
-        user_demography: appIdea.user_demography || null,
         kanban_board_id: appIdea.kanban_board_id || null,
         invited_users_id: appIdea.invited_users_id || [],
         currently_building: appIdea.currently_building || false,
         one_liner: appIdea.one_liner || null,
         logo_text: appIdea.logo_text || null,
-        is_board_active: appIdea.isBoardActive || false,
-        is_artifact_active: appIdea.isArtifactActive || false,
         logo: appIdea.logo || null,
-        created_at: appIdea.created_at 
-          ? new Date(appIdea.created_at).toISOString() 
-          : new Date().toISOString(),
-        updated_at: appIdea.updated_at 
-          ? new Date(appIdea.updated_at).toISOString() 
-          : new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
 
-      const { data: appIdeaResult, error: appIdeaError } = await supabase
-        .from("app_ideas")
-        .upsert(appIdeaData, { onConflict: "id" })
-        .select();
+      console.log("DEBUG - appIdeaData being upserted:", JSON.stringify(appIdeaData, null, 2));
 
-      if (appIdeaError) {
-        console.error(`App idea sync error: ${appIdeaError.message}`);
-        results.app_idea = { error: appIdeaError.message };
+      // First check if user already has an app idea
+      const { data: existingIdea, error: checkError } = await supabase
+        .from("app_ideas")
+        .select("id")
+        .eq("user_id", supabaseUserId)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error(`App idea check error: ${checkError.message}`);
+        results.app_idea = { error: checkError.message };
+      } else if (existingIdea) {
+        // Update existing
+        console.log(`Updating existing app idea: ${existingIdea.id}`);
+        const { data: appIdeaResult, error: appIdeaError } = await supabase
+          .from("app_ideas")
+          .update(appIdeaData)
+          .eq("id", existingIdea.id)
+          .select();
+
+        if (appIdeaError) {
+          console.error(`App idea UPDATE error: ${appIdeaError.message}`);
+          results.app_idea = { error: appIdeaError.message };
+        } else {
+          console.log("App idea updated successfully");
+          results.app_idea = { success: true, data: appIdeaResult };
+        }
       } else {
-        console.log("App idea synced successfully");
-        results.app_idea = { success: true, data: appIdeaResult };
+        // Insert new
+        console.log("Inserting new app idea...");
+        const { data: appIdeaResult, error: appIdeaError } = await supabase
+          .from("app_ideas")
+          .insert(appIdeaData)
+          .select();
+
+        if (appIdeaError) {
+          console.error(`App idea INSERT error: ${appIdeaError.message}`);
+          results.app_idea = { error: appIdeaError.message };
+        } else {
+          console.log("App idea inserted successfully");
+          results.app_idea = { success: true, data: appIdeaResult };
+        }
       }
+    } else {
+      console.log("DEBUG - No app_idea_of_user found in Xano response");
+      results.app_idea = { skipped: true, reason: "No app idea data in Xano" };
     }
 
     console.log("Sync completed successfully");
