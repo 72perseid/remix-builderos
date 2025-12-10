@@ -2,15 +2,26 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { syncUserFromXano } from "@/lib/syncXano";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
 
   const handleTestSync = async () => {
+    if (!isAuthenticated || !user?.email) {
+      toast({
+        title: "Error",
+        description: "Please log in first",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSyncing(true);
     try {
-      const result = await syncUserFromXano("tugce@ambitiouslabs.io");
+      const result = await syncUserFromXano(user.email);
       
       if (result.success) {
         console.log("Xano sync result:", result);
