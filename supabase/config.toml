@@ -1,0 +1,4 @@
+project_id = "bsogscaipffwkjszicfc"
+
+[functions.sync-user-from-xano]
+verify_jwt = false
