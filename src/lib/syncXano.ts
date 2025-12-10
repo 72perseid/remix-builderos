@@ -20,30 +20,14 @@ interface SyncResult {
  */
 export async function syncUserFromXano(email: string): Promise<SyncResult> {
   try {
-    const { data, error } = await supabase.functions.invoke("sync-user-from-xano", {
-      body: null,
-      headers: {
-        "Content-Type": "application/json",
-      },
+    // The SDK handles Auth and API keys automatically
+    const { data, error } = await supabase.functions.invoke('sync-user-from-xano', {
+      body: { email: email }
     });
 
-    // The function uses query params, so we need to call it differently
-    const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL || "https://bsogscaipffwkjszicfc.supabase.co"}/functions/v1/sync-user-from-xano?email=${encodeURIComponent(email)}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Failed to sync user data");
-    }
-
-    return await response.json();
+    if (error) throw error;
+    
+    return data;
   } catch (error) {
     console.error("Error syncing user from Xano:", error);
     return {
