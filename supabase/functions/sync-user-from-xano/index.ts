@@ -99,8 +99,16 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const email = url.searchParams.get("email");
+    // Read email from request body (POST) or URL params (GET fallback)
+    let email: string | null = null;
+    
+    if (req.method === "POST") {
+      const body = await req.json();
+      email = body.email;
+    } else {
+      const url = new URL(req.url);
+      email = url.searchParams.get("email");
+    }
 
     if (!email) {
       console.error("Missing email parameter");
