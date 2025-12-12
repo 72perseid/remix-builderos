@@ -217,37 +217,46 @@ serve(async (req) => {
     }
 
     // Step 4: Sync Product
+    // DEBUG: Log the entire products object
+    console.log("DEBUG - products from Xano:", JSON.stringify(xanoUser.products, null, 2));
+    
     if (xanoUser.products) {
       console.log("Syncing product...");
+      const product = xanoUser.products;
+      
+      // Explicit field mapping with proper array handling (use empty array if null/undefined)
       const productData = {
-        id: xanoUser.products.id,
-        product_name: xanoUser.products.product_name,
-        notion_reference: xanoUser.products.notion_reference || null,
-        monthly_price: xanoUser.products.monthly_price || 0,
-        yearly_price: xanoUser.products.yearly_price || 0,
-        stripe_product_id: xanoUser.products.stripe_product_id || null,
-        lab_room: xanoUser.products.lab_room || false,
-        category: xanoUser.products.category || null,
-        events: xanoUser.products.events || false,
-        logo_ai: xanoUser.products.logo_ai || false,
-        course_id: xanoUser.products.course_id || [],
-        programs_id: xanoUser.products.programs_id || null,
-        build_features: xanoUser.products.build_features || [],
-        connect_features: xanoUser.products.connect_features || [],
-        event_types: xanoUser.products.event_types || [],
-        price_list: xanoUser.products.price_list || [],
-        annual_stripe_price_id: xanoUser.products.annual_stripe_price_id || null,
-        monthly_stripe_price_id: xanoUser.products.monthly_stripe_price_id || null,
-        one_off_stripe_price_id: xanoUser.products.one_off_stripe_price_id || null,
-        duration_days: xanoUser.products.duration_days || null,
-        email_template: xanoUser.products.email_template || null,
-        periodicity: xanoUser.products.periodicity || null,
-        perks: xanoUser.products.perks || [],
-        internal_details: xanoUser.products.internal_details || null,
-        created_at: xanoUser.products.created_at 
-          ? new Date(xanoUser.products.created_at).toISOString() 
+        id: product.id,
+        created_at: product.created_at 
+          ? new Date(product.created_at).toISOString() 
           : new Date().toISOString(),
+        product_name: product.product_name,
+        notion_reference: product.notion_reference || null,
+        monthly_price: product.monthly_price ?? null,
+        yearly_price: product.yearly_price ?? null,
+        stripe_product_id: product.stripe_product_id || null,
+        lab_room: product.lab_room ?? false,
+        category: product.category || null,
+        events: product.events ?? false,
+        logo_ai: product.logo_ai ?? false,
+        programs_id: product.programs_id ?? null,
+        annual_stripe_price_id: product.annual_stripe_price_id || null,
+        monthly_stripe_price_id: product.monthly_stripe_price_id || null,
+        one_off_stripe_price_id: product.one_off_stripe_price_id || null,
+        duration_days: product.duration_days ?? null,
+        email_template: product.email_template || null,
+        periodicity: product.periodicity || null,
+        internal_details: product.internal_details || null,
+        // Array fields - ensure empty array if null/undefined
+        course_id: Array.isArray(product.course_id) ? product.course_id : [],
+        build_features: Array.isArray(product.build_features) ? product.build_features : [],
+        connect_features: Array.isArray(product.connect_features) ? product.connect_features : [],
+        event_types: Array.isArray(product.event_types) ? product.event_types : [],
+        price_list: Array.isArray(product.price_list) ? product.price_list : [],
+        perks: Array.isArray(product.perks) ? product.perks : [],
       };
+
+      console.log("DEBUG - productData being upserted:", JSON.stringify(productData, null, 2));
 
       const { data: productResult, error: productError } = await supabase
         .from("products")
@@ -256,11 +265,15 @@ serve(async (req) => {
 
       if (productError) {
         console.error(`Product sync error: ${productError.message}`);
+        console.error(`Product sync error details:`, JSON.stringify(productError, null, 2));
         results.product = { error: productError.message };
       } else {
-        console.log("Product synced successfully");
+        console.log("Product synced successfully:", JSON.stringify(productResult, null, 2));
         results.product = { success: true, data: productResult };
       }
+    } else {
+      console.log("DEBUG - No products found in Xano response");
+      results.product = { skipped: true, reason: "No product data in Xano" };
     }
 
     // Step 5: Sync Enrollment (if exists)
