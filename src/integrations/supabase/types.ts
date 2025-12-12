@@ -262,54 +262,81 @@ export type Database = {
       }
       products: {
         Row: {
+          annual_stripe_price_id: string | null
           build_features: Database["public"]["Enums"]["build_feature"][] | null
           category: Database["public"]["Enums"]["product_category"] | null
           connect_features: string[] | null
           course_id: number[] | null
           created_at: string
+          duration_days: number | null
           email_template: string | null
+          event_types: string[] | null
           events: boolean | null
           id: number
+          internal_details: string | null
           lab_room: boolean | null
           logo_ai: boolean | null
           monthly_price: number | null
+          monthly_stripe_price_id: string | null
           notion_reference: string | null
+          one_off_stripe_price_id: string | null
+          periodicity: string | null
+          perks: string[] | null
+          price_list: string[] | null
           product_name: string
           programs_id: number | null
           stripe_product_id: string | null
           yearly_price: number | null
         }
         Insert: {
+          annual_stripe_price_id?: string | null
           build_features?: Database["public"]["Enums"]["build_feature"][] | null
           category?: Database["public"]["Enums"]["product_category"] | null
           connect_features?: string[] | null
           course_id?: number[] | null
           created_at?: string
+          duration_days?: number | null
           email_template?: string | null
+          event_types?: string[] | null
           events?: boolean | null
           id?: number
+          internal_details?: string | null
           lab_room?: boolean | null
           logo_ai?: boolean | null
           monthly_price?: number | null
+          monthly_stripe_price_id?: string | null
           notion_reference?: string | null
+          one_off_stripe_price_id?: string | null
+          periodicity?: string | null
+          perks?: string[] | null
+          price_list?: string[] | null
           product_name: string
           programs_id?: number | null
           stripe_product_id?: string | null
           yearly_price?: number | null
         }
         Update: {
+          annual_stripe_price_id?: string | null
           build_features?: Database["public"]["Enums"]["build_feature"][] | null
           category?: Database["public"]["Enums"]["product_category"] | null
           connect_features?: string[] | null
           course_id?: number[] | null
           created_at?: string
+          duration_days?: number | null
           email_template?: string | null
+          event_types?: string[] | null
           events?: boolean | null
           id?: number
+          internal_details?: string | null
           lab_room?: boolean | null
           logo_ai?: boolean | null
           monthly_price?: number | null
+          monthly_stripe_price_id?: string | null
           notion_reference?: string | null
+          one_off_stripe_price_id?: string | null
+          periodicity?: string | null
+          perks?: string[] | null
+          price_list?: string[] | null
           product_name?: string
           programs_id?: number | null
           stripe_product_id?: string | null
