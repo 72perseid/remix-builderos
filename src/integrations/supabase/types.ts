@@ -176,9 +176,7 @@ export type Database = {
           duration_days: number | null
           email: string | null
           email_template: string | null
-          enrollment_method:
-            | Database["public"]["Enums"]["enrollment_method"]
-            | null
+          enrollment_method: string | null
           enrollment_term_days: string | null
           entity_id: number | null
           entity_type: number | null
@@ -187,11 +185,11 @@ export type Database = {
           internal_details: string | null
           monthly_stripe_price_id: string | null
           one_off_stripe_price_id: string | null
-          periodicity: Database["public"]["Enums"]["periodicity_type"] | null
+          periodicity: string | null
           perks: string[] | null
           price_list: string[] | null
           products_id: number | null
-          status: Database["public"]["Enums"]["enrollment_status"] | null
+          status: string | null
           user_id: string | null
         }
         Insert: {
@@ -204,9 +202,7 @@ export type Database = {
           duration_days?: number | null
           email?: string | null
           email_template?: string | null
-          enrollment_method?:
-            | Database["public"]["Enums"]["enrollment_method"]
-            | null
+          enrollment_method?: string | null
           enrollment_term_days?: string | null
           entity_id?: number | null
           entity_type?: number | null
@@ -215,11 +211,11 @@ export type Database = {
           internal_details?: string | null
           monthly_stripe_price_id?: string | null
           one_off_stripe_price_id?: string | null
-          periodicity?: Database["public"]["Enums"]["periodicity_type"] | null
+          periodicity?: string | null
           perks?: string[] | null
           price_list?: string[] | null
           products_id?: number | null
-          status?: Database["public"]["Enums"]["enrollment_status"] | null
+          status?: string | null
           user_id?: string | null
         }
         Update: {
@@ -232,9 +228,7 @@ export type Database = {
           duration_days?: number | null
           email?: string | null
           email_template?: string | null
-          enrollment_method?:
-            | Database["public"]["Enums"]["enrollment_method"]
-            | null
+          enrollment_method?: string | null
           enrollment_term_days?: string | null
           entity_id?: number | null
           entity_type?: number | null
@@ -243,11 +237,11 @@ export type Database = {
           internal_details?: string | null
           monthly_stripe_price_id?: string | null
           one_off_stripe_price_id?: string | null
-          periodicity?: Database["public"]["Enums"]["periodicity_type"] | null
+          periodicity?: string | null
           perks?: string[] | null
           price_list?: string[] | null
           products_id?: number | null
-          status?: Database["public"]["Enums"]["enrollment_status"] | null
+          status?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -263,8 +257,8 @@ export type Database = {
       products: {
         Row: {
           annual_stripe_price_id: string | null
-          build_features: Database["public"]["Enums"]["build_feature"][] | null
-          category: Database["public"]["Enums"]["product_category"] | null
+          build_features: string[] | null
+          category: string | null
           connect_features: string[] | null
           course_id: number[] | null
           created_at: string
@@ -290,8 +284,8 @@ export type Database = {
         }
         Insert: {
           annual_stripe_price_id?: string | null
-          build_features?: Database["public"]["Enums"]["build_feature"][] | null
-          category?: Database["public"]["Enums"]["product_category"] | null
+          build_features?: string[] | null
+          category?: string | null
           connect_features?: string[] | null
           course_id?: number[] | null
           created_at?: string
@@ -317,8 +311,8 @@ export type Database = {
         }
         Update: {
           annual_stripe_price_id?: string | null
-          build_features?: Database["public"]["Enums"]["build_feature"][] | null
-          category?: Database["public"]["Enums"]["product_category"] | null
+          build_features?: string[] | null
+          category?: string | null
           connect_features?: string[] | null
           course_id?: number[] | null
           created_at?: string

@@ -143,9 +143,16 @@ serve(async (req) => {
     console.log(`Xano returned ${xanoData.length} records`);
 
     if (!xanoData || xanoData.length === 0) {
+      // This is expected for users who signed up directly in Supabase (not from Xano)
+      // Return success with no data to sync - not an error
+      console.log("No user found in Xano - this is normal for Supabase-only users");
       return new Response(
-        JSON.stringify({ error: "No user found in Xano with this email" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ 
+          success: true, 
+          message: "No Xano data to sync - user may be Supabase-only",
+          synced: false 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
