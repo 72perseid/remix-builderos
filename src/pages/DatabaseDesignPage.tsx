@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -76,148 +75,145 @@ export default function DatabaseDesignPage() {
 
   if (artifactLoading) {
     return (
-      <Layout>
-        <div className="flex items-center justify-center h-64">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      </Layout>
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold gradient-text">Database Design</h1>
-          <p className="text-muted-foreground mt-1">Generate an ERD and table schema for your app</p>
-        </div>
-
-        {/* Input Form */}
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle className="text-lg">Design Context</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
-              <Label className="text-xs text-muted-foreground">App Description (from saved)</Label>
-              <p className="text-sm mt-1">{appIdea?.appDescription || 'No app idea saved yet'}</p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="roadmapFeatures">App Roadmap & Features</Label>
-              <Textarea
-                id="roadmapFeatures"
-                value={roadmapFeatures}
-                onChange={(e) => setRoadmapFeatures(e.target.value)}
-                placeholder="List the main features and functionality your app needs. Include user flows, data relationships, and any specific requirements..."
-                rows={5}
-              />
-            </div>
-            
-            <Button onClick={handleGenerate} disabled={isGenerating}>
-              <Sparkles className="w-4 h-4 mr-2" />
-              {isGenerating ? 'Generating...' : 'Generate Database Design'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Generated Database Design */}
-        {content && (
-          <div className="space-y-6 animate-fade-in">
-            {/* ERD Diagram */}
-            {content.erdDiagram && (
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Database className="w-4 h-4 text-primary" />
-                    ERD Diagram (Mermaid)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <pre className="p-4 rounded-lg bg-muted/50 border border-border/50 overflow-x-auto text-xs font-mono">
-                    {content.erdDiagram}
-                  </pre>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Tables */}
-            {content.tables && content.tables.length > 0 && (
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Table className="w-4 h-4 text-accent" />
-                    Tables & Fields
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {content.tables.map((table, i) => (
-                    <div key={i} className="space-y-2">
-                      <h4 className="font-semibold text-sm">{table.name}</h4>
-                      <UITable>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-xs">Field</TableHead>
-                            <TableHead className="text-xs">Type</TableHead>
-                            <TableHead className="text-xs">Constraints</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {table.fields.map((field, j) => (
-                            <TableRow key={j}>
-                              <TableCell className="text-xs font-mono">{field.name}</TableCell>
-                              <TableCell className="text-xs font-mono text-muted-foreground">{field.type}</TableCell>
-                              <TableCell className="text-xs text-muted-foreground">{field.constraints || '-'}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </UITable>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Relationships */}
-            {content.relationships && content.relationships.length > 0 && (
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Link2 className="w-4 h-4 text-category-stretch" />
-                    Table Relationships
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <UITable>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">From</TableHead>
-                        <TableHead className="text-xs">To</TableHead>
-                        <TableHead className="text-xs">Type</TableHead>
-                        <TableHead className="text-xs">Description</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {content.relationships.map((rel, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="text-xs font-mono">{rel.from}</TableCell>
-                          <TableCell className="text-xs font-mono">{rel.to}</TableCell>
-                          <TableCell className="text-xs">
-                            <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px]">
-                              {rel.type}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{rel.description || '-'}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </UITable>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        )}
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-white">Database Design</h1>
+        <p className="text-slate-400 mt-1">Generate an ERD and table schema for your app</p>
       </div>
-    </Layout>
+
+      {/* Input Form */}
+      <Card className="bg-slate-800/50 border-slate-700">
+        <CardHeader>
+          <CardTitle className="text-lg text-white">Design Context</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="p-3 rounded-lg bg-slate-900/50 border border-slate-700">
+            <Label className="text-xs text-slate-400">App Description (from saved)</Label>
+            <p className="text-sm mt-1 text-slate-300">{appIdea?.appDescription || 'No app idea saved yet'}</p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="roadmapFeatures" className="text-slate-300">App Roadmap & Features</Label>
+            <Textarea
+              id="roadmapFeatures"
+              value={roadmapFeatures}
+              onChange={(e) => setRoadmapFeatures(e.target.value)}
+              placeholder="List the main features and functionality your app needs. Include user flows, data relationships, and any specific requirements..."
+              rows={5}
+              className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-500"
+            />
+          </div>
+          
+          <Button onClick={handleGenerate} disabled={isGenerating} className="bg-blue-600 hover:bg-blue-700">
+            <Sparkles className="w-4 h-4 mr-2" />
+            {isGenerating ? 'Generating...' : 'Generate Database Design'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Generated Database Design */}
+      {content && (
+        <div className="space-y-6 animate-fade-in">
+          {/* ERD Diagram */}
+          {content.erdDiagram && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
+                  <Database className="w-4 h-4 text-blue-500" />
+                  ERD Diagram (Mermaid)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="p-4 rounded-lg bg-slate-900/50 border border-slate-700 overflow-x-auto text-xs font-mono text-slate-300">
+                  {content.erdDiagram}
+                </pre>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tables */}
+          {content.tables && content.tables.length > 0 && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
+                  <Table className="w-4 h-4 text-purple-500" />
+                  Tables & Fields
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {content.tables.map((table, i) => (
+                  <div key={i} className="space-y-2">
+                    <h4 className="font-semibold text-sm text-white">{table.name}</h4>
+                    <UITable>
+                      <TableHeader>
+                        <TableRow className="border-slate-700">
+                          <TableHead className="text-xs text-slate-400">Field</TableHead>
+                          <TableHead className="text-xs text-slate-400">Type</TableHead>
+                          <TableHead className="text-xs text-slate-400">Constraints</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {table.fields.map((field, j) => (
+                          <TableRow key={j} className="border-slate-700">
+                            <TableCell className="text-xs font-mono text-slate-300">{field.name}</TableCell>
+                            <TableCell className="text-xs font-mono text-slate-400">{field.type}</TableCell>
+                            <TableCell className="text-xs text-slate-400">{field.constraints || '-'}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </UITable>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Relationships */}
+          {content.relationships && content.relationships.length > 0 && (
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
+                  <Link2 className="w-4 h-4 text-orange-500" />
+                  Table Relationships
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UITable>
+                  <TableHeader>
+                    <TableRow className="border-slate-700">
+                      <TableHead className="text-xs text-slate-400">From</TableHead>
+                      <TableHead className="text-xs text-slate-400">To</TableHead>
+                      <TableHead className="text-xs text-slate-400">Type</TableHead>
+                      <TableHead className="text-xs text-slate-400">Description</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {content.relationships.map((rel, i) => (
+                      <TableRow key={i} className="border-slate-700">
+                        <TableCell className="text-xs font-mono text-slate-300">{rel.from}</TableCell>
+                        <TableCell className="text-xs font-mono text-slate-300">{rel.to}</TableCell>
+                        <TableCell className="text-xs">
+                          <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 text-[10px]">
+                            {rel.type}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-xs text-slate-400">{rel.description || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </UITable>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
