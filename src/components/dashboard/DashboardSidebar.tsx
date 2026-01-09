@@ -27,9 +27,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 const mainNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Learn", url: "/learn", icon: BookOpen },
-  { title: "Build", url: "/build", icon: Hammer },
-  { title: "Connect", url: "/connect", icon: Users },
 ];
 
 const bottomNavItems = [
