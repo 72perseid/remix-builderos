@@ -4,15 +4,37 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Rocket } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
+
+const founderCards = [
+  { name: "evoglam", tagline: "The perfect way to decide what glam you want.", position: "top-8 left-8" },
+  { name: "AudioNote", tagline: "Guess the perfect audio note for your flute.", position: "top-24 right-12" },
+  { name: "The Happiest", tagline: "The perfect way to decide what glam you want.", position: "top-48 left-16" },
+  { name: "Coinn", tagline: "Guess the perfect audio note for your flute.", position: "top-64 right-8" },
+  { name: "PALOOKA", tagline: "The perfect way to decide what glam you want.", position: "bottom-48 left-12" },
+  { name: "Teslativity", tagline: "The perfect way to decide what glam you want.", position: "bottom-32 right-16" },
+];
+
+function FounderCard({ name, tagline, className }: { name: string; tagline: string; className?: string }) {
+  return (
+    <div className={`bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 w-56 ${className}`}>
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <span className="text-white text-xs font-bold">{name.charAt(0)}</span>
+        </div>
+        <span className="text-white font-semibold text-sm">{name}</span>
+      </div>
+      <p className="text-slate-400 text-xs leading-relaxed">{tagline}</p>
+    </div>
+  );
+}
 
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -90,121 +112,168 @@ export default function AuthPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0B0E14]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
-      
-      <Card className="w-full max-w-md relative z-10 glass-strong">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mb-2">
-            <span className="text-primary-foreground font-bold text-xl">B</span>
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+      {/* LEFT COLUMN - Login Form */}
+      <div className="bg-[#0B0E14] flex flex-col items-center justify-center px-6 py-12 lg:px-12">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+              <Rocket className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-white font-bold text-xl tracking-tight">AMBITIOUS LABS</span>
           </div>
-          <CardTitle className="text-2xl font-bold gradient-text">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
-          </CardTitle>
-          <CardDescription>
-            {isSignUp 
-              ? 'Sign up to start building your app ideas' 
-              : 'Sign in to continue to BuilderOS'}
-          </CardDescription>
-        </CardHeader>
-        
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Headings */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold text-white">
+              {isSignUp ? 'Create your account' : 'Log in to your account'}
+            </h1>
+            <p className="text-slate-400">
+              {isSignUp 
+                ? 'Start building your app ideas today.' 
+                : 'Welcome back! Please enter your details.'}
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  disabled={isLoading}
-                />
-              </div>
+              <Label htmlFor="email" className="text-slate-400 text-sm">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg focus:border-blue-500 focus:ring-blue-500/20"
+                disabled={isLoading}
+              />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
+                <p className="text-sm text-red-400">{errors.email}</p>
               )}
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-slate-400 text-sm">
+                Password
+              </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
+                  className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg pr-12 focus:border-blue-500 focus:ring-blue-500/20"
                   disabled={isLoading}
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-500 hover:text-white hover:bg-slate-700/50"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    <EyeOff className="w-4 h-4" />
                   ) : (
-                    <Eye className="w-4 h-4 text-muted-foreground" />
+                    <Eye className="w-4 h-4" />
                   )}
                 </Button>
               </div>
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
+                <p className="text-sm text-red-400">{errors.password}</p>
               )}
             </div>
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
               disabled={isLoading}
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isSignUp ? 'Creating account...' : 'Signing in...'}
+                  {isSignUp ? 'Creating account...' : 'Logging in...'}
                 </>
               ) : (
-                isSignUp ? 'Create Account' : 'Sign In'
+                isSignUp ? 'Sign Up' : 'Log In'
               )}
             </Button>
           </form>
 
-          <div className="mt-6 text-center">
+          {/* Footer Links */}
+          <div className="space-y-3 text-center">
             <button
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
                 setErrors({});
               }}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              className="text-sm text-slate-400 hover:text-white transition-colors"
               disabled={isLoading}
             >
               {isSignUp 
-                ? 'Already have an account? Sign in' 
-                : "Don't have an account? Sign up"}
+                ? 'Already have an account? ' 
+                : "Don't have an account? "}
+              <span className="text-blue-500 hover:text-blue-400">
+                {isSignUp ? 'Log In' : 'Sign Up'}
+              </span>
             </button>
+            
+            <div>
+              <button
+                type="button"
+                className="text-sm text-slate-500 hover:text-slate-400 transition-colors"
+                onClick={() => toast.info('Password reset coming soon!')}
+              >
+                Forgot Password?
+              </button>
+            </div>
           </div>
+        </div>
+      </div>
 
-          <p className="mt-4 text-xs text-center text-muted-foreground">
-            Tip: Disable "Confirm email" in Supabase settings for faster testing.
-          </p>
-        </CardContent>
-      </Card>
+      {/* RIGHT COLUMN - Visual Showcase */}
+      <div className="hidden lg:block relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 overflow-hidden">
+        {/* Floating Cards */}
+        <div className="absolute inset-0">
+          {founderCards.map((card, index) => (
+            <div
+              key={card.name}
+              className={`absolute ${card.position} transform hover:scale-105 transition-transform duration-300`}
+              style={{
+                animationDelay: `${index * 0.2}s`,
+              }}
+            >
+              <FounderCard name={card.name} tagline={card.tagline} />
+            </div>
+          ))}
+        </div>
+
+        {/* Gradient Overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-transparent to-transparent" />
+
+        {/* Typography Overlay */}
+        <div className="absolute bottom-12 left-12 z-10">
+          <div className="space-y-1">
+            <h2 className="text-5xl font-bold text-white">Learn.</h2>
+            <h2 className="text-5xl font-bold text-white">Launch.</h2>
+            <h2 className="text-5xl font-bold text-blue-500">Earn.</h2>
+          </div>
+          <p className="mt-4 text-slate-400 text-lg">Meet some of our founders.</p>
+        </div>
+      </div>
     </div>
   );
 }
