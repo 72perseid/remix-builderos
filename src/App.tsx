@@ -11,6 +11,8 @@ import AppIdeaPage from "./pages/AppIdeaPage";
 import BusinessModelPage from "./pages/BusinessModelPage";
 import DatabaseDesignPage from "./pages/DatabaseDesignPage";
 import AIKanbanAssistantPage from "./pages/AIKanbanAssistantPage";
+import ValidationPage from "./pages/ValidationPage";
+import ProductBriefPage from "./pages/ProductBriefPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +31,8 @@ const App = () => (
           <Route path="/business-model" element={<ProtectedRoute><BusinessModelPage /></ProtectedRoute>} />
           <Route path="/database-design" element={<ProtectedRoute><DatabaseDesignPage /></ProtectedRoute>} />
           <Route path="/ai-kanban-assistant" element={<ProtectedRoute><AIKanbanAssistantPage /></ProtectedRoute>} />
+          <Route path="/validation" element={<ProtectedRoute><ValidationPage /></ProtectedRoute>} />
+          <Route path="/product-brief" element={<ProtectedRoute><ProductBriefPage /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
