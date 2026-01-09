@@ -11,10 +11,10 @@ interface ArtifactCardProps {
 }
 
 const statusIcons = {
-  loading: <Loader2 className="h-5 w-5 animate-spin text-blue-500" />,
-  locked: <Lock className="h-5 w-5 text-slate-500" />,
-  completed: <User className="h-5 w-5 text-blue-500" />,
-  available: <ChevronRight className="h-5 w-5 text-slate-400" />,
+  loading: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />,
+  locked: <Lock className="h-4 w-4 text-slate-600" />,
+  completed: <User className="h-4 w-4 text-blue-500" />,
+  available: <ChevronRight className="h-4 w-4 text-slate-500" />,
 };
 
 export function ArtifactCard({ title, description, status, onClick }: ArtifactCardProps) {
@@ -24,17 +24,15 @@ export function ArtifactCard({ title, description, status, onClick }: ArtifactCa
     <div
       onClick={isClickable ? onClick : undefined}
       className={cn(
-        "relative p-5 rounded-xl border transition-all duration-200",
-        "bg-slate-800/50 border-slate-700/50",
-        isClickable && "cursor-pointer hover:bg-slate-800 hover:border-slate-600",
-        !isClickable && "opacity-80"
+        "relative flex flex-col min-h-[220px] p-4 rounded-xl border transition-all duration-200",
+        "bg-[#151b2b] border-slate-800",
+        isClickable && "cursor-pointer hover:border-slate-700",
+        !isClickable && "opacity-90"
       )}
     >
-      <div className="pr-8">
-        <h3 className="text-white font-medium mb-2">{title}</h3>
-        <p className="text-slate-400 text-sm line-clamp-2">{description}</p>
-      </div>
-      <div className="absolute bottom-5 right-5">
+      <h3 className="text-white text-lg font-medium mb-2">{title}</h3>
+      <p className="text-slate-400 text-sm line-clamp-3 flex-1">{description}</p>
+      <div className="absolute bottom-4 right-4">
         {statusIcons[status]}
       </div>
     </div>

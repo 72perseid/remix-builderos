@@ -8,9 +8,9 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-[#0B0E14]">
         <DashboardSidebar />
-        <main className="flex-1 bg-[#0F172A] overflow-auto">
+        <main className="flex-1 bg-[#0f1219] overflow-auto">
           {children}
         </main>
       </div>
