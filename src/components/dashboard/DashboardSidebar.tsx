@@ -53,7 +53,7 @@ export function DashboardSidebar() {
                       ${isActive(item.url) ? "bg-[#0e172b] text-[#0e172a] border-l-2 border-blue-500" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}
                     `}>
                     <Link to={item.url} className="bg-[#0e172a]">
-                      <item.icon className="h-5 w-5 bg-secondary-foreground text-secondary-foreground" />
+                      <item.icon className="h-5 w-5 text-white" />
                       <span className="text-primary-foreground">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
