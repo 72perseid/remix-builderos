@@ -5,11 +5,32 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useAppIdea } from '@/hooks/useAppIdea';
 import { useTasks } from '@/hooks/useTasks';
+import { useArtifact } from '@/hooks/useArtifact';
 import { GeneratedFeature, TaskCategory, TaskPriority } from '@/types';
 import { toast } from 'sonner';
-import { Sparkles, Download, Zap } from 'lucide-react';
+import { Sparkles, Download, Zap, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface RoadmapItem {
+  id?: string;
+  title: string;
+  description?: string;
+  category?: TaskCategory;
+  priority?: TaskPriority;
+  estimatedEffort?: string;
+  status?: string;
+}
+
+interface RoadmapContent {
+  features?: RoadmapItem[];
+  columns?: {
+    name: string;
+    items: RoadmapItem[];
+  }[];
+  mvp?: RoadmapItem[];
+  v1?: RoadmapItem[];
+  stretchGoals?: RoadmapItem[];
+}
 
 const categoryColors: Record<TaskCategory, string> = {
   MVP: 'bg-category-mvp text-white',
@@ -26,7 +47,7 @@ const priorityColors: Record<TaskPriority, string> = {
 export default function AIKanbanAssistantPage() {
   const { appIdea } = useAppIdea();
   const { importTasks } = useTasks();
-  const [features, setFeatures] = useState<GeneratedFeature[]>([]);
+  const { data: artifact, loading: artifactLoading } = useArtifact('kanban');
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerate = async () => {
@@ -39,11 +60,36 @@ export default function AIKanbanAssistantPage() {
     
     // TODO: Replace with actual n8n webhook call
     setTimeout(() => {
-      setFeatures([]);
       setIsGenerating(false);
       toast.info('AI generation not yet configured');
     }, 1000);
   };
+
+  // Parse artifact content
+  const content = artifact?.content as RoadmapContent | null;
+  
+  // Normalize features from different possible structures
+  const getAllFeatures = (): RoadmapItem[] => {
+    if (!content) return [];
+    
+    // If features array exists
+    if (content.features) return content.features;
+    
+    // If columns structure exists
+    if (content.columns) {
+      return content.columns.flatMap(col => col.items);
+    }
+    
+    // If MVP/V1/stretchGoals structure exists
+    const all: RoadmapItem[] = [];
+    if (content.mvp) all.push(...content.mvp.map(f => ({ ...f, category: 'MVP' as TaskCategory })));
+    if (content.v1) all.push(...content.v1.map(f => ({ ...f, category: 'V1' as TaskCategory })));
+    if (content.stretchGoals) all.push(...content.stretchGoals.map(f => ({ ...f, category: 'Stretch Goals' as TaskCategory })));
+    
+    return all;
+  };
+
+  const features = getAllFeatures();
 
   const handleImportToKanban = () => {
     if (features.length === 0) {
@@ -51,14 +97,14 @@ export default function AIKanbanAssistantPage() {
       return;
     }
 
-    const tasksToImport = features.map(feature => ({
+    const tasksToImport = features.map((feature, idx) => ({
       title: feature.title,
-      description: feature.description,
+      description: feature.description || '',
       status: 'backlog' as const,
       color: 'lavender' as const,
-      category: feature.category,
-      priority: feature.priority,
-      estimatedEffort: feature.estimatedEffort,
+      category: feature.category || 'MVP',
+      priority: feature.priority || 'medium',
+      estimatedEffort: feature.estimatedEffort || '',
     }));
 
     importTasks(tasksToImport);
@@ -70,6 +116,16 @@ export default function AIKanbanAssistantPage() {
     V1: features.filter(f => f.category === 'V1'),
     'Stretch Goals': features.filter(f => f.category === 'Stretch Goals'),
   };
+
+  if (artifactLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -131,29 +187,35 @@ export default function AIKanbanAssistantPage() {
                   </div>
                   
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {groupedFeatures[category].map(feature => (
-                      <Card key={feature.id} className="glass hover:shadow-lg transition-shadow">
+                    {groupedFeatures[category].map((feature, idx) => (
+                      <Card key={feature.id || idx} className="glass hover:shadow-lg transition-shadow">
                         <CardContent className="p-4 space-y-3">
                           <div className="flex items-start justify-between gap-2">
                             <h4 className="font-semibold text-sm flex items-center gap-2">
                               <Zap className="w-4 h-4 text-primary" />
                               {feature.title}
                             </h4>
-                            <span className={cn(
-                              'text-[10px] px-2 py-0.5 rounded border capitalize',
-                              priorityColors[feature.priority]
-                            )}>
-                              {feature.priority}
-                            </span>
+                            {feature.priority && (
+                              <span className={cn(
+                                'text-[10px] px-2 py-0.5 rounded border capitalize',
+                                priorityColors[feature.priority]
+                              )}>
+                                {feature.priority}
+                              </span>
+                            )}
                           </div>
                           
-                          <p className="text-xs text-muted-foreground line-clamp-2">
-                            {feature.description}
-                          </p>
+                          {feature.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">
+                              {feature.description}
+                            </p>
+                          )}
                           
-                          <div className="text-[10px] text-muted-foreground">
-                            Est. effort: {feature.estimatedEffort}
-                          </div>
+                          {feature.estimatedEffort && (
+                            <div className="text-[10px] text-muted-foreground">
+                              Est. effort: {feature.estimatedEffort}
+                            </div>
+                          )}
                         </CardContent>
                       </Card>
                     ))}
@@ -162,6 +224,19 @@ export default function AIKanbanAssistantPage() {
               )
             ))}
           </div>
+        )}
+
+        {/* Empty State */}
+        {!artifact && features.length === 0 && (
+          <Card className="glass">
+            <CardContent className="p-8 text-center">
+              <Zap className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Roadmap Yet</h3>
+              <p className="text-muted-foreground text-sm">
+                Generate a feature roadmap using the AI assistant to see it here.
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </Layout>

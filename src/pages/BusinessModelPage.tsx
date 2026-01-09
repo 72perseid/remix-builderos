@@ -6,12 +6,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useAppIdea } from '@/hooks/useAppIdea';
 import { useBusinessModel } from '@/hooks/useBusinessModel';
+import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
-import { Sparkles, Target, Users, DollarSign, Rocket, Building, Handshake } from 'lucide-react';
+import { Sparkles, Target, Users, DollarSign, Rocket, Building, Handshake, Loader2 } from 'lucide-react';
+
+interface BusinessModelContent {
+  valueProposition?: string;
+  customerSegments?: string[];
+  monetizationStrategy?: string;
+  goToMarketApproach?: string;
+  keyResources?: string[];
+  keyPartners?: string[];
+  revenueStreams?: string[];
+  costStructure?: string[];
+}
 
 export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel, saveBusinessModel, updateGeneratedContent } = useBusinessModel();
+  const { data: artifact, loading: artifactLoading } = useArtifact('business_model');
   
   const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
   const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
@@ -38,6 +51,19 @@ export default function BusinessModelPage() {
       toast.info('AI generation not yet configured');
     }, 1000);
   };
+
+  // Use artifact content if available, otherwise fall back to local hook
+  const content: BusinessModelContent | null = artifact?.content as BusinessModelContent || businessModel?.generatedModel;
+
+  if (artifactLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -88,109 +114,160 @@ export default function BusinessModelPage() {
         </Card>
 
         {/* Generated Business Model Canvas */}
-        {businessModel?.generatedModel && (
+        {content && (
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-lg font-semibold">Business Model Canvas</h2>
             
             <div className="grid md:grid-cols-3 gap-4">
-              <Card className="glass md:col-span-2">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Target className="w-4 h-4 text-primary" />
-                    Value Proposition
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {businessModel.generatedModel.valueProposition}
-                  </p>
-                </CardContent>
-              </Card>
+              {content.valueProposition && (
+                <Card className="glass md:col-span-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      Value Proposition
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {content.valueProposition}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Users className="w-4 h-4 text-accent" />
-                    Customer Segments
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {businessModel.generatedModel.customerSegments?.map((segment, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="text-accent mt-1">•</span>
-                        {segment}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              {content.customerSegments && content.customerSegments.length > 0 && (
+                <Card className="glass">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="w-4 h-4 text-accent" />
+                      Customer Segments
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {content.customerSegments.map((segment, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-accent mt-1">•</span>
+                          {segment}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-priority-low" />
-                    Monetization Strategy
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {businessModel.generatedModel.monetizationStrategy}
-                  </p>
-                </CardContent>
-              </Card>
+              {content.monetizationStrategy && (
+                <Card className="glass">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-priority-low" />
+                      Monetization Strategy
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {content.monetizationStrategy}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card className="glass md:col-span-2">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Rocket className="w-4 h-4 text-category-stretch" />
-                    Go-to-Market Approach
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {businessModel.generatedModel.goToMarketApproach}
-                  </p>
-                </CardContent>
-              </Card>
+              {content.goToMarketApproach && (
+                <Card className="glass md:col-span-2">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Rocket className="w-4 h-4 text-category-stretch" />
+                      Go-to-Market Approach
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      {content.goToMarketApproach}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Building className="w-4 h-4 text-primary" />
-                    Key Resources
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {businessModel.generatedModel.keyResources?.map((resource, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="text-primary mt-1">•</span>
-                        {resource}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              {content.keyResources && content.keyResources.length > 0 && (
+                <Card className="glass">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Building className="w-4 h-4 text-primary" />
+                      Key Resources
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {content.keyResources.map((resource, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-primary mt-1">•</span>
+                          {resource}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card className="glass">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Handshake className="w-4 h-4 text-accent" />
-                    Key Partners
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-1">
-                    {businessModel.generatedModel.keyPartners?.map((partner, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <span className="text-accent mt-1">•</span>
-                        {partner}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
+              {content.keyPartners && content.keyPartners.length > 0 && (
+                <Card className="glass">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Handshake className="w-4 h-4 text-accent" />
+                      Key Partners
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {content.keyPartners.map((partner, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-accent mt-1">•</span>
+                          {partner}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {content.revenueStreams && content.revenueStreams.length > 0 && (
+                <Card className="glass">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-priority-low" />
+                      Revenue Streams
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {content.revenueStreams.map((stream, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-priority-low mt-1">•</span>
+                          {stream}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {content.costStructure && content.costStructure.length > 0 && (
+                <Card className="glass">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Cost Structure</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-1">
+                      {content.costStructure.map((cost, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-muted-foreground mt-1">•</span>
+                          {cost}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         )}
