@@ -86,6 +86,47 @@ export type Database = {
         }
         Relationships: []
       }
+      artifacts: {
+        Row: {
+          app_idea_id: string
+          content: Json | null
+          created_at: string
+          id: string
+          status: string | null
+          type: Database["public"]["Enums"]["artifact_type"]
+          user_id: string
+          version: number | null
+        }
+        Insert: {
+          app_idea_id: string
+          content?: Json | null
+          created_at?: string
+          id?: string
+          status?: string | null
+          type: Database["public"]["Enums"]["artifact_type"]
+          user_id: string
+          version?: number | null
+        }
+        Update: {
+          app_idea_id?: string
+          content?: Json | null
+          created_at?: string
+          id?: string
+          status?: string | null
+          type?: Database["public"]["Enums"]["artifact_type"]
+          user_id?: string
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artifacts_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
+            referencedRelation: "app_ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_models: {
         Row: {
           app_idea_id: string | null
@@ -120,6 +161,73 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "business_models_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
+            referencedRelation: "app_ideas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+          session_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          session_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "chat_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_sessions: {
+        Row: {
+          app_idea_id: string | null
+          created_at: string
+          id: string
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          app_idea_id?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          app_idea_id?: string | null
+          created_at?: string
+          id?: string
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_app_idea_id_fkey"
             columns: ["app_idea_id"]
             isOneToOne: false
             referencedRelation: "app_ideas"
@@ -502,6 +610,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      artifact_type:
+        | "business_model"
+        | "validation"
+        | "product_brief"
+        | "db_design"
+        | "kanban"
       build_feature:
         | "ai_tools"
         | "templates"
@@ -657,6 +771,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      artifact_type: [
+        "business_model",
+        "validation",
+        "product_brief",
+        "db_design",
+        "kanban",
+      ],
       build_feature: [
         "ai_tools",
         "templates",
