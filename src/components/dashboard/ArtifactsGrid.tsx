@@ -6,61 +6,9 @@ interface ArtifactItem {
   status: ArtifactStatus;
 }
 
-const featurePlanningCards: ArtifactItem[] = [
-  { 
-    title: "Business model", 
-    description: "App detail preview: Lorem ipsum dolor sit amet consectetur adipiscing elit.", 
-    status: "loading" 
-  },
-  { 
-    title: "Validation strategy", 
-    description: "App detail description: Lorem ipsum dolor sit amet consectetur.", 
-    status: "locked" 
-  },
-  { 
-    title: "Kanban", 
-    description: "Get your project board organized with tasks and milestones.", 
-    status: "completed" 
-  },
-  { 
-    title: "Logo and brandkit", 
-    description: "App detail description: Lorem ipsum dolor sit amet consectetur.", 
-    status: "locked" 
-  },
-  { 
-    title: "User diagram flow", 
-    description: "App detail description: Lorem ipsum dolor sit amet consectetur.", 
-    status: "locked" 
-  },
-  { 
-    title: "Database design", 
-    description: "App detail description: Lorem ipsum dolor sit amet consectetur.", 
-    status: "locked" 
-  },
-];
+const featurePlanningCards: ArtifactItem[] = [];
 
-const launchingCards: ArtifactItem[] = [
-  { 
-    title: "Logo and Brandkit", 
-    description: "Get your Logo and Brandkit generated.", 
-    status: "available" 
-  },
-  { 
-    title: "Validation strategy", 
-    description: "App detail description: Lorem ipsum dolor sit amet consectetur.", 
-    status: "locked" 
-  },
-  { 
-    title: "Landing page", 
-    description: "Create a stunning landing page for your app.", 
-    status: "locked" 
-  },
-  { 
-    title: "Marketing plan", 
-    description: "Strategic marketing plan for your launch.", 
-    status: "locked" 
-  },
-];
+const launchingCards: ArtifactItem[] = [];
 
 export function ArtifactsGrid() {
   return (

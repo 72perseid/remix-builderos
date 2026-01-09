@@ -10,80 +10,6 @@ import { toast } from 'sonner';
 import { Sparkles, Download, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const mockFeatures: GeneratedFeature[] = [
-  {
-    id: '1',
-    title: 'User Authentication',
-    description: 'Email/password and social login with secure session management',
-    category: 'MVP',
-    priority: 'high',
-    estimatedEffort: '4-6 hours',
-  },
-  {
-    id: '2',
-    title: 'Dashboard Overview',
-    description: 'Main dashboard with key metrics, recent activity, and quick actions',
-    category: 'MVP',
-    priority: 'high',
-    estimatedEffort: '3-4 hours',
-  },
-  {
-    id: '3',
-    title: 'Project Creation',
-    description: 'Create and configure new projects with templates',
-    category: 'MVP',
-    priority: 'medium',
-    estimatedEffort: '2-3 hours',
-  },
-  {
-    id: '4',
-    title: 'Task Management',
-    description: 'CRUD operations for tasks with status, priority, and due dates',
-    category: 'MVP',
-    priority: 'high',
-    estimatedEffort: '4-5 hours',
-  },
-  {
-    id: '5',
-    title: 'Real-time Collaboration',
-    description: 'Live updates and presence indicators for team members',
-    category: 'V1',
-    priority: 'medium',
-    estimatedEffort: '6-8 hours',
-  },
-  {
-    id: '6',
-    title: 'Notifications System',
-    description: 'In-app and email notifications for important events',
-    category: 'V1',
-    priority: 'medium',
-    estimatedEffort: '4-5 hours',
-  },
-  {
-    id: '7',
-    title: 'Advanced Analytics',
-    description: 'Detailed charts and reports for productivity insights',
-    category: 'V1',
-    priority: 'low',
-    estimatedEffort: '5-6 hours',
-  },
-  {
-    id: '8',
-    title: 'Third-party Integrations',
-    description: 'Connect with Slack, GitHub, and other popular tools',
-    category: 'Stretch Goals',
-    priority: 'low',
-    estimatedEffort: '8-10 hours',
-  },
-  {
-    id: '9',
-    title: 'Custom Workflows',
-    description: 'User-defined automation rules and workflow templates',
-    category: 'Stretch Goals',
-    priority: 'low',
-    estimatedEffort: '10-12 hours',
-  },
-];
 
 const categoryColors: Record<TaskCategory, string> = {
   MVP: 'bg-category-mvp text-white',
@@ -111,12 +37,12 @@ export default function AIKanbanAssistantPage() {
 
     setIsGenerating(true);
     
-    // Placeholder for n8n webhook
+    // TODO: Replace with actual n8n webhook call
     setTimeout(() => {
-      setFeatures(mockFeatures);
+      setFeatures([]);
       setIsGenerating(false);
-      toast.success('Roadmap features generated!');
-    }, 2000);
+      toast.info('AI generation not yet configured');
+    }, 1000);
   };
 
   const handleImportToKanban = () => {

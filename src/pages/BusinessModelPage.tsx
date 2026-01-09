@@ -32,42 +32,11 @@ export default function BusinessModelPage() {
 
     setIsGenerating(true);
     
-    // Placeholder for n8n webhook
+    // TODO: Replace with actual n8n webhook call
     setTimeout(() => {
-      const mockGenerated = {
-        valueProposition: `${appIdea.appName || 'Your app'} delivers unique value by simplifying complex workflows and providing AI-powered insights that save users hours of manual work.`,
-        customerSegments: [
-          'Early-stage startups (1-10 employees)',
-          'Solo entrepreneurs and freelancers',
-          'Small business teams (10-50 employees)',
-          'Product managers and project leads',
-        ],
-        monetizationStrategy: 'Freemium model with tiered pricing. Free tier for individuals, Pro tier at $19/month for power users, and Team tier at $49/month for collaboration features.',
-        goToMarketApproach: 'Product-led growth with a focus on viral loops and referral programs. Initial launch on Product Hunt, followed by content marketing and strategic partnerships.',
-        keyResources: [
-          'AI/ML infrastructure',
-          'Development team',
-          'Customer success team',
-          'Marketing automation tools',
-        ],
-        keyPartners: [
-          'Cloud infrastructure providers',
-          'Integration partners (Slack, Notion, etc.)',
-          'Industry influencers',
-          'Startup accelerators',
-        ],
-      };
-      
-      updateGeneratedContent(mockGenerated);
-      saveBusinessModel({ 
-        appIdeaId: appIdea.id, 
-        targetMarket, 
-        competitiveAdvantage,
-        generatedModel: mockGenerated 
-      });
       setIsGenerating(false);
-      toast.success('Business model generated!');
-    }, 2000);
+      toast.info('AI generation not yet configured');
+    }, 1000);
   };
 
   return (

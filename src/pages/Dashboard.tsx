@@ -10,10 +10,7 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="flex flex-col h-screen">
-        <DashboardHeader 
-          appName="My App" 
-          appOneLiner="Building the future of productivity" 
-        />
+        <DashboardHeader />
         <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
         <div className="flex-1 overflow-auto p-6">
           {activeTab === "artifacts" && <ArtifactsGrid />}

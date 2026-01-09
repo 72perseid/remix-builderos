@@ -8,8 +8,8 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ 
-  appName = "App name", 
-  appOneLiner = "App one liner" 
+  appName, 
+  appOneLiner 
 }: DashboardHeaderProps) {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">

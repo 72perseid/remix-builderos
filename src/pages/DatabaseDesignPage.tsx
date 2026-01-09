@@ -38,97 +38,11 @@ export default function DatabaseDesignPage() {
 
     setIsGenerating(true);
     
-    // Placeholder for n8n webhook
+    // TODO: Replace with actual n8n webhook call
     setTimeout(() => {
-      const mockGenerated = {
-        erdDiagram: `erDiagram
-    USER ||--o{ PROJECT : creates
-    USER ||--o{ TASK : owns
-    PROJECT ||--o{ TASK : contains
-    PROJECT ||--o{ COLLABORATOR : has
-    USER ||--o{ COLLABORATOR : is
-    
-    USER {
-        uuid id PK
-        string email
-        string name
-        timestamp created_at
-    }
-    
-    PROJECT {
-        uuid id PK
-        uuid owner_id FK
-        string name
-        string description
-        timestamp created_at
-    }
-    
-    TASK {
-        uuid id PK
-        uuid project_id FK
-        uuid assignee_id FK
-        string title
-        text description
-        enum status
-        timestamp due_date
-    }
-    
-    COLLABORATOR {
-        uuid id PK
-        uuid project_id FK
-        uuid user_id FK
-        enum role
-    }`,
-        tables: [
-          {
-            name: 'users',
-            fields: [
-              { name: 'id', type: 'uuid', constraints: 'PRIMARY KEY, DEFAULT gen_random_uuid()' },
-              { name: 'email', type: 'text', constraints: 'UNIQUE, NOT NULL' },
-              { name: 'name', type: 'text', constraints: 'NOT NULL' },
-              { name: 'avatar_url', type: 'text', constraints: '' },
-              { name: 'created_at', type: 'timestamp', constraints: 'DEFAULT now()' },
-            ],
-          },
-          {
-            name: 'projects',
-            fields: [
-              { name: 'id', type: 'uuid', constraints: 'PRIMARY KEY, DEFAULT gen_random_uuid()' },
-              { name: 'owner_id', type: 'uuid', constraints: 'REFERENCES users(id)' },
-              { name: 'name', type: 'text', constraints: 'NOT NULL' },
-              { name: 'description', type: 'text', constraints: '' },
-              { name: 'created_at', type: 'timestamp', constraints: 'DEFAULT now()' },
-            ],
-          },
-          {
-            name: 'tasks',
-            fields: [
-              { name: 'id', type: 'uuid', constraints: 'PRIMARY KEY, DEFAULT gen_random_uuid()' },
-              { name: 'project_id', type: 'uuid', constraints: 'REFERENCES projects(id)' },
-              { name: 'assignee_id', type: 'uuid', constraints: 'REFERENCES users(id)' },
-              { name: 'title', type: 'text', constraints: 'NOT NULL' },
-              { name: 'description', type: 'text', constraints: '' },
-              { name: 'status', type: 'text', constraints: 'DEFAULT backlog' },
-              { name: 'due_date', type: 'timestamp', constraints: '' },
-            ],
-          },
-        ],
-        relationships: [
-          { from: 'users', to: 'projects', type: 'one-to-many', description: 'A user can own multiple projects' },
-          { from: 'projects', to: 'tasks', type: 'one-to-many', description: 'A project contains multiple tasks' },
-          { from: 'users', to: 'tasks', type: 'one-to-many', description: 'A user can be assigned multiple tasks' },
-        ],
-      };
-      
-      updateGeneratedContent(mockGenerated);
-      saveDatabaseDesign({ 
-        appIdeaId: appIdea.id, 
-        roadmapFeatures,
-        generatedDesign: mockGenerated 
-      });
       setIsGenerating(false);
-      toast.success('Database design generated!');
-    }, 2000);
+      toast.info('AI generation not yet configured');
+    }, 1000);
   };
 
   return (
