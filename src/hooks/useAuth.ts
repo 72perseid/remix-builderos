@@ -27,7 +27,7 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (email: string, password: string, metadata?: { first_name?: string; last_name?: string }) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -35,6 +35,7 @@ export function useAuth() {
       password,
       options: {
         emailRedirectTo: redirectUrl,
+        data: metadata,
       },
     });
     return { data, error };
