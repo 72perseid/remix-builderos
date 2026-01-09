@@ -5,10 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, Eye, EyeOff, Rocket } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Rocket, User } from 'lucide-react';
 import { z } from 'zod';
 
-const authSchema = z.object({
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+});
+
+const signUpSchema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
+  lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
@@ -36,13 +43,17 @@ function FounderCard({ name, tagline, className }: { name: string; tagline: stri
   );
 }
 
+type FormErrors = { firstName?: string; lastName?: string; email?: string; password?: string };
+
 export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<FormErrors>({});
   
   const { signIn, signUp, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
@@ -55,15 +66,19 @@ export default function AuthPage() {
 
   const validateForm = () => {
     try {
-      authSchema.parse({ email, password });
+      if (isSignUp) {
+        signUpSchema.parse({ firstName, lastName, email, password });
+      } else {
+        loginSchema.parse({ email, password });
+      }
       setErrors({});
       return true;
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const fieldErrors: { email?: string; password?: string } = {};
+        const fieldErrors: FormErrors = {};
         error.errors.forEach((err) => {
-          if (err.path[0] === 'email') fieldErrors.email = err.message;
-          if (err.path[0] === 'password') fieldErrors.password = err.message;
+          const field = err.path[0] as keyof FormErrors;
+          fieldErrors[field] = err.message;
         });
         setErrors(fieldErrors);
       }
@@ -80,7 +95,7 @@ export default function AuthPage() {
 
     try {
       if (isSignUp) {
-        const { error } = await signUp(email, password);
+        const { error } = await signUp(email, password, { first_name: firstName, last_name: lastName });
         if (error) {
           if (error.message.includes('already registered')) {
             toast.error('This email is already registered. Please sign in instead.');
@@ -145,6 +160,49 @@ export default function AuthPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Name Fields - Only show on Sign Up */}
+            {isSignUp && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-slate-400 text-sm">
+                    First Name
+                  </Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Input
+                      id="firstName"
+                      type="text"
+                      placeholder="First Name"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg pl-10 focus:border-blue-500 focus:ring-blue-500/20"
+                      disabled={isLoading}
+                    />
+                  </div>
+                  {errors.firstName && (
+                    <p className="text-sm text-red-400">{errors.firstName}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-slate-400 text-sm">
+                    Last Name
+                  </Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg focus:border-blue-500 focus:ring-blue-500/20"
+                    disabled={isLoading}
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-400">{errors.lastName}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-slate-400 text-sm">
                 Email
