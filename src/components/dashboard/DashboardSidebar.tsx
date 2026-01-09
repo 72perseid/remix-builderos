@@ -81,7 +81,7 @@ export function DashboardSidebar() {
                     className={`
                       transition-all duration-200
                       ${isActive(item.url)
-                        ? "bg-[#1E293B] text-blue-500 border-l-2 border-blue-500"
+                        ? "bg-[#0e172b] text-blue-500 border-l-2 border-blue-500"
                         : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                       }
                     `}
