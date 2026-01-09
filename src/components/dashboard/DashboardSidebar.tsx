@@ -51,12 +51,12 @@ export function DashboardSidebar() {
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2">
             {!isCollapsed && (
-              <span className="text-lg font-bold text-white tracking-tight">
+              <span className="text-lg font-bold text-[#0e172a] tracking-tight">
                 AMBITIOUS LABS
               </span>
             )}
             {isCollapsed && (
-              <span className="text-lg font-bold text-white">A</span>
+              <span className="text-lg font-bold text-[#0e172a]">A</span>
             )}
           </Link>
           <SidebarTrigger className="text-slate-400 hover:text-white">
@@ -81,7 +81,7 @@ export function DashboardSidebar() {
                     className={`
                       transition-all duration-200
                       ${isActive(item.url)
-                        ? "bg-[#0e172b] text-blue-500 border-l-2 border-blue-500"
+                        ? "bg-[#0e172b] text-[#0e172a] border-l-2 border-blue-500"
                         : "text-slate-400 hover:text-white hover:bg-slate-800/50"
                       }
                     `}
