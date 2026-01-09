@@ -28,31 +28,11 @@ export default function AppIdeaPage() {
 
     setIsGenerating(true);
     
-    // Placeholder for n8n webhook - simulating AI response
+    // TODO: Replace with actual n8n webhook call
     setTimeout(() => {
-      const mockGenerated = {
-        problemStatement: `${appName} solves the challenge of ${appDescription.slice(0, 50)}... by providing an intuitive and efficient solution.`,
-        targetUsers: 'Tech-savvy professionals, startups, and small business owners who need streamlined workflows.',
-        coreFeatures: [
-          'Intuitive drag-and-drop interface',
-          'Real-time collaboration',
-          'AI-powered suggestions',
-          'Custom integrations',
-          'Analytics dashboard',
-        ],
-        differentiators: [
-          'AI-first approach to problem solving',
-          'No-code customization options',
-          'Built-in best practices templates',
-          'Seamless third-party integrations',
-        ],
-      };
-      
-      updateGeneratedContent(mockGenerated);
-      saveAppIdea({ appName, appDescription, ideaGeneration: mockGenerated });
       setIsGenerating(false);
-      toast.success('AI profile generated!');
-    }, 2000);
+      toast.info('AI generation not yet configured');
+    }, 1000);
   };
 
   return (

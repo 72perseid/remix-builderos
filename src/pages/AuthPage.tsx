@@ -20,14 +20,7 @@ const signUpSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-const founderCards = [
-  { name: "evoglam", tagline: "The perfect way to decide what glam you want.", position: "top-8 left-8" },
-  { name: "AudioNote", tagline: "Guess the perfect audio note for your flute.", position: "top-24 right-12" },
-  { name: "The Happiest", tagline: "The perfect way to decide what glam you want.", position: "top-48 left-16" },
-  { name: "Coinn", tagline: "Guess the perfect audio note for your flute.", position: "top-64 right-8" },
-  { name: "PALOOKA", tagline: "The perfect way to decide what glam you want.", position: "bottom-48 left-12" },
-  { name: "Teslativity", tagline: "The perfect way to decide what glam you want.", position: "bottom-32 right-16" },
-];
+const founderCards: { name: string; tagline: string; position: string }[] = [];
 
 function FounderCard({ name, tagline, className }: { name: string; tagline: string; className?: string }) {
   return (
