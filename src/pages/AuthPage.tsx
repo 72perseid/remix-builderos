@@ -60,7 +60,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 
