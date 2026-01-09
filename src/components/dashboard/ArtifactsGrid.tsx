@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
+import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
+import { useChatContext } from '@/contexts/ChatContext';
 import type { Database } from '@/integrations/supabase/types';
 
 type ArtifactType = Database['public']['Enums']['artifact_type'];
@@ -54,14 +56,22 @@ const artifactCards: ArtifactCardConfig[] = [
 export function ArtifactsGrid() {
   const navigate = useNavigate();
   const { artifacts, loading } = useArtifacts();
+  const { openChat } = useChatContext();
+
+  // Check if user has any artifacts
+  const hasAnyData = artifacts.length > 0;
 
   const getCardStatus = (type: ArtifactType): ArtifactStatus => {
     if (loading) return 'loading';
     
     const artifact = artifacts.find((a) => a.type === type);
-    if (!artifact) return 'available';
+    
+    // No artifact = locked (waiting for AI generation)
+    if (!artifact) return 'locked';
+    
     if (artifact.status === 'completed') return 'completed';
     if (artifact.status === 'generating') return 'loading';
+    
     return 'available';
   };
 
@@ -69,50 +79,59 @@ export function ArtifactsGrid() {
   const launchingCards = artifactCards.filter((c) => c.category === 'launching');
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Feature Planning Column */}
-      <div>
-        <div className="mb-4">
-          <h3 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
-            Feature planning
-          </h3>
-          <p className="text-xs text-slate-600">
-            Plan and organize your app features before development
-          </p>
-        </div>
-        <div className="grid gap-4">
-          {planningCards.map((card) => (
-            <ArtifactCard
-              key={card.type}
-              title={card.title}
-              description={card.description}
-              status={getCardStatus(card.type)}
-              onClick={() => navigate(card.route)}
-            />
-          ))}
-        </div>
-      </div>
+    <div className="space-y-6">
+      {/* Architect Banner */}
+      <ArchitectBanner 
+        onStartBuilding={openChat} 
+        hasData={hasAnyData}
+      />
 
-      {/* Launching Column */}
-      <div>
-        <div className="mb-4">
-          <h3 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
-            Launching
-          </h3>
-          <p className="text-xs text-slate-600">
-            Technical artifacts and implementation guides
-          </p>
+      {/* Artifacts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Feature Planning Column */}
+        <div>
+          <div className="mb-4">
+            <h3 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
+              Feature planning
+            </h3>
+            <p className="text-xs text-slate-600">
+              Plan and organize your app features before development
+            </p>
+          </div>
+          <div className="grid gap-4">
+            {planningCards.map((card) => (
+              <ArtifactCard
+                key={card.type}
+                title={card.title}
+                description={card.description}
+                status={getCardStatus(card.type)}
+                onClick={() => navigate(card.route)}
+              />
+            ))}
+          </div>
         </div>
-        <div className="grid gap-4">
-          {launchingCards.map((card) => (
-            <ArtifactCard
-              key={card.type}
-              title={card.title}
-              description={card.description}
-              status={getCardStatus(card.type)}
-              onClick={() => navigate(card.route)}
-            />
-          ))}
+
+        {/* Launching Column */}
+        <div>
+          <div className="mb-4">
+            <h3 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
+              Launching
+            </h3>
+            <p className="text-xs text-slate-600">
+              Technical artifacts and implementation guides
+            </p>
+          </div>
+          <div className="grid gap-4">
+            {launchingCards.map((card) => (
+              <ArtifactCard
+                key={card.type}
+                title={card.title}
+                description={card.description}
+                status={getCardStatus(card.type)}
+                onClick={() => navigate(card.route)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
