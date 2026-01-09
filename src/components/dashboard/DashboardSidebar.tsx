@@ -23,7 +23,6 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 
 const mainNavItems = [
@@ -48,7 +47,7 @@ export function DashboardSidebar() {
 
   return (
     <Sidebar
-      className="border-r border-slate-800 bg-[#0B0E14]"
+      className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]"
       collapsible="icon"
     >
       <SidebarHeader className="p-4 border-b border-slate-800">
@@ -123,9 +122,9 @@ export function DashboardSidebar() {
                       <item.icon className="h-5 w-5" />
                       <span>{item.title}</span>
                       {item.isNew && !isCollapsed && (
-                        <Badge className="ml-auto bg-blue-500/20 text-blue-400 text-xs px-1.5">
+                        <span className="ml-auto text-[10px] text-blue-400 font-medium">
                           New
-                        </Badge>
+                        </span>
                       )}
                     </Link>
                   </SidebarMenuButton>
