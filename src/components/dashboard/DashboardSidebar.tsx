@@ -44,7 +44,7 @@ export function DashboardSidebar() {
                     `}>
                     <Link to={item.url} className="bg-[#0e172a] text-xl">
                       <item.icon className="h-5 w-5 text-white" />
-                      <span className="text-primary-foreground">{item.title}</span>
+                      <span className="text-primary-foreground text-base">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>)}
