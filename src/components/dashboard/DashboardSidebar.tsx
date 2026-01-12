@@ -48,11 +48,11 @@ export function DashboardSidebar() {
               {mainNavItems.map(item => <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} className={`
                       transition-all duration-200
-                      ${isActive(item.url) ? "bg-[#0e172b] text-[#0e172a] border-l-2 border-blue-500" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}
+                      ${isActive(item.url) ? "bg-blue-500/20 text-blue-400 border-l-2 border-blue-500" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}
                     `}>
-                    <Link to={item.url} className="bg-[#0e172a] text-xl">
-                      <item.icon className="h-5 w-5 text-white" />
-                      <span className="text-primary-foreground text-base">{item.title}</span>
+                    <Link to={item.url}>
+                      <item.icon className={`h-5 w-5 ${isActive(item.url) ? "text-blue-400" : "text-slate-400"}`} />
+                      <span className="text-base">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>)}
