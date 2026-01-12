@@ -32,7 +32,7 @@ export function DashboardSidebar() {
       <SidebarHeader className="p-4 border-b border-slate-800 bg-[#0e172a] text-secondary">
         <div className="flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center">
-            {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-6" />}
+            {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
             {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
           </Link>
           <SidebarTrigger className="text-slate-400 hover:text-white">
