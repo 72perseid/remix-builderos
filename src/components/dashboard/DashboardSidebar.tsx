@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
 const mainNavItems = [{
   title: "Dashboard",
   url: "/dashboard",
@@ -30,11 +31,9 @@ export function DashboardSidebar() {
   return <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
       <SidebarHeader className="p-4 border-b border-slate-800 bg-[#0e172a] text-secondary">
         <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            {!isCollapsed && <span className="text-lg font-bold tracking-tight text-primary-foreground">
-                AMBITIOUS LABS
-              </span>}
-            {isCollapsed && <span className="text-lg font-bold text-[#0e172a]">A</span>}
+          <Link to="/dashboard" className="flex items-center">
+            {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-6" />}
+            {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
           </Link>
           <SidebarTrigger className="text-slate-400 hover:text-white">
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
