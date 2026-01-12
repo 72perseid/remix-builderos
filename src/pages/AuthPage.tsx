@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, Eye, EyeOff, Rocket, User } from 'lucide-react';
+import { Loader2, Eye, EyeOff, User } from 'lucide-react';
 import { z } from 'zod';
+import logoHorizontal from '@/assets/logo-horizontal.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -132,11 +133,8 @@ export default function AuthPage() {
       <div className="bg-[#0B0E14] flex flex-col items-center justify-center px-6 py-12 lg:px-12">
         <div className="w-full max-w-md space-y-8">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">AMBITIOUS LABS</span>
+          <div className="flex items-center">
+            <img src={logoHorizontal} alt="Ambitious Labs" className="h-10" />
           </div>
 
           {/* Headings */}
