@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff, User } from 'lucide-react';
 import { z } from 'zod';
 import logoHorizontal from '@/assets/logo-horizontal.png';
+import logoIcon from '@/assets/logo-icon.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -308,6 +309,11 @@ export default function AuthPage() {
               <FounderCard name={card.name} tagline={card.tagline} />
             </div>
           ))}
+        </div>
+
+        {/* Large Logo Icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <img src={logoIcon} alt="Ambitious Labs" className="w-80 h-80 object-contain opacity-90" />
         </div>
 
         {/* Gradient Overlay for text readability */}
