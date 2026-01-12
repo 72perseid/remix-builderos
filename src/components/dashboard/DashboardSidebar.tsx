@@ -1,8 +1,10 @@
-import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, ChevronLeft, ChevronRight } from "lucide-react";
+import { useLocation, Link, useNavigate } from "react-router-dom";
+import { LayoutDashboard, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 const mainNavItems = [{
   title: "Dashboard",
   url: "/dashboard",
@@ -10,13 +12,20 @@ const mainNavItems = [{
 }];
 export function DashboardSidebar() {
   const location = useLocation();
-  const {
-    state
-  } = useSidebar();
-  const {
-    user
-  } = useAuth();
+  const navigate = useNavigate();
+  const { state } = useSidebar();
+  const { user, signOut } = useAuth();
   const isCollapsed = state === "collapsed";
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Failed to sign out");
+    } else {
+      toast.success("Signed out successfully");
+      navigate("/auth");
+    }
+  };
   const isActive = (path: string) => location.pathname === path;
   return <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
       <SidebarHeader className="p-4 border-b border-slate-800 bg-[#0e172a] text-secondary">
@@ -54,19 +63,32 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-slate-800 p-4 bg-[#0B0E14]">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 border-2 border-slate-700">
-            <AvatarImage src="" />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-              {user?.email?.charAt(0).toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
-          {!isCollapsed && <div className="flex flex-col">
-              <span className="text-sm font-medium text-white">
-                {user?.user_metadata?.first_name || "User"} {user?.user_metadata?.last_name || ""}
-              </span>
-              <span className="text-xs text-slate-400">DIA Accelerator</span>
-            </div>}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 border-2 border-slate-700">
+              <AvatarImage src="" />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+                {user?.email?.charAt(0).toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-white">
+                  {user?.user_metadata?.first_name || "User"} {user?.user_metadata?.last_name || ""}
+                </span>
+                <span className="text-xs text-slate-400">DIA Accelerator</span>
+              </div>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSignOut}
+            className="text-slate-400 hover:text-white hover:bg-slate-800/50"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>;
