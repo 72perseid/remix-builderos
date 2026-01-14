@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import { Bot, User } from 'lucide-react';
+import { User } from 'lucide-react';
+import logoIcon from '@/assets/logo-icon-assistant.png';
 
 interface OnboardingMessageProps {
   role: 'user' | 'assistant';
@@ -18,8 +19,8 @@ export function OnboardingMessage({ role, content, isNew = false }: OnboardingMe
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-          <Bot className="w-5 h-5 text-white" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg overflow-hidden">
+          <img src={logoIcon} alt="Architect" className="w-6 h-6 object-contain" />
         </div>
       )}
 
