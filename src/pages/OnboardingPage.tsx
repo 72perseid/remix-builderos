@@ -114,7 +114,7 @@ export default function OnboardingPage() {
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-3xl font-bold text-primary-foreground">Let's build your app</h1>
-              <p className="text-muted-foreground text-lg max-w-md">
+              <p className="text-lg max-w-md text-secondary">
                 Our AI Architect will guide you through creating your perfect product roadmap.
               </p>
               {isStreaming && <div className="flex items-center justify-center gap-2 text-muted-foreground">
