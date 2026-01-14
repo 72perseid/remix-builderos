@@ -116,7 +116,7 @@ export default function OnboardingPage() {
               </div>
               <h1 className="text-3xl font-bold text-primary-foreground">Let's build your app</h1>
               <p className="text-lg max-w-md text-secondary">
-                Our AI Architect will guide you through creating your perfect product roadmap.
+                Our BuilderOS will guide you through creating your perfect product roadmap.
               </p>
               {isStreaming && <div className="flex items-center justify-center gap-2 text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
