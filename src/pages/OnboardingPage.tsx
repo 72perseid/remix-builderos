@@ -91,7 +91,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background/95 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-[hsl(222,47%,11%)] flex flex-col relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
@@ -99,7 +99,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/80 backdrop-blur-sm">
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
         <img src={logoHorizontal} alt="Logo" className="h-8" />
         <Button
           variant="ghost"
@@ -175,7 +175,7 @@ export default function OnboardingPage() {
       </main>
 
       {/* Input Area */}
-      <div className="relative z-10 border-t border-border/50 bg-background/80 backdrop-blur-sm px-4 py-4">
+      <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
         <div className="max-w-3xl mx-auto flex gap-3">
           <Input
             ref={inputRef}
@@ -203,7 +203,7 @@ export default function OnboardingPage() {
       {/* Completion Overlay */}
       <div
         className={cn(
-          'fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center transition-all duration-500',
+          'fixed inset-0 z-50 bg-[hsl(222,47%,11%)]/95 backdrop-blur-xl flex items-center justify-center transition-all duration-500',
           showCompletion
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
