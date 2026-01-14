@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Loader2, Sparkles } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
+import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
 export default function OnboardingPage() {
   const navigate = useNavigate();
@@ -110,8 +111,8 @@ export default function OnboardingPage() {
         {/* Welcome Header */}
         {messages.length === 0 && !isStreaming && <div className="flex-1 flex items-center justify-center">
             <div className="text-center space-y-4 animate-in fade-in-0 duration-500">
-              <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-xl">
-                <Sparkles className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 mx-auto flex items-center justify-center">
+                <img src={logoIcon} alt="Logo" className="w-16 h-16 object-contain" />
               </div>
               <h1 className="text-3xl font-bold text-primary-foreground">Let's build your app</h1>
               <p className="text-lg max-w-md text-secondary">
