@@ -162,7 +162,7 @@ export default function OnboardingPage() {
       {/* Input Area */}
       <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
         <div className="max-w-3xl mx-auto flex gap-3">
-          <Input ref={inputRef} value={inputValue} onChange={e => setInputValue(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." disabled={isStreaming || showCompletion} className="flex-1 h-12 text-base bg-card border-border/50 focus-visible:ring-blue-500" />
+          <Input ref={inputRef} value={inputValue} onChange={e => setInputValue(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." disabled={isStreaming || showCompletion} className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-foreground placeholder:text-muted-foreground" />
           <Button onClick={handleSendMessage} disabled={!inputValue.trim() || isStreaming || showCompletion} className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg">
             {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </Button>
