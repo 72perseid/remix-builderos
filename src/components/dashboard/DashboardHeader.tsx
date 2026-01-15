@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useProfile } from "@/hooks/useProfile";
 
 interface DashboardHeaderProps {
   appName?: string;
@@ -11,12 +12,18 @@ export function DashboardHeader({
   appName, 
   appOneLiner 
 }: DashboardHeaderProps) {
+  const { profile } = useProfile();
+  const appInitial = appName?.charAt(0).toUpperCase() || "A";
+
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-          <span className="text-white font-bold text-lg">A</span>
-        </div>
+        <Avatar className="w-10 h-10 rounded-lg">
+          <AvatarImage src={profile?.profile_image || ""} className="rounded-lg" />
+          <AvatarFallback className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+            {appInitial}
+          </AvatarFallback>
+        </Avatar>
         <div>
           <h2 className="text-xl font-bold text-white">{appName}</h2>
           <p className="text-sm text-slate-400">{appOneLiner}</p>
