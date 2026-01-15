@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage } from './ChatMessage';
 import { useChat } from '@/hooks/useChat';
+import { useChatContext } from '@/contexts/ChatContext';
 import { Send, Loader2, Trash2 } from 'lucide-react';
 
 interface ChatSheetProps {
@@ -14,8 +15,17 @@ interface ChatSheetProps {
 
 export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
   const { messages, loading, isStreaming, sendMessage, clearChat } = useChat();
+  const { shouldClearOnOpen, setShouldClearOnOpen } = useChatContext();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Clear chat when opened with shouldClearOnOpen flag (New App flow)
+  useEffect(() => {
+    if (open && shouldClearOnOpen) {
+      clearChat();
+      setShouldClearOnOpen(false);
+    }
+  }, [open, shouldClearOnOpen, clearChat, setShouldClearOnOpen]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
