@@ -50,15 +50,15 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
-        <SheetHeader className="px-4 py-3 border-b">
+      <SheetContent className="w-full sm:max-w-md flex flex-col p-0 bg-[#0f1219] border-slate-800">
+        <SheetHeader className="px-4 py-3 border-b border-slate-800">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-lg">AI Assistant</SheetTitle>
+            <SheetTitle className="text-lg text-white">AI Assistant</SheetTitle>
             <Button
               variant="ghost"
               size="icon"
               onClick={clearChat}
-              className="h-8 w-8"
+              className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -68,12 +68,12 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
+            <div className="text-center text-slate-400 py-8">
               <p className="text-sm">Start a conversation with your AI assistant.</p>
-              <p className="text-xs mt-1">Ask about your app, features, or get help building.</p>
+              <p className="text-xs mt-1 text-slate-500">Ask about your app, features, or get help building.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -87,11 +87,11 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
               ))}
               {isStreaming && (
                 <div className="flex gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-accent/20">
-                    <Loader2 className="w-4 h-4 animate-spin text-accent" />
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-500/20">
+                    <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
                   </div>
-                  <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-2">
-                    <p className="text-sm text-muted-foreground">Thinking...</p>
+                  <div className="bg-slate-800 rounded-2xl rounded-bl-md px-4 py-2">
+                    <p className="text-sm text-slate-300">Thinking...</p>
                   </div>
                 </div>
               )}
@@ -99,7 +99,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
           )}
         </ScrollArea>
 
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-slate-800">
           <div className="flex gap-2">
             <Input
               value={input}
@@ -107,12 +107,13 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
               onKeyDown={handleKeyDown}
               placeholder="Type your message..."
               disabled={isStreaming}
-              className="flex-1"
+              className="flex-1 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
             />
             <Button
               onClick={handleSend}
               disabled={!input.trim() || isStreaming}
               size="icon"
+              className="bg-white text-black hover:bg-slate-200"
             >
               {isStreaming ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
