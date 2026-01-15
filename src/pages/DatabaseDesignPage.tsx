@@ -159,8 +159,8 @@ export default function DatabaseDesignPage() {
                     <UITable>
                       <TableHeader>
                         <TableRow className="border-border">
-                          <TableHead className="text-xs text-muted-foreground">Field</TableHead>
-                          <TableHead className="text-xs text-muted-foreground">Type</TableHead>
+                          <TableHead className="text-xs text-white">Field</TableHead>
+                          <TableHead className="text-xs text-white">Type</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -170,8 +170,8 @@ export default function DatabaseDesignPage() {
                             const { name, type } = parseColumn(col);
                             return (
                               <TableRow key={j} className="border-border">
-                                <TableCell className="text-xs font-mono text-foreground/80">{name}</TableCell>
-                                <TableCell className="text-xs font-mono text-muted-foreground">{type}</TableCell>
+                                <TableCell className="text-xs font-mono text-white">{name}</TableCell>
+                                <TableCell className="text-xs font-mono text-white">{type}</TableCell>
                               </TableRow>
                             );
                           })
@@ -179,8 +179,8 @@ export default function DatabaseDesignPage() {
                           // Legacy format: fields as objects
                           (table as TableDefLegacy).fields.map((field, j) => (
                             <TableRow key={j} className="border-border">
-                              <TableCell className="text-xs font-mono text-foreground/80">{field.name}</TableCell>
-                              <TableCell className="text-xs font-mono text-muted-foreground">
+                              <TableCell className="text-xs font-mono text-white">{field.name}</TableCell>
+                              <TableCell className="text-xs font-mono text-white">
                                 {field.type}
                                 {field.constraints && ` (${field.constraints})`}
                               </TableCell>
