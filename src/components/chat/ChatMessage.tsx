@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
-import { User, Sparkles } from 'lucide-react';
+import { User, Sparkles, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -7,8 +8,20 @@ interface ChatMessageProps {
   timestamp?: string;
 }
 
+// Transform special system messages to user-friendly content
+function transformContent(content: string): { text: string; isComplete: boolean } {
+  if (content.includes('JSON_GENERATION_COMPLETE')) {
+    return {
+      text: '✨ BuilderOS completed your artifacts! Head to the dashboard to view them.',
+      isComplete: true,
+    };
+  }
+  return { text: content, isComplete: false };
+}
+
 export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
   const isUser = role === 'user';
+  const { text, isComplete } = transformContent(content);
 
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
@@ -32,7 +45,16 @@ export function ChatMessage({ role, content, timestamp }: ChatMessageProps) {
             : 'bg-muted text-foreground rounded-bl-md'
         )}
       >
-        <p className="text-sm whitespace-pre-wrap">{content}</p>
+        <p className="text-sm whitespace-pre-wrap">{text}</p>
+        {isComplete && (
+          <Link 
+            to="/dashboard" 
+            className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-primary hover:underline"
+          >
+            <CheckCircle className="w-4 h-4" />
+            Go to Dashboard
+          </Link>
+        )}
         {timestamp && (
           <p className="text-[10px] opacity-60 mt-1">
             {new Date(timestamp).toLocaleTimeString([], {
