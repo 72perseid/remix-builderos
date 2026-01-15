@@ -36,7 +36,7 @@ export function Header() {
       toast.error('Failed to sign out');
     } else {
       toast.success('Signed out successfully');
-      navigate('/auth', { replace: true });
+      navigate('/', { replace: true });
     }
   };
 
