@@ -32,6 +32,11 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const [editingApp, setEditingApp] = useState<typeof appIdeas[0] | null>(null);
   const [editForm, setEditForm] = useState({ app_name: '', app_description: '', one_liner: '' });
   const [saving, setSaving] = useState(false);
+  
+  // Delete app dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingApp, setDeletingApp] = useState<typeof appIdeas[0] | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const handleEditApp = (app: typeof appIdeas[0], e: React.MouseEvent) => {
     e.stopPropagation();
@@ -66,6 +71,35 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
       setEditDialogOpen(false);
     }
     setSaving(false);
+  };
+
+  const handleDeleteApp = (app: typeof appIdeas[0], e: React.MouseEvent) => {
+    e.stopPropagation();
+    setDeletingApp(app);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteApp = async () => {
+    if (!deletingApp) return;
+    setDeleting(true);
+    
+    const { error } = await supabase
+      .from('app_ideas')
+      .delete()
+      .eq('id', deletingApp.id);
+
+    if (error) {
+      toast.error('Failed to delete app');
+    } else {
+      toast.success('App deleted successfully');
+      // If deleted app was selected, clear selection
+      if (deletingApp.id === selectedAppId) {
+        selectApp(null);
+      }
+      refreshAppIdeas();
+      setDeleteDialogOpen(false);
+    }
+    setDeleting(false);
   };
 
   const displayName = profile?.first_name && profile?.last_name
@@ -254,7 +288,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                             <Check className="h-4 w-4 text-blue-400" />
                           )}
                         </h4>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -262,6 +296,14 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                             onClick={(e) => handleEditApp(app, e)}
                           >
                             <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-slate-400 hover:text-red-400 hover:bg-red-900/30"
+                            onClick={(e) => handleDeleteApp(app, e)}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                           {app.currently_building && (
                             <Badge className="bg-green-600/20 text-green-400 border-green-600/50 text-xs">
@@ -355,6 +397,37 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
               className="bg-blue-600 hover:bg-blue-700"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete App Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="bg-[#0B0E14] border-slate-800">
+          <DialogHeader>
+            <DialogTitle className="text-white">Delete App</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-slate-400">
+              Are you sure you want to delete <span className="text-white font-medium">{deletingApp?.app_name || 'this app'}</span>? 
+              This action cannot be undone.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              className="border-slate-700 text-slate-400 hover:bg-slate-800"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmDeleteApp}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
             </Button>
           </DialogFooter>
         </DialogContent>
