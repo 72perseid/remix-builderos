@@ -78,15 +78,15 @@ export default function ProductBriefPage() {
         <div className="space-y-6">
           {/* Elevator Pitch / Summary */}
           {elevatorPitch && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a] border-border">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2 text-foreground">
+                <CardTitle className="text-xl flex items-center gap-2 text-white">
                   <Sparkles className="w-5 h-5 text-primary" />
                   {title || 'Elevator Pitch'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">{elevatorPitch}</p>
+                <p className="text-[#65686f]">{elevatorPitch}</p>
               </CardContent>
             </Card>
           )}
@@ -94,29 +94,29 @@ export default function ProductBriefPage() {
           {/* Problem Statement & Differentiators */}
           <div className="grid md:grid-cols-2 gap-4">
             {problemStatement && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a] border-border">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                  <CardTitle className="text-base flex items-center gap-2 text-white">
                     <Target className="w-4 h-4 text-red-500" />
                     Problem Statement
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{problemStatement}</p>
+                  <p className="text-sm text-[#65686f]">{problemStatement}</p>
                 </CardContent>
               </Card>
             )}
 
             {differentiators && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a] border-border">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                  <CardTitle className="text-base flex items-center gap-2 text-white">
                     <Lightbulb className="w-4 h-4 text-yellow-500" />
                     Differentiators
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{differentiators}</p>
+                  <p className="text-sm text-[#65686f]">{differentiators}</p>
                 </CardContent>
               </Card>
             )}
@@ -124,9 +124,9 @@ export default function ProductBriefPage() {
 
           {/* Target Users */}
           {targetUsers && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a] border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
                   <Users className="w-4 h-4 text-purple-500" />
                   Target Users
                 </CardTitle>
@@ -135,13 +135,13 @@ export default function ProductBriefPage() {
                 {Array.isArray(targetUsers) ? (
                   <div className="flex flex-wrap gap-2">
                     {targetUsers.map((audience, i) => (
-                      <Badge key={i} variant="secondary" className="bg-secondary text-secondary-foreground">
+                      <Badge key={i} variant="secondary" className="bg-secondary text-[#65686f]">
                         {audience}
                       </Badge>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">{targetUsers}</p>
+                  <p className="text-sm text-[#65686f]">{targetUsers}</p>
                 )}
               </CardContent>
             </Card>
@@ -149,9 +149,9 @@ export default function ProductBriefPage() {
 
           {/* Core Features */}
           {coreFeatures.length > 0 && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a] border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
                   Core Features
                 </CardTitle>
@@ -159,7 +159,7 @@ export default function ProductBriefPage() {
               <CardContent>
                 <ul className="grid md:grid-cols-2 gap-2">
                   {coreFeatures.map((feature, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                    <li key={i} className="text-sm text-[#65686f] flex gap-2">
                       <span className="text-primary">•</span>
                       {feature}
                     </li>
@@ -171,14 +171,14 @@ export default function ProductBriefPage() {
 
           {/* MVP Scope */}
           {mvpScope.length > 0 && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a] border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-foreground">MVP Scope</CardTitle>
+                <CardTitle className="text-base text-white">MVP Scope</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
                   {mvpScope.map((item, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                    <li key={i} className="text-sm text-[#65686f] flex gap-2">
                       <span className="text-green-500">✓</span>
                       {item}
                     </li>
@@ -190,14 +190,14 @@ export default function ProductBriefPage() {
 
           {/* Success Metrics */}
           {successMetrics.length > 0 && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a] border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-foreground">Success Metrics</CardTitle>
+                <CardTitle className="text-base text-white">Success Metrics</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   {successMetrics.map((metric, i) => (
-                    <Badge key={i} variant="outline" className="border-border text-foreground/80">
+                    <Badge key={i} variant="outline" className="border-border text-[#65686f]">
                       {metric}
                     </Badge>
                   ))}
@@ -208,12 +208,12 @@ export default function ProductBriefPage() {
 
           {/* Timeline */}
           {timeline && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a] border-border">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-foreground">Timeline</CardTitle>
+                <CardTitle className="text-base text-white">Timeline</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{timeline}</p>
+                <p className="text-sm text-[#65686f]">{timeline}</p>
               </CardContent>
             </Card>
           )}
