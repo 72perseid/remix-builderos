@@ -112,10 +112,10 @@ export default function DatabaseDesignPage() {
 
       {/* Empty State */}
       {!content && (
-        <Card className="bg-card/50 border-border">
+        <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
           <CardContent className="p-8 text-center">
             <Database className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2 text-foreground">No Database Design Yet</h3>
+            <h3 className="text-lg font-semibold mb-2 text-white">No Database Design Yet</h3>
             <p className="text-muted-foreground text-sm">
               Generate a database design using the AI Architect on the Dashboard.
             </p>
@@ -128,9 +128,9 @@ export default function DatabaseDesignPage() {
         <div className="space-y-6 animate-fade-in">
           {/* ERD Diagram */}
           {content.erdDiagram && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
                   <Database className="w-4 h-4 text-primary" />
                   ERD Diagram (Mermaid)
                 </CardTitle>
@@ -145,9 +145,9 @@ export default function DatabaseDesignPage() {
 
           {/* Tables */}
           {content.tables && content.tables.length > 0 && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
                   <Table className="w-4 h-4 text-purple-500" />
                   Tables & Fields
                 </CardTitle>
@@ -155,7 +155,7 @@ export default function DatabaseDesignPage() {
               <CardContent className="space-y-4">
                 {content.tables.map((table, i) => (
                   <div key={i} className="space-y-2">
-                    <h4 className="font-semibold text-sm text-foreground">{table.name}</h4>
+                    <h4 className="font-semibold text-sm text-white">{table.name}</h4>
                     <UITable>
                       <TableHeader>
                         <TableRow className="border-border">
@@ -197,9 +197,9 @@ export default function DatabaseDesignPage() {
 
           {/* Relationships */}
           {content.relationships && content.relationships.length > 0 && (
-            <Card className="bg-card/50 border-border">
+            <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
                   <Link2 className="w-4 h-4 text-orange-500" />
                   Table Relationships
                 </CardTitle>
