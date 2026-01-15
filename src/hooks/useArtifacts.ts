@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import type { Database } from '@/integrations/supabase/types';
 
 type ArtifactType = Database['public']['Enums']['artifact_type'];
@@ -13,16 +14,18 @@ export interface ArtifactSummary {
 
 export function useArtifacts() {
   const { user } = useAuth();
+  const { selectedAppId } = useProjectContext();
 
   const query = useQuery({
-    queryKey: ['artifacts', user?.id],
+    queryKey: ['artifacts', user?.id, selectedAppId],
     queryFn: async () => {
-      if (!user?.id) return [];
+      if (!user?.id || !selectedAppId) return [];
 
       const { data, error } = await supabase
         .from('artifacts')
         .select('type, status')
         .eq('user_id', user.id)
+        .eq('app_idea_id', selectedAppId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -42,7 +45,7 @@ export function useArtifacts() {
 
       return summaries;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && !!selectedAppId,
   });
 
   return {

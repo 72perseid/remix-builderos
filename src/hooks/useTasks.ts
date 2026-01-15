@@ -1,100 +1,194 @@
 import { useCallback } from 'react';
-import { Task, TaskStatus, TaskColor } from '@/types';
-import { useLocalStorage } from './useLocalStorage';
-
-const generateId = () => crypto.randomUUID();
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { useProjectContext } from '@/contexts/ProjectContext';
+import { Task, TaskStatus } from '@/types';
 
 export function useTasks() {
-  const [tasks, setTasks] = useLocalStorage<Task[]>('builderos-tasks', []);
+  const { user } = useAuth();
+  const { selectedAppId } = useProjectContext();
+  const queryClient = useQueryClient();
 
+  const queryKey = ['tasks', user?.id, selectedAppId];
+
+  // Fetch tasks from Supabase
+  const { data: tasks = [], isLoading } = useQuery({
+    queryKey,
+    queryFn: async () => {
+      if (!user?.id || !selectedAppId) return [];
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('app_idea_id', selectedAppId)
+        .order('position', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching tasks:', error);
+        return [];
+      }
+
+      // Map database fields to Task type
+      return (data || []).map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description || '',
+        status: (task.status || 'backlog') as TaskStatus,
+        priority: task.priority as Task['priority'] || 'medium',
+        category: task.category || '',
+        color: task.color as Task['color'] || 'gray',
+        plannedDate: task.planned_date || undefined,
+        completedDate: task.completed_date || undefined,
+        estimatedEffort: task.estimated_effort || undefined,
+        position: task.position || 0,
+        createdAt: task.created_at || new Date().toISOString(),
+        updatedAt: task.updated_at || new Date().toISOString(),
+      })) as Task[];
+    },
+    enabled: !!user?.id && !!selectedAppId,
+  });
+
+  // Add task mutation
+  const addTaskMutation = useMutation({
+    mutationFn: async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>) => {
+      if (!user?.id || !selectedAppId) throw new Error('Not authenticated or no app selected');
+
+      const maxPosition = tasks.filter(t => t.status === task.status).length;
+      const now = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          user_id: user.id,
+          app_idea_id: selectedAppId,
+          title: task.title,
+          description: task.description || null,
+          status: task.status,
+          priority: task.priority,
+          category: task.category || null,
+          color: task.color || null,
+          planned_date: task.plannedDate || null,
+          estimated_effort: task.estimatedEffort || null,
+          position: maxPosition,
+          created_at: now,
+          updated_at: now,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  // Update task mutation
+  const updateTaskMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
+      const now = new Date().toISOString();
+      
+      const dbUpdates: Record<string, unknown> = {
+        updated_at: now,
+      };
+
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+      if (updates.category !== undefined) dbUpdates.category = updates.category;
+      if (updates.color !== undefined) dbUpdates.color = updates.color;
+      if (updates.plannedDate !== undefined) dbUpdates.planned_date = updates.plannedDate;
+      if (updates.estimatedEffort !== undefined) dbUpdates.estimated_effort = updates.estimatedEffort;
+      if (updates.position !== undefined) dbUpdates.position = updates.position;
+
+      // Auto-set completion date when moved to done
+      if (updates.status === 'done') {
+        dbUpdates.completed_date = now;
+      }
+
+      const { error } = await supabase
+        .from('tasks')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  // Delete task mutation
+  const deleteTaskMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  // Wrapper functions matching the original API
   const addTask = useCallback((task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>) => {
-    const now = new Date().toISOString();
-    const maxPosition = tasks.filter(t => t.status === task.status).length;
-    
-    const newTask: Task = {
-      ...task,
-      id: generateId(),
-      position: maxPosition,
-      createdAt: now,
-      updatedAt: now,
-    };
-    
-    setTasks(prev => [...prev, newTask]);
-    return newTask;
-  }, [tasks, setTasks]);
+    addTaskMutation.mutate(task);
+  }, [addTaskMutation]);
 
   const updateTask = useCallback((id: string, updates: Partial<Task>) => {
-    setTasks(prev => prev.map(task => {
-      if (task.id !== id) return task;
-      
-      const updatedTask = {
-        ...task,
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-      
-      // Auto-set completion date when moved to done
-      if (updates.status === 'done' && task.status !== 'done') {
-        updatedTask.completedDate = new Date().toISOString();
-      }
-      
-      return updatedTask;
-    }));
-  }, [setTasks]);
+    updateTaskMutation.mutate({ id, updates });
+  }, [updateTaskMutation]);
 
   const deleteTask = useCallback((id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
-  }, [setTasks]);
+    deleteTaskMutation.mutate(id);
+  }, [deleteTaskMutation]);
 
   const moveTask = useCallback((taskId: string, newStatus: TaskStatus, newPosition: number) => {
-    setTasks(prev => {
-      const taskToMove = prev.find(t => t.id === taskId);
-      if (!taskToMove) return prev;
-
-      const oldStatus = taskToMove.status;
-      const tasksInNewColumn = prev.filter(t => t.status === newStatus && t.id !== taskId);
-      
-      // Update positions in new column
-      const updatedTasks = prev.map(task => {
-        if (task.id === taskId) {
-          const updates: Partial<Task> = {
-            status: newStatus,
-            position: newPosition,
-            updatedAt: new Date().toISOString(),
-          };
-          
-          if (newStatus === 'done' && oldStatus !== 'done') {
-            updates.completedDate = new Date().toISOString();
-          }
-          
-          return { ...task, ...updates };
-        }
-        
-        if (task.status === newStatus && task.position >= newPosition) {
-          return { ...task, position: task.position + 1 };
-        }
-        
-        return task;
-      });
-      
-      return updatedTasks;
+    updateTaskMutation.mutate({
+      id: taskId,
+      updates: { status: newStatus, position: newPosition },
     });
-  }, [setTasks]);
+  }, [updateTaskMutation]);
 
-  const importTasks = useCallback((newTasks: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>[]) => {
+  const importTasks = useCallback(async (newTasks: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>[]) => {
+    if (!user?.id || !selectedAppId) return;
+
     const now = new Date().toISOString();
     const existingBacklogCount = tasks.filter(t => t.status === 'backlog').length;
-    
-    const tasksToAdd: Task[] = newTasks.map((task, index) => ({
-      ...task,
-      id: generateId(),
+
+    const tasksToInsert = newTasks.map((task, index) => ({
+      user_id: user.id,
+      app_idea_id: selectedAppId,
+      title: task.title,
+      description: task.description || null,
+      status: task.status,
+      priority: task.priority,
+      category: task.category || null,
+      color: task.color || null,
+      planned_date: task.plannedDate || null,
+      estimated_effort: task.estimatedEffort || null,
       position: existingBacklogCount + index,
-      createdAt: now,
-      updatedAt: now,
+      created_at: now,
+      updated_at: now,
     }));
-    
-    setTasks(prev => [...prev, ...tasksToAdd]);
-  }, [tasks, setTasks]);
+
+    const { error } = await supabase
+      .from('tasks')
+      .insert(tasksToInsert);
+
+    if (error) {
+      console.error('Error importing tasks:', error);
+    } else {
+      queryClient.invalidateQueries({ queryKey });
+    }
+  }, [user?.id, selectedAppId, tasks, queryClient, queryKey]);
 
   const getTasksByStatus = useCallback((status: TaskStatus) => {
     return tasks
@@ -104,6 +198,7 @@ export function useTasks() {
 
   return {
     tasks,
+    loading: isLoading,
     addTask,
     updateTask,
     deleteTask,

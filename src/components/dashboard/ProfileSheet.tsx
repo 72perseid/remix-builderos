@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Trash2, Upload, Mail, User, Briefcase, Loader2 } from 'lucide-react';
+import { Camera, Trash2, Upload, Mail, User, Briefcase, Loader2, Check } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from 'sonner';
 
 interface ProfileSheetProps {
@@ -18,6 +19,7 @@ interface ProfileSheetProps {
 export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const { user } = useAuth();
   const { profile, appIdeas, loading, uploading, uploadProfileImage, deleteProfileImage } = useProfile();
+  const { selectedAppId, selectApp } = useProjectContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const displayName = profile?.first_name && profile?.last_name
@@ -189,11 +191,22 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                   {appIdeas.map((app) => (
                     <div
                       key={app.id}
-                      className="p-4 rounded-lg bg-slate-900/50 border border-slate-800 space-y-2"
+                      onClick={() => {
+                        selectApp(app.id);
+                        onOpenChange(false);
+                      }}
+                      className={`p-4 rounded-lg border space-y-2 cursor-pointer transition-colors ${
+                        app.id === selectedAppId 
+                          ? 'bg-blue-900/20 border-blue-600/50' 
+                          : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
+                      }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-medium text-white">
+                        <h4 className="text-sm font-medium text-white flex items-center gap-2">
                           {app.app_name || 'Untitled App'}
+                          {app.id === selectedAppId && (
+                            <Check className="h-4 w-4 text-blue-400" />
+                          )}
                         </h4>
                         {app.currently_building && (
                           <Badge className="bg-green-600/20 text-green-400 border-green-600/50 text-xs">
