@@ -8,6 +8,7 @@ import { useDatabaseDesign } from '@/hooks/useDatabaseDesign';
 import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Sparkles, Database, Table, Link2, Loader2 } from 'lucide-react';
+import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
 import {
   Table as UITable,
   TableBody,
@@ -104,6 +105,7 @@ export default function DatabaseDesignPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <ArtifactBackButton />
       <div>
         <h1 className="text-2xl font-bold text-white">Database Design</h1>
         <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>

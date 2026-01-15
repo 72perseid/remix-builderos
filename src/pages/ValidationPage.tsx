@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, Users, Target, AlertTriangle, User } from 'lucide-react';
+import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
 interface Persona {
   name: string;
   role?: string;
@@ -30,6 +31,7 @@ export default function ValidationPage() {
   const content = artifact?.content as ValidationContent | null;
   const personas = content?.personas || content?.user_personas || [];
   return <div className="max-w-6xl mx-auto space-y-6">
+      <ArtifactBackButton />
       <div>
         <h1 className="text-2xl font-bold text-white">Validation Strategy</h1>
         <p className="mt-1 text-primary-foreground">
