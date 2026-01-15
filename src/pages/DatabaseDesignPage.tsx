@@ -109,35 +109,6 @@ export default function DatabaseDesignPage() {
         <p className="text-muted-foreground mt-1">Generate an ERD and table schema for your app</p>
       </div>
 
-      {/* Input Form */}
-      <Card className="bg-card/50 border-border">
-        <CardHeader>
-          <CardTitle className="text-lg text-foreground">Design Context</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-3 rounded-lg bg-background/50 border border-border">
-            <Label className="text-xs text-muted-foreground">App Description (from saved)</Label>
-            <p className="text-sm mt-1 text-foreground/80">{appIdea?.appDescription || 'No app idea saved yet'}</p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="roadmapFeatures" className="text-foreground/80">App Roadmap & Features</Label>
-            <Textarea
-              id="roadmapFeatures"
-              value={roadmapFeatures}
-              onChange={(e) => setRoadmapFeatures(e.target.value)}
-              placeholder="List the main features and functionality your app needs. Include user flows, data relationships, and any specific requirements..."
-              rows={5}
-              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-          
-          <Button onClick={handleGenerate} disabled={isGenerating} className="bg-primary hover:bg-primary/90">
-            <Sparkles className="w-4 h-4 mr-2" />
-            {isGenerating ? 'Generating...' : 'Generate Database Design'}
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Empty State */}
       {!content && (
