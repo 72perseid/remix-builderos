@@ -64,7 +64,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
             </div>
           ) : messages.length === 0 ? (
             <div className="text-center text-slate-400 py-8">
-              <p className="text-sm">Start a conversation with your AI assistant.</p>
+              <p className="text-sm">Start a conversation with BuilderOS.</p>
               <p className="text-xs mt-1 text-slate-500">Ask about your app, features, or get help building.</p>
             </div>
           ) : (
