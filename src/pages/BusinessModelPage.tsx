@@ -91,47 +91,6 @@ export default function BusinessModelPage() {
         <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>
       </div>
 
-      {/* Input Form */}
-      <Card className="bg-card/50 border-border">
-        <CardHeader>
-          <CardTitle className="text-lg text-foreground">Business Context</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="p-3 rounded-lg bg-background/50 border border-border">
-            <Label className="text-xs text-muted-foreground">App Idea (from saved)</Label>
-            <p className="text-sm mt-1 text-foreground/80">{appIdea?.appDescription || 'No app idea saved yet'}</p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="targetMarket" className="text-foreground/80">Target Market</Label>
-            <Textarea
-              id="targetMarket"
-              value={targetMarket}
-              onChange={(e) => setTargetMarket(e.target.value)}
-              placeholder="Describe your target market, demographics, and market size..."
-              rows={3}
-              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="competitiveAdvantage" className="text-foreground/80">Competitive Advantage</Label>
-            <Textarea
-              id="competitiveAdvantage"
-              value={competitiveAdvantage}
-              onChange={(e) => setCompetitiveAdvantage(e.target.value)}
-              placeholder="What makes your solution unique compared to existing alternatives..."
-              rows={3}
-              className="bg-background/50 border-border text-foreground placeholder:text-muted-foreground"
-            />
-          </div>
-          
-          <Button onClick={handleGenerate} disabled={isGenerating} className="bg-primary hover:bg-primary/90">
-            <Sparkles className="w-4 h-4 mr-2" />
-            {isGenerating ? 'Generating...' : 'Generate Business Model'}
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Empty State */}
       {!content && (
