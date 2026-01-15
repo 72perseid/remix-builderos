@@ -53,7 +53,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
       <SheetContent className="w-full sm:max-w-md flex flex-col p-0 bg-[#0f1219] border-slate-800">
         <SheetHeader className="px-4 py-3 border-b border-slate-800">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-lg text-white">AI Assistant</SheetTitle>
+            <SheetTitle className="text-lg text-white">BuilderOS</SheetTitle>
             <Button
               variant="ghost"
               size="icon"
