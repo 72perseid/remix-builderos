@@ -78,6 +78,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
                   content={msg.content}
                   timestamp={msg.created_at}
                   userAvatar={profile?.profile_image}
+                  onDashboardClick={() => onOpenChange(false)}
                 />
               ))}
               {isStreaming && (
