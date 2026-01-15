@@ -105,7 +105,7 @@ export default function DatabaseDesignPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Database Design</h1>
+        <h1 className="text-2xl font-bold text-white">Database Design</h1>
         <p className="text-muted-foreground mt-1">Generate an ERD and table schema for your app</p>
       </div>
 
