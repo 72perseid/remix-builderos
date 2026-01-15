@@ -249,6 +249,14 @@ export default function OnboardingPage() {
               style={{ animation: 'loading 2s ease-in-out infinite' }} 
             />
           </div>
+
+          {/* Manual redirect button */}
+          <Button
+            onClick={() => navigate('/dashboard')}
+            className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+          >
+            Go to Dashboard
+          </Button>
         </div>
       </div>
 
