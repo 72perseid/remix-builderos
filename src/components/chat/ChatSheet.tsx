@@ -6,7 +6,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChatMessage } from './ChatMessage';
 import { useChat } from '@/hooks/useChat';
 import { useChatContext } from '@/contexts/ChatContext';
-import { Send, Loader2, Trash2 } from 'lucide-react';
+import { useProfile } from '@/hooks/useProfile';
+import { Send, Loader2 } from 'lucide-react';
 
 interface ChatSheetProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface ChatSheetProps {
 export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
   const { messages, loading, isStreaming, sendMessage, clearChat } = useChat();
   const { shouldClearOnOpen, setShouldClearOnOpen } = useChatContext();
+  const { profile } = useProfile();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +77,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
                   role={msg.role as 'user' | 'assistant'}
                   content={msg.content}
                   timestamp={msg.created_at}
+                  userAvatar={profile?.profile_image}
                 />
               ))}
               {isStreaming && (
