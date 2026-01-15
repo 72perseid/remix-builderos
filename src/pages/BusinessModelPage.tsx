@@ -8,6 +8,7 @@ import { useBusinessModel } from '@/hooks/useBusinessModel';
 import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Sparkles, Target, Users, DollarSign, Rocket, Building, Loader2, Megaphone } from 'lucide-react';
+import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
 
 interface RevenueStream {
   source: string;
@@ -86,6 +87,7 @@ export default function BusinessModelPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <ArtifactBackButton />
       <div>
         <h1 className="text-2xl font-bold text-white">Business Model</h1>
         <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>

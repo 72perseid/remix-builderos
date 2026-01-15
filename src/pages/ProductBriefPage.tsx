@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles } from 'lucide-react';
+import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
 
 interface ProductBriefContent {
   // Snake_case from database
@@ -49,6 +50,7 @@ export default function ProductBriefPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
+      <ArtifactBackButton />
       <div>
         <h1 className="text-2xl font-bold text-white">Product Brief</h1>
         <p className="text-muted-foreground mt-1">

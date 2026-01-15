@@ -3,19 +3,17 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { id: "project-board", label: "Project board", route: "/ai-kanban-assistant" },
-  { id: "database-design", label: "Database design", route: "/database-design" },
   { id: "artifacts", label: "Artifacts", route: "/dashboard" },
-  { id: "app-details", label: "App details", route: "/business-model" },
 ];
 
 const routeToTab: Record<string, string> = {
   '/dashboard': 'artifacts',
   '/ai-kanban-assistant': 'project-board',
-  '/database-design': 'database-design',
-  '/business-model': 'app-details',
-  '/product-brief': 'app-details',
-  '/validation': 'app-details',
-  '/app-idea': 'app-details',
+  '/database-design': 'artifacts',
+  '/business-model': 'artifacts',
+  '/product-brief': 'artifacts',
+  '/validation': 'artifacts',
+  '/app-idea': 'artifacts',
 };
 
 export function DashboardTabs() {
