@@ -108,7 +108,21 @@ export function useChat() {
         }
 
         const data = await response.json();
-        const aiResponse = data.response || data.message || 'No response received';
+        
+        // Debug: Log raw response to help troubleshoot
+        console.log('Raw n8n response:', data);
+        
+        // Handle array vs object response
+        const responseData = Array.isArray(data) ? data[0] : data;
+        
+        // Extract message from various possible keys
+        const aiResponse = 
+          responseData?.output || 
+          responseData?.message || 
+          responseData?.response || 
+          responseData?.text || 
+          responseData?.content ||
+          (typeof responseData === 'string' ? responseData : 'Error: No message found in response');
 
         // Save assistant response to DB
         await supabase
