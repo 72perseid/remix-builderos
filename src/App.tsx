@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ProjectProvider } from "@/contexts/ProjectContext";
+import { ChatProvider } from "@/contexts/ChatContext";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
@@ -23,9 +24,10 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ProjectProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+        <ChatProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/onboarding" element={
@@ -73,6 +75,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+        </ChatProvider>
       </ProjectProvider>
     </TooltipProvider>
   </QueryClientProvider>
