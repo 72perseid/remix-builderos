@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 import { User, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import builderosIconMono from '@/assets/builderos-icon-mono.png';
 
@@ -9,6 +9,7 @@ interface ChatMessageProps {
   content: string;
   timestamp?: string;
   userAvatar?: string | null;
+  onDashboardClick?: () => void;
 }
 
 // Transform special system messages to user-friendly content
@@ -22,9 +23,15 @@ function transformContent(content: string): { text: string; isComplete: boolean 
   return { text: content, isComplete: false };
 }
 
-export function ChatMessage({ role, content, timestamp, userAvatar }: ChatMessageProps) {
+export function ChatMessage({ role, content, timestamp, userAvatar, onDashboardClick }: ChatMessageProps) {
+  const navigate = useNavigate();
   const isUser = role === 'user';
   const { text, isComplete } = transformContent(content);
+
+  const handleDashboardClick = () => {
+    onDashboardClick?.();
+    navigate('/dashboard');
+  };
 
   return (
     <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
@@ -50,13 +57,13 @@ export function ChatMessage({ role, content, timestamp, userAvatar }: ChatMessag
       >
         <p className="text-sm whitespace-pre-wrap">{text}</p>
         {isComplete && (
-          <Link 
-            to="/dashboard" 
+          <button 
+            onClick={handleDashboardClick}
             className="inline-flex items-center gap-1.5 mt-2 text-sm font-medium text-primary hover:underline"
           >
             <CheckCircle className="w-4 h-4" />
             Go to Dashboard
-          </Link>
+          </button>
         )}
         {timestamp && (
           <p className="text-[10px] opacity-60 mt-1">
