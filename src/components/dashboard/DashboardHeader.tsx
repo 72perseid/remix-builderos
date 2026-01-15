@@ -9,17 +9,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, ChevronDown, Check, Loader2 } from "lucide-react";
 import { useProjectContext } from "@/contexts/ProjectContext";
-import { useNavigate } from "react-router-dom";
+import { useChatContext } from "@/contexts/ChatContext";
 
 export function DashboardHeader() {
-  const navigate = useNavigate();
   const { selectedApp, apps, loading, selectApp, clearSelection } = useProjectContext();
+  const { openChat, setShouldClearOnOpen } = useChatContext();
   
   const appInitial = selectedApp?.app_name?.charAt(0).toUpperCase() || "A";
 
   const handleNewApp = () => {
-    clearSelection();
-    navigate('/onboarding?mode=new');
+    clearSelection();              // Step 1: Clear selectedAppId (creation mode)
+    setShouldClearOnOpen(true);    // Step 2: Signal to clear chat
+    openChat();                    // Step 3: Open chat UI
   };
 
   const handleSelectApp = (appId: string) => {

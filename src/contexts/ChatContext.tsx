@@ -4,12 +4,15 @@ interface ChatContextType {
   isOpen: boolean;
   openChat: () => void;
   closeChat: () => void;
+  shouldClearOnOpen: boolean;
+  setShouldClearOnOpen: (value: boolean) => void;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
 
 export function ChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [shouldClearOnOpen, setShouldClearOnOpen] = useState(false);
 
   return (
     <ChatContext.Provider
@@ -17,6 +20,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         isOpen,
         openChat: () => setIsOpen(true),
         closeChat: () => setIsOpen(false),
+        shouldClearOnOpen,
+        setShouldClearOnOpen,
       }}
     >
       {children}

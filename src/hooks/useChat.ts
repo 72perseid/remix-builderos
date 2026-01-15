@@ -2,9 +2,9 @@ import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectContext } from '@/contexts/ProjectContext';
 
-// Webhook URL placeholder - configure in edge function or secrets
-const N8N_CHAT_WEBHOOK = 'https://your-n8n-webhook-url.com/webhook/chat';
+const N8N_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/4c31dc75-04a8-4638-b2f5-b94b2ab0de59';
 
 export interface ChatMessage {
   id: string;
@@ -15,6 +15,7 @@ export interface ChatMessage {
 
 export function useChat() {
   const { user } = useAuth();
+  const { selectedAppId } = useProjectContext();
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -98,6 +99,7 @@ export function useChat() {
             message: content,
             user_id: user.id,
             session_id: sessionId,
+            app_idea_id: selectedAppId, // null = new app, string = existing app
           }),
         });
 
