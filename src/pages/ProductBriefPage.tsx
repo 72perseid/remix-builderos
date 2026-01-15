@@ -1,16 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles } from 'lucide-react';
-
+import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users } from 'lucide-react';
 interface ProductBriefContent {
-  // Snake_case from database
-  elevator_pitch?: string;
-  problem_statement?: string;
-  target_users?: string;
-  core_features?: string[];
-  differentiators?: string;
-  // Legacy camelCase support
   title?: string;
   summary?: string;
   problem?: string;
@@ -22,203 +14,151 @@ interface ProductBriefContent {
   timeline?: string;
   mvpScope?: string[];
 }
-
 export default function ProductBriefPage() {
-  const { data: artifact, loading, error } = useArtifact('product_brief');
-
+  const {
+    data: artifact,
+    loading,
+    error
+  } = useArtifact('product_brief');
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      </div>;
   }
-
   const content = artifact?.content as ProductBriefContent | null;
-
-  // Normalize data (handle both snake_case and camelCase)
-  const elevatorPitch = content?.elevator_pitch || content?.summary;
-  const problemStatement = content?.problem_statement || content?.problem;
-  const targetUsers = content?.target_users || content?.targetAudience;
-  const coreFeatures = content?.core_features || content?.keyFeatures || [];
-  const differentiators = content?.differentiators || content?.solution;
-  const title = content?.title;
-  const successMetrics = content?.successMetrics || [];
-  const mvpScope = content?.mvpScope || [];
-  const timeline = content?.timeline;
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-6">
+  return <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Product Brief</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl font-bold text-white">Product Brief</h1>
+        <p className="text-slate-400 mt-1">
           Your comprehensive product requirements document
         </p>
       </div>
 
-      {error && (
-        <Card className="border-destructive/50 bg-destructive/10">
+      {error && <Card className="border-red-500/50 bg-red-500/10">
           <CardContent className="p-4">
-            <p className="text-destructive text-sm">Failed to load product brief</p>
+            <p className="text-red-400 text-sm">Failed to load product brief</p>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
-      {!artifact ? (
-        <Card className="bg-card/50 border-border">
+      {!artifact ? <Card className="bg-slate-800/50 border-slate-700">
           <CardContent className="p-8 text-center">
-            <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2 text-foreground">No Product Brief Yet</h3>
-            <p className="text-muted-foreground text-sm">
-              Generate a product brief using the AI Architect on the Dashboard.
+            <FileText className="w-12 h-12 mx-auto text-slate-500 mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-primary-foreground">No Product Brief Yet</h3>
+            <p className="text-slate-400 text-sm">
+              Generate a product brief using the AI assistant to see it here.
             </p>
           </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Elevator Pitch / Summary */}
-          {elevatorPitch && (
-            <Card className="bg-card/50 border-border">
+        </Card> : <div className="space-y-6">
+          {/* Title & Summary */}
+          {(content?.title || content?.summary) && <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2 text-foreground">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  {title || 'Elevator Pitch'}
-                </CardTitle>
+                <CardTitle className="text-xl text-white">{content?.title || 'Product Brief'}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{elevatorPitch}</p>
-              </CardContent>
-            </Card>
-          )}
+              {content?.summary && <CardContent>
+                  <p className="text-slate-400">{content.summary}</p>
+                </CardContent>}
+            </Card>}
 
-          {/* Problem Statement & Differentiators */}
+          {/* Problem & Solution */}
           <div className="grid md:grid-cols-2 gap-4">
-            {problemStatement && (
-              <Card className="bg-card/50 border-border">
+            {content?.problem && <Card className="bg-slate-800/50 border-slate-700">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                  <CardTitle className="text-base flex items-center gap-2 text-white">
                     <Target className="w-4 h-4 text-red-500" />
-                    Problem Statement
+                    Problem
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{problemStatement}</p>
+                  <p className="text-sm text-slate-400">{content.problem}</p>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
 
-            {differentiators && (
-              <Card className="bg-card/50 border-border">
+            {content?.solution && <Card className="bg-slate-800/50 border-slate-700">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-foreground">
-                    <Lightbulb className="w-4 h-4 text-yellow-500" />
-                    Differentiators
+                  <CardTitle className="text-base flex items-center gap-2 text-white">
+                    <Lightbulb className="w-4 h-4 text-blue-500" />
+                    Solution
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{differentiators}</p>
+                  <p className="text-sm text-slate-400">{content.solution}</p>
                 </CardContent>
-              </Card>
-            )}
+              </Card>}
           </div>
 
-          {/* Target Users */}
-          {targetUsers && (
-            <Card className="bg-card/50 border-border">
+          {/* Target Audience */}
+          {content?.targetAudience && <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
+                <CardTitle className="text-base flex items-center gap-2 text-white">
                   <Users className="w-4 h-4 text-purple-500" />
-                  Target Users
+                  Target Audience
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {Array.isArray(targetUsers) ? (
-                  <div className="flex flex-wrap gap-2">
-                    {targetUsers.map((audience, i) => (
-                      <Badge key={i} variant="secondary" className="bg-secondary text-secondary-foreground">
+                {Array.isArray(content.targetAudience) ? <div className="flex flex-wrap gap-2">
+                    {content.targetAudience.map((audience, i) => <Badge key={i} variant="secondary" className="bg-slate-700 text-slate-300">
                         {audience}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">{targetUsers}</p>
-                )}
+                      </Badge>)}
+                  </div> : <p className="text-sm text-slate-400">{content.targetAudience}</p>}
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
-          {/* Core Features */}
-          {coreFeatures.length > 0 && (
-            <Card className="bg-card/50 border-border">
+          {/* Key Features */}
+          {content?.keyFeatures && content.keyFeatures.length > 0 && <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-foreground">
-                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                  Core Features
+                <CardTitle className="text-base flex items-center gap-2 text-white">
+                  <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                  Key Features
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="grid md:grid-cols-2 gap-2">
-                  {coreFeatures.map((feature, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex gap-2">
-                      <span className="text-primary">•</span>
+                  {content.keyFeatures.map((feature, i) => <li key={i} className="text-sm text-slate-400 flex gap-2">
+                      <span className="text-blue-500">•</span>
                       {feature}
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* MVP Scope */}
-          {mvpScope.length > 0 && (
-            <Card className="bg-card/50 border-border">
+          {content?.mvpScope && content.mvpScope.length > 0 && <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-foreground">MVP Scope</CardTitle>
+                <CardTitle className="text-base text-white">MVP Scope</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1">
-                  {mvpScope.map((item, i) => (
-                    <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                  {content.mvpScope.map((item, i) => <li key={i} className="text-sm text-slate-400 flex gap-2">
                       <span className="text-green-500">✓</span>
                       {item}
-                    </li>
-                  ))}
+                    </li>)}
                 </ul>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Success Metrics */}
-          {successMetrics.length > 0 && (
-            <Card className="bg-card/50 border-border">
+          {content?.successMetrics && content.successMetrics.length > 0 && <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-foreground">Success Metrics</CardTitle>
+                <CardTitle className="text-base text-white">Success Metrics</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {successMetrics.map((metric, i) => (
-                    <Badge key={i} variant="outline" className="border-border text-foreground/80">
+                  {content.successMetrics.map((metric, i) => <Badge key={i} variant="outline" className="border-slate-600 text-slate-300">
                       {metric}
-                    </Badge>
-                  ))}
+                    </Badge>)}
                 </div>
               </CardContent>
-            </Card>
-          )}
+            </Card>}
 
           {/* Timeline */}
-          {timeline && (
-            <Card className="bg-card/50 border-border">
+          {content?.timeline && <Card className="bg-slate-800/50 border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base text-foreground">Timeline</CardTitle>
+                <CardTitle className="text-base text-white">Timeline</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground">{timeline}</p>
+                <p className="text-sm text-slate-400">{content.timeline}</p>
               </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-    </div>
-  );
+            </Card>}
+        </div>}
+    </div>;
 }
