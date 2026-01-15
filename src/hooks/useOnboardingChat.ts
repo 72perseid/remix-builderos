@@ -18,7 +18,7 @@ export function useOnboardingChat() {
   const [error, setError] = useState<Error | null>(null);
 
   const sendMessage = useCallback(
-    async (content: string, isHidden: boolean = false): Promise<string> => {
+    async (content: string, isHidden: boolean = false, isNewApp: boolean = false): Promise<string> => {
       if (!user?.id) throw new Error('No user authenticated');
 
       setError(null);
@@ -44,6 +44,7 @@ export function useOnboardingChat() {
           body: JSON.stringify({
             message: content,
             user_id: user.id,
+            is_new_app: isNewApp,
           }),
         });
 
@@ -75,11 +76,12 @@ export function useOnboardingChat() {
     [user?.id]
   );
 
-  const startSession = useCallback(async () => {
+  const startSession = useCallback(async (isNewApp: boolean = false) => {
     if (!user?.id) return '';
     
-    // Send the hidden START_ONBOARDING_SESSION message
-    return sendMessage('START_ONBOARDING_SESSION', true);
+    // Send the hidden START_ONBOARDING_SESSION message with isNewApp flag
+    const startMessage = isNewApp ? 'START_NEW_APP_SESSION' : 'START_ONBOARDING_SESSION';
+    return sendMessage(startMessage, true, isNewApp);
   }, [user?.id, sendMessage]);
 
   const clearMessages = useCallback(() => {

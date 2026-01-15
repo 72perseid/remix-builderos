@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useOnboardingChat } from '@/hooks/useOnboardingChat';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,18 +10,22 @@ import { Send, Loader2, Sparkles } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
+
 export default function OnboardingPage() {
   const navigate = useNavigate();
-  const {
-    user
-  } = useAuth();
+  const [searchParams] = useSearchParams();
+  const isNewAppMode = searchParams.get('mode') === 'new';
+  
+  const { user } = useAuth();
   const {
     messages,
     isStreaming,
     sendMessage,
     startSession,
-    error
+    error,
+    clearMessages,
   } = useOnboardingChat();
+  
   const [inputValue, setInputValue] = useState('');
   const [showCompletion, setShowCompletion] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
@@ -35,13 +39,21 @@ export default function OnboardingPage() {
     });
   }, [messages]);
 
+  // Clear messages when entering new app mode
+  useEffect(() => {
+    if (isNewAppMode) {
+      clearMessages();
+      setSessionStarted(false);
+    }
+  }, [isNewAppMode, clearMessages]);
+
   // Auto-start session on mount
   useEffect(() => {
     if (!sessionStarted && user?.id) {
       setSessionStarted(true);
-      startSession().catch(console.error);
+      startSession(isNewAppMode).catch(console.error);
     }
-  }, [sessionStarted, user?.id, startSession]);
+  }, [sessionStarted, user?.id, startSession, isNewAppMode]);
 
   // Focus input when not streaming
   useEffect(() => {
@@ -49,19 +61,20 @@ export default function OnboardingPage() {
       inputRef.current?.focus();
     }
   }, [isStreaming, showCompletion]);
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isStreaming) return;
     const content = inputValue.trim();
     setInputValue('');
     try {
-      const response = await sendMessage(content);
+      const response = await sendMessage(content, false, isNewAppMode);
 
       // Check for completion trigger
       if (response.includes('JSON_GENERATION_COMPLETE')) {
         setShowCompletion(true);
 
-        // Update profile as onboarded
-        if (user?.id) {
+        // Update profile as onboarded (only if not in new app mode)
+        if (user?.id && !isNewAppMode) {
           await supabase.from('profiles').update({
             onboarded: true
           }).eq('id', user.id);
@@ -76,22 +89,31 @@ export default function OnboardingPage() {
       console.error('Failed to send message:', err);
     }
   };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
+
   const handleSkip = async () => {
-    // Mark as onboarded even if skipping
-    if (user?.id) {
+    // Mark as onboarded even if skipping (only if not in new app mode)
+    if (user?.id && !isNewAppMode) {
       await supabase.from('profiles').update({
         onboarded: true
       }).eq('id', user.id);
     }
     navigate('/dashboard');
   };
-  return <div className="min-h-screen bg-[hsl(222,47%,11%)] flex flex-col relative overflow-hidden">
+
+  const pageTitle = isNewAppMode ? "Create a New App" : "Let's build your app";
+  const pageSubtitle = isNewAppMode 
+    ? "Tell our BuilderOS about your new app idea."
+    : "Our BuilderOS will guide you through creating your perfect product roadmap.";
+
+  return (
+    <div className="min-h-screen bg-[hsl(222,47%,11%)] flex flex-col relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl" />
@@ -102,34 +124,42 @@ export default function OnboardingPage() {
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
         <img src={logoHorizontal} alt="Logo" className="h-8" />
         <Button variant="ghost" onClick={handleSkip} className="text-muted-foreground hover:text-foreground">
-          Skip
+          {isNewAppMode ? 'Cancel' : 'Skip'}
         </Button>
       </header>
 
       {/* Chat Container */}
       <main className="relative z-10 flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-6">
         {/* Welcome Header */}
-        {messages.length === 0 && !isStreaming && <div className="flex-1 flex items-center justify-center">
+        {messages.length === 0 && !isStreaming && (
+          <div className="flex-1 flex items-center justify-center">
             <div className="text-center space-y-4 animate-in fade-in-0 duration-500">
               <div className="w-16 h-16 mx-auto flex items-center justify-center">
                 <img src={logoIcon} alt="Logo" className="w-16 h-16 object-contain" />
               </div>
-              <h1 className="text-3xl font-bold text-primary-foreground">Let's build your app</h1>
+              <h1 className="text-3xl font-bold text-primary-foreground">{pageTitle}</h1>
               <p className="text-lg max-w-md text-secondary">
-                Our BuilderOS will guide you through creating your perfect product roadmap.
+                {pageSubtitle}
               </p>
-              {isStreaming && <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              {isStreaming && (
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   <span>Architect is thinking...</span>
-                </div>}
+                </div>
+              )}
             </div>
-          </div>}
+          </div>
+        )}
 
         {/* Messages */}
-        {(messages.length > 0 || isStreaming) && <div className="flex-1 overflow-y-auto space-y-6 pb-4">
-            {messages.map(message => <OnboardingMessage key={message.id} role={message.role} content={message.content} />)}
+        {(messages.length > 0 || isStreaming) && (
+          <div className="flex-1 overflow-y-auto space-y-6 pb-4">
+            {messages.map(message => (
+              <OnboardingMessage key={message.id} role={message.role} content={message.content} />
+            ))}
 
-            {isStreaming && <div className="flex gap-4 justify-start animate-in fade-in-0">
+            {isStreaming && (
+              <div className="flex gap-4 justify-start animate-in fade-in-0">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
                   <Loader2 className="w-5 h-5 text-white animate-spin" />
                 </div>
@@ -138,40 +168,53 @@ export default function OnboardingPage() {
                     Architect
                   </p>
                   <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{
-                animationDelay: '0ms'
-              }} />
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{
-                animationDelay: '150ms'
-              }} />
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{
-                animationDelay: '300ms'
-              }} />
+                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
-              </div>}
+              </div>
+            )}
 
             <div ref={messagesEndRef} />
-          </div>}
+          </div>
+        )}
 
         {/* Error Display */}
-        {error && <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
             {error.message}
-          </div>}
+          </div>
+        )}
       </main>
 
       {/* Input Area */}
       <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
         <div className="max-w-3xl mx-auto flex gap-3">
-          <Input ref={inputRef} value={inputValue} onChange={e => setInputValue(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." disabled={isStreaming || showCompletion} className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground" />
-          <Button onClick={handleSendMessage} disabled={!inputValue.trim() || isStreaming || showCompletion} className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg">
+          <Input
+            ref={inputRef}
+            value={inputValue}
+            onChange={e => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            disabled={isStreaming || showCompletion}
+            className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground"
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isStreaming || showCompletion}
+            className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg"
+          >
             {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
           </Button>
         </div>
       </div>
 
       {/* Completion Overlay */}
-      <div className={cn('fixed inset-0 z-50 bg-[hsl(222,47%,11%)]/95 backdrop-blur-xl flex items-center justify-center transition-all duration-500', showCompletion ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none')}>
+      <div className={cn(
+        'fixed inset-0 z-50 bg-[hsl(222,47%,11%)]/95 backdrop-blur-xl flex items-center justify-center transition-all duration-500',
+        showCompletion ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      )}>
         <div className="text-center space-y-8 animate-in fade-in-0 zoom-in-95 duration-700">
           {/* Premium Pulsing Animation */}
           <div className="relative">
@@ -201,9 +244,10 @@ export default function OnboardingPage() {
 
           {/* Loading bar */}
           <div className="w-64 h-1.5 mx-auto bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-[loading_2s_ease-in-out_infinite]" style={{
-            animation: 'loading 2s ease-in-out infinite'
-          }} />
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-[loading_2s_ease-in-out_infinite]" 
+              style={{ animation: 'loading 2s ease-in-out infinite' }} 
+            />
           </div>
         </div>
       </div>
@@ -216,5 +260,6 @@ export default function OnboardingPage() {
           100% { width: 0%; margin-left: 100%; }
         }
       `}</style>
-    </div>;
+    </div>
+  );
 }
