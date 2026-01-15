@@ -4,7 +4,6 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
 import { ChatFAB } from "@/components/chat/ChatFAB";
 import { ChatProvider } from "@/contexts/ChatContext";
-import { ProjectProvider } from "@/contexts/ProjectContext";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -12,22 +11,20 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <ProjectProvider>
-      <ChatProvider>
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full bg-[#0B0E14]">
-            <DashboardSidebar />
-            <main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
-              <DashboardHeader />
-              <DashboardTabs />
-              <div className="flex-1 overflow-auto p-6">
-                {children}
-              </div>
-            </main>
-            <ChatFAB />
-          </div>
-        </SidebarProvider>
-      </ChatProvider>
-    </ProjectProvider>
+    <ChatProvider>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-[#0B0E14]">
+          <DashboardSidebar />
+          <main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
+            <DashboardHeader />
+            <DashboardTabs />
+            <div className="flex-1 overflow-auto p-6">
+              {children}
+            </div>
+          </main>
+          <ChatFAB />
+        </div>
+      </SidebarProvider>
+    </ChatProvider>
   );
 }
