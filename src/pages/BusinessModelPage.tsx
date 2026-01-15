@@ -112,7 +112,7 @@ export default function BusinessModelPage() {
           
           <div className="grid md:grid-cols-3 gap-4">
             {valueProposition && (
-              <Card className="bg-card/50 border-border md:col-span-2">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10 md:col-span-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Target className="w-4 h-4 text-blue-500" />
@@ -128,7 +128,7 @@ export default function BusinessModelPage() {
             )}
 
             {customerSegments.length > 0 && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Users className="w-4 h-4 text-purple-500" />
@@ -150,7 +150,7 @@ export default function BusinessModelPage() {
 
             {/* Revenue Streams - New format with source/price */}
             {revenueStreams.length > 0 && (
-              <Card className="bg-card/50 border-border md:col-span-2">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10 md:col-span-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <DollarSign className="w-4 h-4 text-green-500" />
@@ -177,7 +177,7 @@ export default function BusinessModelPage() {
 
             {/* Legacy Revenue Streams - string array */}
             {legacyRevenueStreams.length > 0 && revenueStreams.length === 0 && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <DollarSign className="w-4 h-4 text-green-500" />
@@ -199,7 +199,7 @@ export default function BusinessModelPage() {
 
             {/* Marketing Channels */}
             {marketingChannels.length > 0 && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Megaphone className="w-4 h-4 text-orange-500" />
@@ -220,7 +220,7 @@ export default function BusinessModelPage() {
             )}
 
             {monetization && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <DollarSign className="w-4 h-4 text-green-500" />
@@ -236,7 +236,7 @@ export default function BusinessModelPage() {
             )}
 
             {goToMarket && (
-              <Card className="bg-card/50 border-border md:col-span-2">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10 md:col-span-2">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Rocket className="w-4 h-4 text-orange-500" />
@@ -252,7 +252,7 @@ export default function BusinessModelPage() {
             )}
 
             {keyResources.length > 0 && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Building className="w-4 h-4 text-blue-500" />
@@ -273,7 +273,7 @@ export default function BusinessModelPage() {
             )}
 
             {keyPartners.length > 0 && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 text-foreground">
                     <Users className="w-4 h-4 text-purple-500" />
@@ -294,7 +294,7 @@ export default function BusinessModelPage() {
             )}
 
             {costStructure.length > 0 && (
-              <Card className="bg-card/50 border-border">
+              <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base text-foreground">Cost Structure</CardTitle>
                 </CardHeader>
