@@ -102,16 +102,6 @@ export default function AIKanbanAssistantPage() {
             }
           </p>
         </div>
-        
-        {kanbanColumns.length > 0 && (
-          <Button 
-            onClick={handleImportToKanban} 
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Import All to Kanban
-          </Button>
-        )}
       </div>
 
       {/* Kanban Board */}
