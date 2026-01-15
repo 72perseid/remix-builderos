@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useTasks } from '@/hooks/useTasks';
-import { DynamicKanbanColumn } from '@/components/kanban/DynamicKanbanColumn';
+import { KanbanBoard, Column, Task } from '@/components/ui/kanban-board';
 import { toast } from 'sonner';
 import { Download, Loader2, LayoutGrid } from 'lucide-react';
 
@@ -18,22 +18,47 @@ interface RoadmapContent {
   }[];
 }
 
+// Color mapping for columns
+const columnColors: Record<string, string> = {
+  'backlog': '#8B7355',
+  'mvp': '#6B8E23',
+  'v1': '#CD853F',
+  'stretch': '#556B2F',
+  'todo': '#8B7355',
+  'in-progress': '#6B8E23',
+  'review': '#CD853F',
+  'done': '#556B2F',
+};
+
 export default function AIKanbanAssistantPage() {
   const { data: artifact, loading } = useArtifact('kanban');
   const { importTasks } = useTasks();
 
   // Parse artifact content with the exact expected structure
   const content = artifact?.content as RoadmapContent | null;
-  const columns = content?.columns || [];
+  const rawColumns = content?.columns || [];
+
+  // Transform data to KanbanBoard format
+  const kanbanColumns: Column[] = rawColumns.map((col, index) => ({
+    id: col.id,
+    title: col.title,
+    color: columnColors[col.id.toLowerCase()] || Object.values(columnColors)[index % 4],
+    tasks: col.cards.map((card, cardIndex) => ({
+      id: `${col.id}-${cardIndex}`,
+      title: card.title,
+      description: card.description,
+      tags: [card.tag],
+    })),
+  }));
 
   const handleImportToKanban = () => {
-    if (columns.length === 0) {
+    if (rawColumns.length === 0) {
       toast.error('No features to import');
       return;
     }
 
     // Flatten all cards from all columns
-    const allCards = columns.flatMap(col => col.cards);
+    const allCards = rawColumns.flatMap(col => col.cards);
     
     if (allCards.length === 0) {
       toast.error('No cards to import');
@@ -54,7 +79,7 @@ export default function AIKanbanAssistantPage() {
     toast.success(`Imported ${allCards.length} features to Kanban board!`);
   };
 
-  const totalCards = columns.reduce((acc, col) => acc + col.cards.length, 0);
+  const totalCards = rawColumns.reduce((acc, col) => acc + col.cards.length, 0);
 
   if (loading) {
     return (
@@ -71,14 +96,14 @@ export default function AIKanbanAssistantPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Roadmap & Features</h1>
           <p className="text-slate-400 mt-1">
-            {columns.length > 0 
-              ? `${totalCards} features across ${columns.length} columns`
+            {kanbanColumns.length > 0 
+              ? `${totalCards} features across ${kanbanColumns.length} columns • Drag and drop to organize`
               : 'Your feature roadmap will appear here once generated'
             }
           </p>
         </div>
         
-        {columns.length > 0 && (
+        {kanbanColumns.length > 0 && (
           <Button 
             onClick={handleImportToKanban} 
             className="bg-blue-600 hover:bg-blue-700"
@@ -89,16 +114,12 @@ export default function AIKanbanAssistantPage() {
         )}
       </div>
 
-      {/* Dynamic Columns */}
-      {columns.length > 0 ? (
-        <div className="flex gap-4 overflow-x-auto pb-4">
-          {columns.map((column) => (
-            <DynamicKanbanColumn key={column.id} column={column} />
-          ))}
-        </div>
+      {/* Kanban Board */}
+      {kanbanColumns.length > 0 ? (
+        <KanbanBoard columns={kanbanColumns} />
       ) : (
         /* Empty State */
-        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-slate-800/30">
+        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-[#161e2a]/80">
           <LayoutGrid className="w-12 h-12 text-slate-500 mb-4" />
           <h3 className="text-lg font-semibold text-white mb-2">No Roadmap Yet</h3>
           <p className="text-slate-400 text-sm text-center max-w-md">
