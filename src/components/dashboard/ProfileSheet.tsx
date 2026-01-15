@@ -205,7 +205,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                         <p className="text-xs text-slate-400">{app.one_liner}</p>
                       )}
                       {app.app_description && (
-                        <p className="text-xs text-slate-500 line-clamp-2">
+                        <p className="text-xs text-slate-500">
                           {app.app_description}
                         </p>
                       )}
