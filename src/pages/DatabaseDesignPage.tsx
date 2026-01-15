@@ -212,9 +212,9 @@ export default function DatabaseDesignPage() {
                       const { from, to } = parseRelationship(rel);
                       return (
                         <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
-                          <span className="font-mono text-foreground/80">{from}</span>
+                          <span className="font-mono text-white">{from}</span>
                           <span className="text-orange-500">→</span>
-                          <span className="font-mono text-foreground/80">{to}</span>
+                          <span className="font-mono text-white">{to}</span>
                         </li>
                       );
                     })}
