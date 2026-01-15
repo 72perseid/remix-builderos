@@ -103,7 +103,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading}
-                  className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+                  className="border-slate-700 text-[#65686f] hover:bg-slate-800 hover:text-white"
                 >
                   {profile?.profile_image ? (
                     <>
