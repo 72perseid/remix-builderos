@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { LayoutDashboard, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { ProfileSheet } from "./ProfileSheet";
 import { toast } from "sonner";
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
+
 const mainNavItems = [{
   title: "Dashboard",
   url: "/dashboard",
@@ -16,6 +20,8 @@ export function DashboardSidebar() {
   const navigate = useNavigate();
   const { state } = useSidebar();
   const { user, signOut } = useAuth();
+  const { profile } = useProfile();
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
 
   const handleSignOut = async () => {
@@ -63,17 +69,20 @@ export function DashboardSidebar() {
 
       <SidebarFooter className="border-t border-slate-800 p-4 bg-[#0B0E14]">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+          <div 
+            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => setIsProfileOpen(true)}
+          >
             <Avatar className="h-10 w-10 border-2 border-slate-700">
-              <AvatarImage src="" />
+              <AvatarImage src={profile?.profile_image || ""} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
-                {user?.email?.charAt(0).toUpperCase() || "U"}
+                {profile?.first_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
             {!isCollapsed && (
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-white">
-                  {user?.user_metadata?.first_name || "User"} {user?.user_metadata?.last_name || ""}
+                  {profile?.first_name || user?.user_metadata?.first_name || "User"} {profile?.last_name || user?.user_metadata?.last_name || ""}
                 </span>
                 <span className="text-xs text-slate-400">DIA Accelerator</span>
               </div>
@@ -90,5 +99,7 @@ export function DashboardSidebar() {
           </Button>
         </div>
       </SidebarFooter>
+
+      <ProfileSheet open={isProfileOpen} onOpenChange={setIsProfileOpen} />
     </Sidebar>;
 }
