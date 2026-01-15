@@ -1,7 +1,8 @@
 import { cn } from '@/lib/utils';
-import { User, Sparkles, CheckCircle } from 'lucide-react';
+import { User, CheckCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import builderosIconMono from '@/assets/builderos-icon-mono.png';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -36,7 +37,7 @@ export function ChatMessage({ role, content, timestamp, userAvatar }: ChatMessag
         </Avatar>
       ) : (
         <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-accent/20">
-          <Sparkles className="w-4 h-4 text-accent" />
+          <img src={builderosIconMono} alt="BuilderOS" className="w-5 h-5" />
         </div>
       )}
       <div
