@@ -108,7 +108,7 @@ export default function BusinessModelPage() {
       {/* Generated Business Model Canvas */}
       {content && (
         <div className="space-y-4 animate-fade-in">
-          <h2 className="text-lg font-semibold text-foreground">Business Model Canvas</h2>
+          <h2 className="text-lg font-semibold text-white">Business Model Canvas</h2>
           
           <div className="grid md:grid-cols-3 gap-4">
             {valueProposition && (
