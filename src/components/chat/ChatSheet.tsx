@@ -54,14 +54,6 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
         <SheetHeader className="px-4 py-3 border-b border-slate-800">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-lg text-white">BuilderOS</SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={clearChat}
-              className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
         </SheetHeader>
 
