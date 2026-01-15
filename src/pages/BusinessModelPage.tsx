@@ -163,7 +163,7 @@ export default function BusinessModelPage() {
                       <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                         <span className="text-green-500 mt-1">•</span>
                         <div>
-                          <span className="font-medium text-foreground/90">{stream.source}</span>
+                          <span className="font-medium text-white">{stream.source}</span>
                           {stream.price && (
                             <span className="text-muted-foreground ml-2">— {stream.price}</span>
                           )}
