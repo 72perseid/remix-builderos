@@ -170,8 +170,8 @@ export default function DatabaseDesignPage() {
                             const { name, type } = parseColumn(col);
                             return (
                               <TableRow key={j} className="border-border">
-                                <TableCell className="text-xs font-mono text-white">{name}</TableCell>
-                                <TableCell className="text-xs font-mono text-white">{type}</TableCell>
+                                <TableCell className="text-xs font-mono text-[#65686f]">{name}</TableCell>
+                                <TableCell className="text-xs font-mono text-[#65686f]">{type}</TableCell>
                               </TableRow>
                             );
                           })
@@ -179,8 +179,8 @@ export default function DatabaseDesignPage() {
                           // Legacy format: fields as objects
                           (table as TableDefLegacy).fields.map((field, j) => (
                             <TableRow key={j} className="border-border">
-                              <TableCell className="text-xs font-mono text-white">{field.name}</TableCell>
-                              <TableCell className="text-xs font-mono text-white">
+                              <TableCell className="text-xs font-mono text-[#65686f]">{field.name}</TableCell>
+                              <TableCell className="text-xs font-mono text-[#65686f]">
                                 {field.type}
                                 {field.constraints && ` (${field.constraints})`}
                               </TableCell>
