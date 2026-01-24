@@ -16,16 +16,14 @@ import { useTasks } from '@/hooks/useTasks';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { TaskDialog } from './TaskDialog';
-import { Button } from '@/components/ui/button';
-import { Save, Download, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
-const columns: { id: TaskStatus; title: string }[] = [
-  { id: 'backlog', title: 'Backlog' },
-  { id: 'planning', title: 'Planning' },
-  { id: 'in-progress', title: 'In Progress' },
-  { id: 'review', title: 'Review' },
-  { id: 'done', title: 'Done' },
+const columns: { id: TaskStatus; title: string; color: string }[] = [
+  { id: 'backlog', title: 'Backlog', color: '#6B7280' },
+  { id: 'selected', title: 'Selected for Development', color: '#3B82F6' },
+  { id: 'in_progress', title: 'In Progress', color: '#8B5CF6' },
+  { id: 'qa', title: 'In QA', color: '#F59E0B' },
+  { id: 'done', title: 'Done', color: '#10B981' },
 ];
 
 export function KanbanBoard() {
@@ -104,31 +102,8 @@ export function KanbanBoard() {
     toast.success('Task deleted');
   }, [deleteTask]);
 
-  const handleSaveToStorage = useCallback(() => {
-    toast.success('Tasks saved to local storage');
-  }, []);
-
-  const handleLoadFromStorage = useCallback(() => {
-    toast.info('Tasks loaded from local storage');
-  }, []);
-
   return (
-    <div className="space-y-4">
-      {/* Actions Bar */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold gradient-text">Kanban Board</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleSaveToStorage}>
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleLoadFromStorage}>
-            <Download className="w-4 h-4 mr-2" />
-            Load
-          </Button>
-        </div>
-      </div>
-
+    <div className="h-full flex flex-col">
       {/* Board */}
       <DndContext
         sensors={sensors}
@@ -136,12 +111,13 @@ export function KanbanBoard() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex-1 flex gap-4 overflow-x-auto pb-4">
           {columns.map((column) => (
             <KanbanColumn
               key={column.id}
               id={column.id}
               title={column.title}
+              color={column.color}
               tasks={getTasksByStatus(column.id)}
               onAddTask={handleAddTask}
               onEditTask={handleEditTask}

@@ -1,24 +1,16 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, TaskColor } from '@/types';
+import { Task } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar, Pencil, Trash2, GripVertical } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 
 interface TaskCardProps {
   task: Task;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
 }
-
-const colorClasses: Record<TaskColor, string> = {
-  yellow: 'bg-kanban-yellow',
-  coral: 'bg-kanban-coral',
-  mint: 'bg-kanban-mint',
-  lavender: 'bg-kanban-lavender',
-  sky: 'bg-kanban-sky',
-};
 
 export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
   const {
@@ -35,15 +27,18 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
     transition,
   };
 
+  // Check if task is overdue
+  const isOverdue = task.plannedDate && isPast(new Date(task.plannedDate)) && !isToday(new Date(task.plannedDate)) && task.status !== 'done';
+  const isDueToday = task.plannedDate && isToday(new Date(task.plannedDate));
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative rounded-lg p-3 shadow-md transition-all',
-        colorClasses[task.color],
-        isDragging && 'opacity-50 rotate-2 scale-105 shadow-xl',
-        'hover:shadow-lg hover:-translate-y-0.5'
+        'group relative rounded-lg p-3 bg-[#1a2332] border border-slate-700/50 transition-all cursor-pointer',
+        isDragging && 'opacity-50 rotate-1 scale-105 shadow-xl',
+        'hover:border-slate-600 hover:bg-[#1e2940]'
       )}
     >
       {/* Drag Handle */}
@@ -52,54 +47,61 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         {...listeners}
         className="absolute top-2 right-2 cursor-grab opacity-0 group-hover:opacity-60 transition-opacity"
       >
-        <GripVertical className="w-4 h-4 text-foreground/60" />
+        <GripVertical className="w-4 h-4 text-slate-500" />
       </div>
 
-      {/* Content - always dark text for readability */}
-      <div className="pr-6 text-gray-900">
-        <h4 className="font-semibold text-sm leading-tight mb-1">{task.title}</h4>
+      {/* Content */}
+      <div className="pr-6">
+        <h4 className="font-medium text-sm text-white leading-tight mb-1">{task.title}</h4>
         {task.description && (
-          <p className="text-xs text-gray-700 line-clamp-2 mb-2">{task.description}</p>
+          <p className="text-xs text-slate-400 line-clamp-2 mb-2">{task.description}</p>
         )}
 
         {/* Badges */}
-        <div className="flex flex-wrap gap-1 mb-2">
+        <div className="flex flex-wrap gap-1.5 mb-2">
           {task.category && (
             <span className={cn(
-              'text-[10px] px-1.5 py-0.5 rounded font-medium',
-              task.category === 'MVP' && 'bg-category-mvp/20 text-purple-800',
-              task.category === 'V1' && 'bg-category-v1/20 text-teal-800',
-              task.category === 'Stretch Goals' && 'bg-category-stretch/20 text-amber-800'
+              'text-[10px] px-2 py-0.5 rounded font-medium border',
+              task.category === 'MVP' && 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+              task.category === 'V1' && 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+              task.category === 'Stretch Goals' && 'bg-amber-500/10 text-amber-400 border-amber-500/30'
             )}>
               {task.category}
             </span>
           )}
           {task.priority && (
             <span className={cn(
-              'text-[10px] px-1.5 py-0.5 rounded font-medium',
-              task.priority === 'high' && 'bg-priority-high/20 text-red-800',
-              task.priority === 'medium' && 'bg-priority-medium/20 text-orange-800',
-              task.priority === 'low' && 'bg-priority-low/20 text-green-800'
+              'text-[10px] px-2 py-0.5 rounded font-medium border capitalize',
+              task.priority === 'high' && 'bg-red-500/10 text-red-400 border-red-500/30',
+              task.priority === 'medium' && 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+              task.priority === 'low' && 'bg-green-500/10 text-green-400 border-green-500/30'
             )}>
               {task.priority}
             </span>
           )}
         </div>
 
-        {/* Dates */}
-        <div className="flex items-center gap-2 text-[10px] text-gray-600">
-          {task.plannedDate && (
-            <span className="flex items-center gap-1">
+        {/* Due Date */}
+        {task.plannedDate && (
+          <div className="flex items-center gap-1">
+            <span className={cn(
+              'inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded font-medium border',
+              isOverdue && 'bg-red-500/20 text-red-400 border-red-500/40',
+              isDueToday && !isOverdue && 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40',
+              !isOverdue && !isDueToday && 'bg-slate-600/30 text-slate-400 border-slate-500/30'
+            )}>
               <Calendar className="w-3 h-3" />
               {format(new Date(task.plannedDate), 'MMM d')}
             </span>
-          )}
-          {task.completedDate && (
-            <span className="text-green-700">
-              ✓ {format(new Date(task.completedDate), 'MMM d')}
-            </span>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Completed indicator */}
+        {task.completedDate && task.status === 'done' && (
+          <div className="mt-2 text-[10px] text-green-400">
+            ✓ Completed {format(new Date(task.completedDate), 'MMM d')}
+          </div>
+        )}
       </div>
 
       {/* Actions */}
@@ -107,18 +109,24 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 hover:bg-white/50"
-          onClick={() => onEdit(task)}
+          className="h-6 w-6 hover:bg-slate-700"
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(task);
+          }}
         >
-          <Pencil className="w-3 h-3 text-gray-700" />
+          <Pencil className="w-3 h-3 text-slate-400" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6 hover:bg-white/50"
-          onClick={() => onDelete(task.id)}
+          className="h-6 w-6 hover:bg-red-900/30"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(task.id);
+          }}
         >
-          <Trash2 className="w-3 h-3 text-gray-700" />
+          <Trash2 className="w-3 h-3 text-slate-400 hover:text-red-400" />
         </Button>
       </div>
     </div>

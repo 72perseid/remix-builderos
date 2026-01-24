@@ -9,23 +9,17 @@ import { Button } from '@/components/ui/button';
 interface KanbanColumnProps {
   id: TaskStatus;
   title: string;
+  color: string;
   tasks: Task[];
   onAddTask: (status: TaskStatus) => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
 }
 
-const columnColors: Record<TaskStatus, string> = {
-  backlog: 'border-t-muted-foreground/50',
-  planning: 'border-t-primary/50',
-  'in-progress': 'border-t-accent/50',
-  review: 'border-t-category-stretch/50',
-  done: 'border-t-priority-low/50',
-};
-
 export function KanbanColumn({
   id,
   title,
+  color,
   tasks,
   onAddTask,
   onEditTask,
@@ -37,31 +31,25 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        'flex flex-col min-w-[280px] max-w-[320px] rounded-xl glass border-t-4 transition-all',
-        columnColors[id],
-        isOver && 'ring-2 ring-primary/50 bg-primary/5'
+        'flex flex-col min-w-[280px] w-[280px] rounded-lg bg-[#0f1729] border border-slate-700/50 transition-all',
+        isOver && 'ring-2 ring-blue-500/50 bg-blue-900/10'
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/50">
+      <div className="flex items-center justify-between p-3 bg-[#1a2744] rounded-t-lg border-b border-slate-700/50">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-sm">{title}</h3>
-          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+          <h3 className="font-medium text-sm text-white">{title}</h3>
+          <span
+            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold text-white"
+            style={{ backgroundColor: color }}
+          >
             {tasks.length}
           </span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onAddTask(id)}
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
       </div>
 
       {/* Tasks */}
-      <div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-280px)]">
+      <div className="flex-1 p-2 space-y-2 overflow-y-auto max-h-[calc(100vh-280px)]">
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
             <TaskCard
@@ -74,10 +62,22 @@ export function KanbanColumn({
         </SortableContext>
         
         {tasks.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            No tasks yet
+          <div className="text-center py-8 text-slate-500 text-sm">
+            No tasks
           </div>
         )}
+      </div>
+
+      {/* New Card Button */}
+      <div className="p-2 border-t border-slate-700/50">
+        <Button
+          variant="ghost"
+          className="w-full bg-[#1a2744] hover:bg-[#243352] text-slate-400 hover:text-white rounded-lg h-9"
+          onClick={() => onAddTask(id)}
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New card
+        </Button>
       </div>
     </div>
   );
