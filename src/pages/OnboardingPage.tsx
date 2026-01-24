@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useOnboardingChat } from '@/hooks/useOnboardingChat';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
@@ -13,10 +15,12 @@ import { cn } from '@/lib/utils';
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const isNewAppMode = searchParams.get('mode') === 'new';
   
   const { user } = useAuth();
+  const { refreshApps, selectApp } = useProjectContext();
   const {
     messages,
     isStreaming,
@@ -28,6 +32,7 @@ export default function OnboardingPage() {
   
   const [inputValue, setInputValue] = useState('');
   const [showCompletion, setShowCompletion] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +68,7 @@ export default function OnboardingPage() {
   }, [isStreaming, showCompletion]);
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isStreaming) return;
+    if (!inputValue.trim() || isStreaming || isFinalizing) return;
     const content = inputValue.trim();
     setInputValue('');
     try {
@@ -71,6 +76,8 @@ export default function OnboardingPage() {
 
       // Check for completion trigger
       if (response.includes('JSON_GENERATION_COMPLETE')) {
+        // Immediately switch to finalizing state to hide chat
+        setIsFinalizing(true);
         setShowCompletion(true);
 
         // Update profile as onboarded (only if not in new app mode)
@@ -80,13 +87,44 @@ export default function OnboardingPage() {
           }).eq('id', user.id);
         }
 
-        // Redirect after 4 seconds
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 4000);
+        // Sequenced transition: wait for backend, refresh data, then navigate
+        await performFinalTransition();
       }
     } catch (err) {
       console.error('Failed to send message:', err);
+    }
+  };
+
+  const performFinalTransition = async () => {
+    try {
+      // Step 1: Wait 3 seconds for backend to finish writing to Supabase
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Step 2: Invalidate all app-related queries to force fresh data
+      await queryClient.invalidateQueries({ queryKey: ['app_ideas'] });
+      await queryClient.invalidateQueries({ queryKey: ['artifacts'] });
+      
+      // Step 3: Refresh the apps list in ProjectContext
+      await refreshApps();
+
+      // Step 4: Fetch the most recent app and auto-select it
+      const { data: latestApps } = await supabase
+        .from('app_ideas')
+        .select('id')
+        .eq('user_id', user?.id || '')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (latestApps && latestApps.length > 0) {
+        selectApp(latestApps[0].id);
+      }
+
+      // Step 5: Navigate to dashboard
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Transition error:', err);
+      // Fallback: navigate anyway after a delay
+      setTimeout(() => navigate('/dashboard'), 2000);
     }
   };
 
@@ -128,87 +166,91 @@ export default function OnboardingPage() {
         </Button>
       </header>
 
-      {/* Chat Container */}
-      <main className="relative z-10 flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-6">
-        {/* Welcome Header */}
-        {messages.length === 0 && !isStreaming && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-4 animate-in fade-in-0 duration-500">
-              <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                <img src={logoIcon} alt="Logo" className="w-16 h-16 object-contain" />
+      {/* Chat Container - Hidden when finalizing to prevent flash */}
+      {!isFinalizing && (
+        <main className="relative z-10 flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-6">
+          {/* Welcome Header */}
+          {messages.length === 0 && !isStreaming && (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4 animate-in fade-in-0 duration-500">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center">
+                  <img src={logoIcon} alt="Logo" className="w-16 h-16 object-contain" />
+                </div>
+                <h1 className="text-3xl font-bold text-primary-foreground">{pageTitle}</h1>
+                <p className="text-lg max-w-md text-secondary">
+                  {pageSubtitle}
+                </p>
+                {isStreaming && (
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Architect is thinking...</span>
+                  </div>
+                )}
               </div>
-              <h1 className="text-3xl font-bold text-primary-foreground">{pageTitle}</h1>
-              <p className="text-lg max-w-md text-secondary">
-                {pageSubtitle}
-              </p>
-              {isStreaming && (
-                <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Architect is thinking...</span>
-                </div>
-              )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Messages */}
-        {(messages.length > 0 || isStreaming) && (
-          <div className="flex-1 overflow-y-auto space-y-6 pb-4">
-            {messages.map(message => (
-              <OnboardingMessage key={message.id} role={message.role} content={message.content} />
-            ))}
+          {/* Messages */}
+          {(messages.length > 0 || isStreaming) && (
+            <div className="flex-1 overflow-y-auto space-y-6 pb-4">
+              {messages.map(message => (
+                <OnboardingMessage key={message.id} role={message.role} content={message.content} />
+              ))}
 
-            {isStreaming && (
-              <div className="flex gap-4 justify-start animate-in fade-in-0">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-                  <Loader2 className="w-5 h-5 text-white animate-spin" />
-                </div>
-                <div className="bg-card border border-border rounded-2xl rounded-bl-md px-5 py-4 shadow-md">
-                  <p className="text-xs font-semibold text-blue-400 mb-1.5 uppercase tracking-wide">
-                    Architect
-                  </p>
-                  <div className="flex items-center gap-1">
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              {isStreaming && (
+                <div className="flex gap-4 justify-start animate-in fade-in-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <Loader2 className="w-5 h-5 text-white animate-spin" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl rounded-bl-md px-5 py-4 shadow-md">
+                    <p className="text-xs font-semibold text-blue-400 mb-1.5 uppercase tracking-wide">
+                      Architect
+                    </p>
+                    <div className="flex items-center gap-1">
+                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} />
+            </div>
+          )}
+
+          {/* Error Display */}
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
+              {error.message}
+            </div>
+          )}
+        </main>
+      )}
+
+      {/* Input Area - Hidden when finalizing */}
+      {!isFinalizing && (
+        <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
+          <div className="max-w-3xl mx-auto flex gap-3">
+            <Input
+              ref={inputRef}
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message..."
+              disabled={isStreaming || showCompletion}
+              className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground"
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isStreaming || showCompletion}
+              className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg"
+            >
+              {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            </Button>
           </div>
-        )}
-
-        {/* Error Display */}
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
-            {error.message}
-          </div>
-        )}
-      </main>
-
-      {/* Input Area */}
-      <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
-        <div className="max-w-3xl mx-auto flex gap-3">
-          <Input
-            ref={inputRef}
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            disabled={isStreaming || showCompletion}
-            className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground"
-          />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isStreaming || showCompletion}
-            className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg"
-          >
-            {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-          </Button>
         </div>
-      </div>
+      )}
 
       {/* Completion Overlay */}
       <div className={cn(
