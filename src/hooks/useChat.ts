@@ -6,7 +6,7 @@ import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
 
 const N8N_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/4c31dc75-04a8-4638-b2f5-b94b2ab0de59';
-const REQUEST_TIMEOUT_MS = 10000;
+const REQUEST_TIMEOUT_MS = 90000; // Extended to 90 seconds for heavy N8N workflows
 
 export interface ChatMessage {
   id: string;
@@ -36,12 +36,31 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeout: numb
   }
 }
 
+// Smart recovery: Check if a new app was created recently
+async function checkForRecentlyCreatedApp(userId: string): Promise<string | null> {
+  const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  
+  const { data, error } = await supabase
+    .from('app_ideas')
+    .select('id, created_at')
+    .eq('user_id', userId)
+    .gte('created_at', twoMinutesAgo)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data.id;
+}
+
 export function useChat() {
   const { user } = useAuth();
-  const { selectedAppId } = useProjectContext();
+  const { selectedAppId, refreshApps, selectApp } = useProjectContext();
   const queryClient = useQueryClient();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [newAppId, setNewAppId] = useState<string | null>(null);
 
   // Check if app is selected
   const hasSelectedApp = !!selectedAppId;
@@ -122,6 +141,29 @@ export function useChat() {
     staleTime: 10000,
   });
 
+  // Complete the finalization and transition
+  const completeTransition = useCallback(async (appId: string) => {
+    try {
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['app_ideas'] });
+      await queryClient.invalidateQueries({ queryKey: ['artifacts'] });
+      
+      // Refresh apps and select the new one
+      await refreshApps();
+      selectApp(appId);
+      
+      setNewAppId(appId);
+      
+      // Small delay before marking as complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      return true;
+    } catch (error) {
+      console.error('Transition error:', error);
+      return false;
+    }
+  }, [queryClient, refreshApps, selectApp]);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
@@ -142,7 +184,7 @@ export function useChat() {
       setIsStreaming(true);
 
       try {
-        // Call n8n webhook with timeout
+        // Call n8n webhook with extended timeout
         const response = await fetchWithTimeout(
           N8N_CHAT_WEBHOOK,
           {
@@ -179,6 +221,23 @@ export function useChat() {
           responseData?.content ||
           (typeof responseData === 'string' ? responseData : 'Error: No message found in response');
 
+        // Check for completion signal
+        const isComplete = aiResponse.includes('JSON_GENERATION_COMPLETE');
+        
+        if (isComplete) {
+          setIsFinalizing(true);
+          
+          // Extract app ID if available, or check for recently created app
+          let createdAppId = responseData?.app_id || responseData?.appId;
+          if (!createdAppId) {
+            createdAppId = await checkForRecentlyCreatedApp(user.id);
+          }
+          
+          if (createdAppId) {
+            await completeTransition(createdAppId);
+          }
+        }
+
         // Save assistant response to DB
         await supabase
           .from('chat_messages')
@@ -188,15 +247,37 @@ export function useChat() {
             content: aiResponse,
           });
 
-        return aiResponse;
+        return { aiResponse, isComplete };
       } catch (error) {
         console.error('Send message error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         
+        // SMART RECOVERY: Before showing error, check if app was created
+        console.log('Attempting smart recovery...');
+        const recoveredAppId = await checkForRecentlyCreatedApp(user.id);
+        
+        if (recoveredAppId) {
+          console.log('Smart recovery successful! Found app:', recoveredAppId);
+          setIsFinalizing(true);
+          await completeTransition(recoveredAppId);
+          
+          // Save a success message instead of error
+          await supabase
+            .from('chat_messages')
+            .insert({
+              session_id: sessionId,
+              role: 'assistant',
+              content: '✅ Your app has been created successfully! Redirecting to your dashboard...',
+            });
+          
+          return { aiResponse: 'App created successfully', isComplete: true };
+        }
+        
+        // Only show error if smart recovery failed
         if (errorMessage === 'Request timed out') {
           toast({
             title: 'Connection Error',
-            description: 'Connection timed out. Please refresh.',
+            description: 'The request took too long. Please check your dashboard for the new app.',
             variant: 'destructive',
           });
         } else {
@@ -226,6 +307,10 @@ export function useChat() {
   const clearChat = useCallback(async () => {
     if (!user?.id) return;
 
+    // Reset finalizing state
+    setIsFinalizing(false);
+    setNewAppId(null);
+
     try {
       // Create new session
       const { data: newSession, error } = await supabase
@@ -248,12 +333,20 @@ export function useChat() {
     }
   }, [user?.id, queryClient]);
 
+  const resetFinalizing = useCallback(() => {
+    setIsFinalizing(false);
+    setNewAppId(null);
+  }, []);
+
   return {
     messages: messagesQuery.data || [],
     loading: messagesQuery.isLoading || sessionQuery.isLoading,
     isStreaming,
+    isFinalizing,
+    newAppId,
     sendMessage,
     clearChat,
+    resetFinalizing,
     error: messagesQuery.error || sendMessageMutation.error,
     hasSelectedApp,
   };
