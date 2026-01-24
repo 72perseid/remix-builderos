@@ -76,9 +76,11 @@ export function ArtifactsGrid() {
         {/* Feature Planning Column */}
         <div>
           <div className="mb-4">
-            
-            <p className="text-xs text-slate-600">
-              Plan and organize your app features before development
+            <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+              Feature Planning
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              These artifacts guide you in aligning on scope, functionality, and user experience before moving into building.
             </p>
           </div>
           <div className="grid gap-4">
@@ -89,10 +91,10 @@ export function ArtifactsGrid() {
         {/* Launching Column */}
         <div>
           <div className="mb-4">
-            <h3 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
+            <h3 className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">
               Launching
             </h3>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-muted-foreground">
               Technical artifacts and implementation guides
             </p>
           </div>
