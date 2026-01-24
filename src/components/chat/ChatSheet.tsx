@@ -7,7 +7,7 @@ import { ChatMessage } from './ChatMessage';
 import { useChat } from '@/hooks/useChat';
 import { useChatContext } from '@/contexts/ChatContext';
 import { useProfile } from '@/hooks/useProfile';
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, AlertCircle } from 'lucide-react';
 
 interface ChatSheetProps {
   open: boolean;
@@ -15,7 +15,7 @@ interface ChatSheetProps {
 }
 
 export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
-  const { messages, loading, isStreaming, sendMessage, clearChat } = useChat();
+  const { messages, loading, isStreaming, sendMessage, clearChat, hasSelectedApp } = useChat();
   const { shouldClearOnOpen, setShouldClearOnOpen } = useChatContext();
   const { profile } = useProfile();
   const [input, setInput] = useState('');
@@ -37,7 +37,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
   }, [messages, isStreaming]);
 
   const handleSend = async () => {
-    if (!input.trim() || isStreaming) return;
+    if (!input.trim() || isStreaming || !hasSelectedApp) return;
     const message = input.trim();
     setInput('');
     await sendMessage(message);
@@ -60,9 +60,20 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
         </SheetHeader>
 
         <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+          {!hasSelectedApp ? (
+            // No app selected state
+            <div className="flex flex-col items-center justify-center h-48 text-center">
+              <AlertCircle className="w-10 h-10 text-yellow-500 mb-3" />
+              <p className="text-slate-300 font-medium">No App Selected</p>
+              <p className="text-sm text-slate-500 mt-1 max-w-[250px]">
+                Please select an App from the header to start chatting.
+              </p>
+            </div>
+          ) : loading ? (
+            // Loading state with spinner
+            <div className="flex flex-col items-center justify-center h-32">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-2" />
+              <p className="text-sm text-slate-400">Loading chat history...</p>
             </div>
           ) : messages.length === 0 ? (
             <div className="text-center text-slate-400 py-8">
@@ -101,15 +112,15 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              disabled={isStreaming}
-              className="flex-1 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500"
+              placeholder={hasSelectedApp ? "Type your message..." : "Select an app first..."}
+              disabled={isStreaming || !hasSelectedApp}
+              className="flex-1 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 focus-visible:ring-blue-500 disabled:opacity-50"
             />
             <Button
               onClick={handleSend}
-              disabled={!input.trim() || isStreaming}
+              disabled={!input.trim() || isStreaming || !hasSelectedApp}
               size="icon"
-              className="bg-white text-black hover:bg-slate-200"
+              className="bg-white text-black hover:bg-slate-200 disabled:opacity-50"
             >
               {isStreaming ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
