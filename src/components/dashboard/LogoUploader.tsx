@@ -4,6 +4,7 @@ import { Loader2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
+import { useProjectContext } from "@/contexts/ProjectContext";
 
 interface LogoUploaderProps {
   appId: string;
@@ -29,6 +30,7 @@ export function LogoUploader({ appId, appName, currentLogo, size = "md" }: LogoU
   const [isHovered, setIsHovered] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const { refreshApps } = useProjectContext();
 
   const appInitial = appName?.charAt(0).toUpperCase() || "A";
 
@@ -100,7 +102,10 @@ export function LogoUploader({ appId, appName, currentLogo, size = "md" }: LogoU
         throw updateError;
       }
 
-      // Invalidate queries to refresh UI
+      // Refresh ProjectContext to update UI immediately
+      await refreshApps();
+      
+      // Also invalidate React Query caches
       await queryClient.invalidateQueries({ queryKey: ["app_ideas"] });
       await queryClient.invalidateQueries({ queryKey: ["appIdea"] });
 
