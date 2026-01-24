@@ -66,7 +66,7 @@ const BusinessCard = React.forwardRef<HTMLDivElement, BusinessCardProps>(
           </div>
           
           {/* Body */}
-          <div className="text-sm text-muted-foreground leading-relaxed">
+          <div className="text-base text-muted-foreground leading-relaxed">
             {children}
           </div>
         </div>
