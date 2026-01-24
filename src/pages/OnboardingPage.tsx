@@ -96,18 +96,29 @@ export default function OnboardingPage() {
   };
 
   const performFinalTransition = async () => {
+    // Step 1: Wait 25 seconds for backend to finish writing to Supabase
+    await new Promise(resolve => setTimeout(resolve, 25000));
+    
+    console.log('25s wait complete, attempting data refresh...');
+
+    // Step 2: Try to refresh data, but don't block navigation
     try {
-      // Step 1: Wait 25 seconds for backend to finish writing to Supabase
-      await new Promise(resolve => setTimeout(resolve, 25000));
-
-      // Step 2: Invalidate all app-related queries to force fresh data
-      await queryClient.invalidateQueries({ queryKey: ['app_ideas'] });
-      await queryClient.invalidateQueries({ queryKey: ['artifacts'] });
+      // Attempt to invalidate queries with timeout
+      await Promise.race([
+        Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['app_ideas'] }),
+          queryClient.invalidateQueries({ queryKey: ['artifacts'] }),
+        ]),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Query invalidation timeout')), 3000))
+      ]);
       
-      // Step 3: Refresh the apps list in ProjectContext
-      await refreshApps();
+      // Attempt to refresh apps with timeout
+      await Promise.race([
+        refreshApps(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Refresh timeout')), 3000))
+      ]);
 
-      // Step 4: Fetch the most recent app and auto-select it
+      // Try to auto-select the latest app
       const { data: latestApps } = await supabase
         .from('app_ideas')
         .select('id')
@@ -118,15 +129,26 @@ export default function OnboardingPage() {
       if (latestApps && latestApps.length > 0) {
         selectApp(latestApps[0].id);
       }
-
-      // Step 5: Navigate to dashboard
-      navigate('/dashboard');
     } catch (err) {
-      console.error('Transition error:', err);
-      // Fallback: navigate anyway after a delay
-      setTimeout(() => navigate('/dashboard'), 2000);
+      console.warn('Pre-navigation data fetch failed (non-critical):', err);
     }
+
+    // Step 3: ALWAYS navigate, regardless of data fetch success
+    console.log('Navigating to dashboard...');
+    navigate('/dashboard', { replace: true });
   };
+
+  // Backup navigation effect - guarantees redirect even if primary method fails
+  useEffect(() => {
+    if (showCompletion) {
+      const backupTimer = setTimeout(() => {
+        console.log('Backup navigation triggered after 30s');
+        navigate('/dashboard', { replace: true });
+      }, 30000);
+      
+      return () => clearTimeout(backupTimer);
+    }
+  }, [showCompletion, navigate]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
