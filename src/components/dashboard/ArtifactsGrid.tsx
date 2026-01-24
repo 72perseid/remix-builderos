@@ -48,7 +48,7 @@ const artifactCards: ArtifactCardConfig[] = [
     type: 'kanban',
     title: 'Roadmap & Features',
     description: 'Feature roadmap organized by MVP, V1, and stretch goals.',
-    route: '/ai-kanban-assistant',
+    route: '/project-board',
     category: 'launching',
   },
 ];

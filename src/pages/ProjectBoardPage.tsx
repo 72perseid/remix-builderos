@@ -60,19 +60,30 @@ const COLUMN_CONFIG: { id: string; title: string; color: string }[] = [
   { id: 'done', title: 'Done', color: '#10B981' },
 ];
 
-// Map old column IDs to new column IDs
+// Map old column IDs and tags to new column IDs
+// Supports both column id-based mapping and tag-based mapping
 const columnMapping: Record<string, string> = {
+  // Column ID mappings
   'backlog': 'backlog',
   'todo': 'selected',
   'to-do': 'selected',
+  'selected': 'selected',
   'mvp': 'selected',
-  'v1': 'in_progress',
+  'v1': 'backlog',
   'in-progress': 'in_progress',
   'in_progress': 'in_progress',
   'review': 'qa',
   'qa': 'qa',
   'stretch': 'backlog',
+  'stretch goals': 'backlog',
   'done': 'done',
+};
+
+// Map card tags to target columns (used when column ID isn't specific enough)
+const tagToColumnMapping: Record<string, string> = {
+  'MVP': 'selected',
+  'V1': 'backlog',
+  'Stretch Goals': 'backlog',
 };
 
 // Priority badge styling
@@ -241,11 +252,26 @@ export default function ProjectBoardPage() {
     // Distribute cards from old columns to new columns
     rawColumns.forEach((oldCol) => {
       const oldId = oldCol.id.toLowerCase();
-      const newColumnId = columnMapping[oldId] || 'backlog';
+      // First check if the column ID itself maps to a specific column
+      const columnIdMapping = columnMapping[oldId];
 
       oldCol.cards.forEach((card, index) => {
-        if (columns[newColumnId]) {
-          columns[newColumnId].push({
+        // Determine target column: prioritize tag-based mapping, fallback to column ID mapping
+        let targetColumnId: string;
+        
+        if (card.tag && tagToColumnMapping[card.tag]) {
+          // Use tag-based mapping (MVP -> selected, V1 -> backlog, etc.)
+          targetColumnId = tagToColumnMapping[card.tag];
+        } else if (columnIdMapping) {
+          // Fallback to column ID mapping
+          targetColumnId = columnIdMapping;
+        } else {
+          // Default to backlog if no mapping found
+          targetColumnId = 'backlog';
+        }
+
+        if (columns[targetColumnId]) {
+          columns[targetColumnId].push({
             id: `${oldCol.id}-${index}`,
             tag: card.tag,
             title: card.title,
