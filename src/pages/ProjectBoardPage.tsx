@@ -10,7 +10,24 @@ import {
   KanbanItem,
   KanbanOverlay,
 } from '@/components/ui/kanban';
-import { Badge } from '@/components/ui/badge-2';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Interface matching the artifact content structure
 interface ArtifactContent {
@@ -131,9 +148,10 @@ interface TaskColumnProps {
   title: string;
   color: string;
   cards: KanbanCard[];
+  onAddCard: (columnId: string) => void;
 }
 
-function TaskColumn({ columnId, title, color, cards }: TaskColumnProps) {
+function TaskColumn({ columnId, title, color, cards, onAddCard }: TaskColumnProps) {
   return (
     <KanbanColumn
       value={columnId}
@@ -166,7 +184,10 @@ function TaskColumn({ columnId, title, color, cards }: TaskColumnProps) {
 
       {/* Add Card Button */}
       <div className="p-2 border-t border-slate-700/50">
-        <button className="w-full py-2 px-3 bg-[#1a2744] hover:bg-[#243352] text-slate-400 hover:text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+        <button 
+          onClick={() => onAddCard(columnId)}
+          className="w-full py-2 px-3 bg-[#1a2744] hover:bg-[#243352] text-slate-400 hover:text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+        >
           <Plus className="w-4 h-4" />
           New card
         </button>
@@ -211,6 +232,14 @@ export default function ProjectBoardPage() {
   }, [artifact]);
 
   const [columns, setColumns] = useState<Record<string, KanbanCard[]>>(initialColumns);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+  const [newCard, setNewCard] = useState({
+    title: '',
+    description: '',
+    tag: 'MVP',
+    priority: 'medium' as 'low' | 'medium' | 'high',
+  });
 
   // Update columns when artifact changes
   useMemo(() => {
@@ -229,6 +258,39 @@ export default function ProjectBoardPage() {
     }
     return undefined;
   }, [columns]);
+
+  const handleOpenAddDialog = useCallback((columnId: string) => {
+    setActiveColumnId(columnId);
+    setNewCard({
+      title: '',
+      description: '',
+      tag: 'MVP',
+      priority: 'medium',
+    });
+    setIsAddDialogOpen(true);
+  }, []);
+
+  const handleAddCard = useCallback(() => {
+    if (!newCard.title.trim() || !activeColumnId) return;
+
+    const card: KanbanCard = {
+      id: `card-${Date.now()}`,
+      title: newCard.title.trim(),
+      description: newCard.description.trim(),
+      tag: newCard.tag,
+      priority: newCard.priority,
+    };
+
+    setColumns(prev => ({
+      ...prev,
+      [activeColumnId]: [...(prev[activeColumnId] || []), card],
+    }));
+
+    setIsAddDialogOpen(false);
+    setActiveColumnId(null);
+  }, [newCard, activeColumnId]);
+
+  const activeColumn = COLUMN_CONFIG.find(col => col.id === activeColumnId);
 
   if (loading) {
     return (
@@ -265,6 +327,7 @@ export default function ProjectBoardPage() {
                 title={config.title}
                 color={config.color}
                 cards={columns[config.id] || []}
+                onAddCard={handleOpenAddDialog}
               />
             ))}
           </KanbanBoard>
@@ -287,6 +350,82 @@ export default function ProjectBoardPage() {
           </p>
         </div>
       )}
+
+      {/* Add Card Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">
+              Add Card to {activeColumn?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-slate-300">Title</Label>
+              <Input
+                id="title"
+                value={newCard.title}
+                onChange={(e) => setNewCard({ ...newCard, title: e.target.value })}
+                placeholder="Enter card title"
+                className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-slate-300">Description</Label>
+              <Textarea
+                id="description"
+                value={newCard.description}
+                onChange={(e) => setNewCard({ ...newCard, description: e.target.value })}
+                placeholder="Enter card description (optional)"
+                className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[80px]"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-slate-300">Tag</Label>
+                <Select value={newCard.tag} onValueChange={(value) => setNewCard({ ...newCard, tag: value })}>
+                  <SelectTrigger className="bg-[#1a2332] border-slate-700/50 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a2332] border-slate-700/50">
+                    <SelectItem value="MVP" className="text-white hover:bg-white/10">MVP</SelectItem>
+                    <SelectItem value="V1" className="text-white hover:bg-white/10">V1</SelectItem>
+                    <SelectItem value="Stretch Goals" className="text-white hover:bg-white/10">Stretch Goals</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Priority</Label>
+                <Select 
+                  value={newCard.priority} 
+                  onValueChange={(value: 'low' | 'medium' | 'high') => setNewCard({ ...newCard, priority: value })}
+                >
+                  <SelectTrigger className="bg-[#1a2332] border-slate-700/50 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a2332] border-slate-700/50">
+                    <SelectItem value="low" className="text-white hover:bg-white/10">Low</SelectItem>
+                    <SelectItem value="medium" className="text-white hover:bg-white/10">Medium</SelectItem>
+                    <SelectItem value="high" className="text-white hover:bg-white/10">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)} className="text-slate-400 hover:text-white">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleAddCard} 
+              disabled={!newCard.title.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Add Card
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
