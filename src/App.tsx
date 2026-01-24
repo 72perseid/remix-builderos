@@ -14,6 +14,7 @@ import AppIdeaPage from "./pages/AppIdeaPage";
 import BusinessModelPage from "./pages/BusinessModelPage";
 import DatabaseDesignPage from "./pages/DatabaseDesignPage";
 import AIKanbanAssistantPage from "./pages/AIKanbanAssistantPage";
+import ProjectBoardPage from "./pages/ProjectBoardPage";
 import ValidationPage from "./pages/ValidationPage";
 import ProductBriefPage from "./pages/ProductBriefPage";
 import NotFound from "./pages/NotFound";
@@ -59,6 +60,11 @@ const App = () => (
             <Route path="/ai-kanban-assistant" element={
               <ProtectedRoute>
                 <DashboardLayout><AIKanbanAssistantPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/project-board" element={
+              <ProtectedRoute>
+                <DashboardLayout><ProjectBoardPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/validation" element={
