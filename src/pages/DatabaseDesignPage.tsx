@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { BusinessCard } from '@/components/ui/business-card';
 import { useAppIdea } from '@/hooks/useAppIdea';
 import { useDatabaseDesign } from '@/hooks/useDatabaseDesign';
 import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
-import { Sparkles, Database, Table, Link2, Loader2 } from 'lucide-react';
+import { Database, Table2, Link2, Loader2, Columns } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+import { motion } from 'framer-motion';
 import {
   Table as UITable,
   TableBody,
@@ -98,7 +97,7 @@ export default function DatabaseDesignPage() {
   if (artifactLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
       </div>
     );
   }
@@ -111,14 +110,13 @@ export default function DatabaseDesignPage() {
         <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>
       </div>
 
-
       {/* Empty State */}
       {!content && (
-        <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
+        <Card className="bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729] border-white/10">
           <CardContent className="p-8 text-center">
             <Database className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2 text-white">No Database Design Yet</h3>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-base">
               Generate a database design using the AI Architect on the Dashboard.
             </p>
           </CardContent>
@@ -127,42 +125,32 @@ export default function DatabaseDesignPage() {
 
       {/* Generated Database Design */}
       {content && (
-        <div className="space-y-6 animate-fade-in">
-          {/* ERD Diagram */}
-          {content.erdDiagram && (
-            <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <Database className="w-4 h-4 text-primary" />
-                  ERD Diagram (Mermaid)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="p-4 rounded-lg bg-background/50 border border-border overflow-x-auto text-xs font-mono text-foreground/80">
-                  {content.erdDiagram}
-                </pre>
-              </CardContent>
-            </Card>
-          )}
-
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           {/* Tables */}
           {content.tables && content.tables.length > 0 && (
-            <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <Table className="w-4 h-4 text-purple-500" />
-                  Tables & Fields
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
+                <Table2 className="w-5 h-5 text-purple-500" />
+                Tables & Fields
+              </h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {content.tables.map((table, i) => (
-                  <div key={i} className="space-y-2">
-                    <h4 className="font-semibold text-sm text-white">{table.name}</h4>
+                  <BusinessCard 
+                    key={i} 
+                    title={table.name}
+                    icon={Columns}
+                    iconColor="text-purple-500"
+                  >
                     <UITable>
                       <TableHeader>
-                        <TableRow className="border-border">
-                          <TableHead className="text-xs text-white">Field</TableHead>
-                          <TableHead className="text-xs text-white">Type</TableHead>
+                        <TableRow className="border-white/10 hover:bg-transparent">
+                          <TableHead className="text-sm text-white font-medium">Field</TableHead>
+                          <TableHead className="text-sm text-white font-medium">Type</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -171,18 +159,18 @@ export default function DatabaseDesignPage() {
                           table.columns.map((col, j) => {
                             const { name, type } = parseColumn(col);
                             return (
-                              <TableRow key={j} className="border-border">
-                                <TableCell className="text-xs font-mono text-[#65686f]">{name}</TableCell>
-                                <TableCell className="text-xs font-mono text-[#65686f]">{type}</TableCell>
+                              <TableRow key={j} className="border-white/10 hover:bg-white/5">
+                                <TableCell className="text-sm font-mono text-muted-foreground">{name}</TableCell>
+                                <TableCell className="text-sm font-mono text-muted-foreground">{type}</TableCell>
                               </TableRow>
                             );
                           })
                         ) : (
                           // Legacy format: fields as objects
                           (table as TableDefLegacy).fields.map((field, j) => (
-                            <TableRow key={j} className="border-border">
-                              <TableCell className="text-xs font-mono text-[#65686f]">{field.name}</TableCell>
-                              <TableCell className="text-xs font-mono text-[#65686f]">
+                            <TableRow key={j} className="border-white/10 hover:bg-white/5">
+                              <TableCell className="text-sm font-mono text-muted-foreground">{field.name}</TableCell>
+                              <TableCell className="text-sm font-mono text-muted-foreground">
                                 {field.type}
                                 {field.constraints && ` (${field.constraints})`}
                               </TableCell>
@@ -191,31 +179,33 @@ export default function DatabaseDesignPage() {
                         )}
                       </TableBody>
                     </UITable>
-                  </div>
+                  </BusinessCard>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Relationships */}
           {content.relationships && content.relationships.length > 0 && (
-            <Card className="bg-[#161e2a]/80 backdrop-blur-sm border-white/10">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <Link2 className="w-4 h-4 text-orange-500" />
-                  Table Relationships
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div>
+              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
+                <Link2 className="w-5 h-5 text-orange-500" />
+                Table Relationships
+              </h2>
+              <BusinessCard 
+                title="Relationships"
+                icon={Link2}
+                iconColor="text-orange-500"
+              >
                 {typeof content.relationships[0] === 'string' ? (
                   // New format: relationships as string array
-                  <ul className="space-y-2">
+                  <ul className="space-y-3">
                     {(content.relationships as string[]).map((rel, i) => {
                       const { from, to } = parseRelationship(rel);
                       return (
-                        <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <li key={i} className="flex items-center gap-2">
                           <span className="font-mono text-white">{from}</span>
-                          <span className="text-orange-500">→</span>
+                          <span className="text-orange-500 font-bold">→</span>
                           <span className="font-mono text-white">{to}</span>
                         </li>
                       );
@@ -225,33 +215,33 @@ export default function DatabaseDesignPage() {
                   // Legacy format: relationships as objects
                   <UITable>
                     <TableHeader>
-                      <TableRow className="border-border">
-                        <TableHead className="text-xs text-muted-foreground">From</TableHead>
-                        <TableHead className="text-xs text-muted-foreground">To</TableHead>
-                        <TableHead className="text-xs text-muted-foreground">Type</TableHead>
-                        <TableHead className="text-xs text-muted-foreground">Description</TableHead>
+                      <TableRow className="border-white/10 hover:bg-transparent">
+                        <TableHead className="text-sm text-white font-medium">From</TableHead>
+                        <TableHead className="text-sm text-white font-medium">To</TableHead>
+                        <TableHead className="text-sm text-white font-medium">Type</TableHead>
+                        <TableHead className="text-sm text-white font-medium">Description</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {(content.relationships as { from: string; to: string; type: string; description?: string }[]).map((rel, i) => (
-                        <TableRow key={i} className="border-border">
-                          <TableCell className="text-xs font-mono text-foreground/80">{rel.from}</TableCell>
-                          <TableCell className="text-xs font-mono text-foreground/80">{rel.to}</TableCell>
-                          <TableCell className="text-xs">
-                            <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px]">
+                        <TableRow key={i} className="border-white/10 hover:bg-white/5">
+                          <TableCell className="text-sm font-mono text-muted-foreground">{rel.from}</TableCell>
+                          <TableCell className="text-sm font-mono text-muted-foreground">{rel.to}</TableCell>
+                          <TableCell className="text-sm">
+                            <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs">
                               {rel.type}
                             </span>
                           </TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{rel.description || '-'}</TableCell>
+                          <TableCell className="text-sm text-muted-foreground">{rel.description || '-'}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </UITable>
                 )}
-              </CardContent>
-            </Card>
+              </BusinessCard>
+            </div>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );
