@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Loader2, LayoutGrid, GripVertical, Plus } from 'lucide-react';
+import { Loader2, LayoutGrid, GripVertical, Plus, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Kanban,
@@ -92,21 +92,47 @@ const tagStyles: Record<string, string> = {
 interface TaskCardProps {
   card: KanbanCard;
   isOverlay?: boolean;
+  onEdit?: (card: KanbanCard) => void;
+  onDelete?: (cardId: string) => void;
 }
 
-function TaskCard({ card, isOverlay }: TaskCardProps) {
+function TaskCard({ card, isOverlay, onEdit, onDelete }: TaskCardProps) {
   return (
     <div
       className={cn(
-        "bg-[#1a2332] border border-slate-700/50 rounded-lg p-3 transition-all group",
+        "bg-[#1a2332] border border-slate-700/50 rounded-lg p-3 transition-all group relative",
         isOverlay 
           ? "shadow-2xl rotate-2 scale-105" 
           : "hover:border-slate-600 cursor-grab active:cursor-grabbing"
       )}
     >
+      {/* Action buttons */}
+      {!isOverlay && (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(card);
+            }}
+            className="p-1 hover:bg-slate-700 rounded transition-colors"
+          >
+            <Pencil className="w-3 h-3 text-slate-400" />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(card.id);
+            }}
+            className="p-1 hover:bg-red-900/30 rounded transition-colors"
+          >
+            <Trash2 className="w-3 h-3 text-slate-400 hover:text-red-400" />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-start gap-2">
         <GripVertical className="w-4 h-4 text-slate-600 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 pr-10">
           <h4 className="text-sm font-medium text-white mb-1 line-clamp-2">
             {card.title}
           </h4>
@@ -149,9 +175,11 @@ interface TaskColumnProps {
   color: string;
   cards: KanbanCard[];
   onAddCard: (columnId: string) => void;
+  onEditCard: (card: KanbanCard) => void;
+  onDeleteCard: (cardId: string) => void;
 }
 
-function TaskColumn({ columnId, title, color, cards, onAddCard }: TaskColumnProps) {
+function TaskColumn({ columnId, title, color, cards, onAddCard, onEditCard, onDeleteCard }: TaskColumnProps) {
   return (
     <KanbanColumn
       value={columnId}
@@ -177,7 +205,7 @@ function TaskColumn({ columnId, title, color, cards, onAddCard }: TaskColumnProp
       <KanbanColumnContent value={columnId} className="flex-1 overflow-y-auto p-2 gap-2">
         {cards.map((card) => (
           <KanbanItem key={card.id} value={card.id} className="touch-none">
-            <TaskCard card={card} />
+            <TaskCard card={card} onEdit={onEditCard} onDelete={onDeleteCard} />
           </KanbanItem>
         ))}
       </KanbanColumnContent>
@@ -233,7 +261,9 @@ export default function ProjectBoardPage() {
 
   const [columns, setColumns] = useState<Record<string, KanbanCard[]>>(initialColumns);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+  const [editingCard, setEditingCard] = useState<KanbanCard | null>(null);
   const [newCard, setNewCard] = useState({
     title: '',
     description: '',
@@ -290,6 +320,44 @@ export default function ProjectBoardPage() {
     setActiveColumnId(null);
   }, [newCard, activeColumnId]);
 
+  const handleEditCard = useCallback((card: KanbanCard) => {
+    setEditingCard(card);
+    setIsEditDialogOpen(true);
+  }, []);
+
+  const handleSaveEdit = useCallback(() => {
+    if (!editingCard) return;
+
+    setColumns(prev => {
+      const updated = { ...prev };
+      for (const columnId of Object.keys(updated)) {
+        const cardIndex = updated[columnId].findIndex(c => c.id === editingCard.id);
+        if (cardIndex !== -1) {
+          updated[columnId] = [
+            ...updated[columnId].slice(0, cardIndex),
+            editingCard,
+            ...updated[columnId].slice(cardIndex + 1),
+          ];
+          break;
+        }
+      }
+      return updated;
+    });
+
+    setIsEditDialogOpen(false);
+    setEditingCard(null);
+  }, [editingCard]);
+
+  const handleDeleteCard = useCallback((cardId: string) => {
+    setColumns(prev => {
+      const updated = { ...prev };
+      for (const columnId of Object.keys(updated)) {
+        updated[columnId] = updated[columnId].filter(c => c.id !== cardId);
+      }
+      return updated;
+    });
+  }, []);
+
   const activeColumn = COLUMN_CONFIG.find(col => col.id === activeColumnId);
 
   if (loading) {
@@ -328,6 +396,8 @@ export default function ProjectBoardPage() {
                 color={config.color}
                 cards={columns[config.id] || []}
                 onAddCard={handleOpenAddDialog}
+                onEditCard={handleEditCard}
+                onDeleteCard={handleDeleteCard}
               />
             ))}
           </KanbanBoard>
@@ -422,6 +492,82 @@ export default function ProjectBoardPage() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               Add Card
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Card Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-white">Edit Card</DialogTitle>
+          </DialogHeader>
+          {editingCard && (
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title" className="text-slate-300">Title</Label>
+                <Input
+                  id="edit-title"
+                  value={editingCard.title}
+                  onChange={(e) => setEditingCard({ ...editingCard, title: e.target.value })}
+                  placeholder="Enter card title"
+                  className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description" className="text-slate-300">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editingCard.description}
+                  onChange={(e) => setEditingCard({ ...editingCard, description: e.target.value })}
+                  placeholder="Enter card description (optional)"
+                  className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[80px]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Tag</Label>
+                  <Select value={editingCard.tag} onValueChange={(value) => setEditingCard({ ...editingCard, tag: value })}>
+                    <SelectTrigger className="bg-[#1a2332] border-slate-700/50 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a2332] border-slate-700/50">
+                      <SelectItem value="MVP" className="text-white hover:bg-white/10">MVP</SelectItem>
+                      <SelectItem value="V1" className="text-white hover:bg-white/10">V1</SelectItem>
+                      <SelectItem value="Stretch Goals" className="text-white hover:bg-white/10">Stretch Goals</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Priority</Label>
+                  <Select 
+                    value={editingCard.priority || 'medium'} 
+                    onValueChange={(value: 'low' | 'medium' | 'high') => setEditingCard({ ...editingCard, priority: value })}
+                  >
+                    <SelectTrigger className="bg-[#1a2332] border-slate-700/50 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#1a2332] border-slate-700/50">
+                      <SelectItem value="low" className="text-white hover:bg-white/10">Low</SelectItem>
+                      <SelectItem value="medium" className="text-white hover:bg-white/10">Medium</SelectItem>
+                      <SelectItem value="high" className="text-white hover:bg-white/10">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="text-slate-400 hover:text-white">
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveEdit} 
+              disabled={!editingCard?.title.trim()}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
