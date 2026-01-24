@@ -372,8 +372,7 @@ export default function ProjectBoardPage() {
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Project Board</h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground">
           {totalCards > 0
             ? `${totalCards} tasks across ${COLUMN_CONFIG.length} columns • Drag cards to move them`
             : 'Your tasks will appear here once generated'}
