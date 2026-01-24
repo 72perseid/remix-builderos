@@ -1,8 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { BusinessCard } from '@/components/ui/business-card';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles } from 'lucide-react';
+import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles, Calendar, TrendingUp, Package } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+import { motion } from 'framer-motion';
 
 interface ProductBriefContent {
   // Snake_case from database
@@ -61,165 +63,148 @@ export default function ProductBriefPage() {
       {error && (
         <Card className="border-destructive/50 bg-destructive/10">
           <CardContent className="p-4">
-            <p className="text-destructive text-sm">Failed to load product brief</p>
+            <p className="text-destructive text-base">Failed to load product brief</p>
           </CardContent>
         </Card>
       )}
 
       {!artifact ? (
-        <Card className="bg-card/50 border-border">
+        <Card className="bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729] border-white/10">
           <CardContent className="p-8 text-center">
             <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2 text-foreground">No Product Brief Yet</h3>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-base">
               Generate a product brief using the AI Architect on the Dashboard.
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <motion.div 
+          className="space-y-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
           {/* Elevator Pitch / Summary */}
           {elevatorPitch && (
-            <Card className="bg-[#161e2a] border-border">
-              <CardHeader>
-                <CardTitle className="text-xl flex items-center gap-2 text-white">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  {title || 'Elevator Pitch'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-[#65686f]">{elevatorPitch}</p>
-              </CardContent>
-            </Card>
+            <BusinessCard 
+              title={title || 'Elevator Pitch'}
+              icon={Sparkles}
+              iconColor="text-primary"
+              colSpan={2}
+            >
+              <p>{elevatorPitch}</p>
+            </BusinessCard>
           )}
 
           {/* Problem Statement & Differentiators */}
           <div className="grid md:grid-cols-2 gap-4">
             {problemStatement && (
-              <Card className="bg-[#161e2a] border-border">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-white">
-                    <Target className="w-4 h-4 text-red-500" />
-                    Problem Statement
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-[#65686f]">{problemStatement}</p>
-                </CardContent>
-              </Card>
+              <BusinessCard 
+                title="Problem Statement"
+                icon={Target}
+                iconColor="text-red-500"
+              >
+                <p>{problemStatement}</p>
+              </BusinessCard>
             )}
 
             {differentiators && (
-              <Card className="bg-[#161e2a] border-border">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2 text-white">
-                    <Lightbulb className="w-4 h-4 text-yellow-500" />
-                    Differentiators
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-[#65686f]">{differentiators}</p>
-                </CardContent>
-              </Card>
+              <BusinessCard 
+                title="Differentiators"
+                icon={Lightbulb}
+                iconColor="text-yellow-500"
+              >
+                <p>{differentiators}</p>
+              </BusinessCard>
             )}
           </div>
 
           {/* Target Users */}
           {targetUsers && (
-            <Card className="bg-[#161e2a] border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <Users className="w-4 h-4 text-purple-500" />
-                  Target Users
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {Array.isArray(targetUsers) ? (
-                  <div className="flex flex-wrap gap-2">
-                    {targetUsers.map((audience, i) => (
-                      <Badge key={i} variant="secondary" className="bg-secondary text-[#65686f]">
-                        {audience}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-[#65686f]">{targetUsers}</p>
-                )}
-              </CardContent>
-            </Card>
+            <BusinessCard 
+              title="Target Users"
+              icon={Users}
+              iconColor="text-purple-500"
+            >
+              {Array.isArray(targetUsers) ? (
+                <div className="flex flex-wrap gap-2">
+                  {targetUsers.map((audience, i) => (
+                    <Badge key={i} variant="secondary" className="text-sm bg-white/5 border border-white/10 text-muted-foreground">
+                      {audience}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p>{targetUsers}</p>
+              )}
+            </BusinessCard>
           )}
 
           {/* Core Features */}
           {coreFeatures.length > 0 && (
-            <Card className="bg-[#161e2a] border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-white">
-                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                  Core Features
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="grid md:grid-cols-2 gap-2">
-                  {coreFeatures.map((feature, i) => (
-                    <li key={i} className="text-sm text-[#65686f] flex gap-2">
-                      <span className="text-primary">•</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <BusinessCard 
+              title="Core Features"
+              icon={CheckCircle2}
+              iconColor="text-primary"
+            >
+              <ul className="grid md:grid-cols-2 gap-2">
+                {coreFeatures.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">•</span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </BusinessCard>
           )}
 
           {/* MVP Scope */}
           {mvpScope.length > 0 && (
-            <Card className="bg-[#161e2a] border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-white">MVP Scope</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {mvpScope.map((item, i) => (
-                    <li key={i} className="text-sm text-[#65686f] flex gap-2">
-                      <span className="text-green-500">✓</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+            <BusinessCard 
+              title="MVP Scope"
+              icon={Package}
+              iconColor="text-green-500"
+            >
+              <ul className="space-y-1.5">
+                {mvpScope.map((item, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </BusinessCard>
           )}
 
           {/* Success Metrics */}
           {successMetrics.length > 0 && (
-            <Card className="bg-[#161e2a] border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-white">Success Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {successMetrics.map((metric, i) => (
-                    <Badge key={i} variant="outline" className="border-border text-[#65686f]">
-                      {metric}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <BusinessCard 
+              title="Success Metrics"
+              icon={TrendingUp}
+              iconColor="text-blue-500"
+            >
+              <div className="flex flex-wrap gap-2">
+                {successMetrics.map((metric, i) => (
+                  <Badge key={i} variant="outline" className="text-sm border-white/10 text-muted-foreground">
+                    {metric}
+                  </Badge>
+                ))}
+              </div>
+            </BusinessCard>
           )}
 
           {/* Timeline */}
           {timeline && (
-            <Card className="bg-[#161e2a] border-border">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base text-white">Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-[#65686f]">{timeline}</p>
-              </CardContent>
-            </Card>
+            <BusinessCard 
+              title="Timeline"
+              icon={Calendar}
+              iconColor="text-orange-500"
+            >
+              <p>{timeline}</p>
+            </BusinessCard>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );
