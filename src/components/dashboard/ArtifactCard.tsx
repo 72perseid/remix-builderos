@@ -80,21 +80,6 @@ export function ArtifactCard({ title, description, status, onClick }: ArtifactCa
         <div className="absolute inset-[1px] rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
       </div>
 
-      {/* Corner decorations */}
-      <div className="absolute top-3 left-3 flex gap-1.5 z-10">
-        <div className={cn(
-          "w-2 h-2 rounded-full transition-colors duration-300",
-          status === "completed" ? "bg-green-500/80" : "bg-red-500/60"
-        )} />
-        <div className={cn(
-          "w-2 h-2 rounded-full transition-colors duration-300",
-          status === "completed" || status === "available" ? "bg-yellow-500/80" : "bg-yellow-500/60"
-        )} />
-        <div className={cn(
-          "w-2 h-2 rounded-full transition-colors duration-300",
-          status === "completed" ? "bg-green-500/80" : "bg-green-500/60"
-        )} />
-      </div>
 
       {/* Content */}
       <div className="relative p-5 pt-10 min-h-[180px] flex flex-col">
