@@ -2,13 +2,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const tabs = [
-  { id: "project-board", label: "Project board", route: "/ai-kanban-assistant" },
+  { id: "project-board", label: "Project board", route: "/project-board" },
+  { id: "roadmap", label: "Roadmap", route: "/ai-kanban-assistant" },
   { id: "artifacts", label: "Artifacts", route: "/dashboard" },
 ];
 
 const routeToTab: Record<string, string> = {
   '/dashboard': 'artifacts',
-  '/ai-kanban-assistant': 'project-board',
+  '/project-board': 'project-board',
+  '/ai-kanban-assistant': 'roadmap',
   '/database-design': 'artifacts',
   '/business-model': 'artifacts',
   '/product-brief': 'artifacts',
