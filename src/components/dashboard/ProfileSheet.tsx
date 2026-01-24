@@ -297,14 +297,6 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-slate-400 hover:text-red-400 hover:bg-red-900/30"
-                            onClick={(e) => handleDeleteApp(app, e)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
                           {app.currently_building && (
                             <Badge className="bg-green-600/20 text-green-400 border-green-600/50 text-xs">
                               Building
