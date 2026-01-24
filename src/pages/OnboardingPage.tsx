@@ -97,8 +97,8 @@ export default function OnboardingPage() {
 
   const performFinalTransition = async () => {
     try {
-      // Step 1: Wait 3 seconds for backend to finish writing to Supabase
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Step 1: Wait 25 seconds for backend to finish writing to Supabase
+      await new Promise(resolve => setTimeout(resolve, 25000));
 
       // Step 2: Invalidate all app-related queries to force fresh data
       await queryClient.invalidateQueries({ queryKey: ['app_ideas'] });
