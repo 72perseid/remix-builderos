@@ -73,7 +73,7 @@ export function ArtifactsGrid() {
 
       {/* Feature Planning Header - Above both columns */}
       <div className="mb-2">
-        <h3 className="text-sm uppercase tracking-wider text-foreground font-semibold mb-1">
+        <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-semibold mb-1">
           Feature Planning
         </h3>
         <p className="text-sm text-muted-foreground">
