@@ -76,9 +76,7 @@ export function ArtifactsGrid() {
         {/* Feature Planning Column */}
         <div>
           <div className="mb-4">
-            <h3 className="text-xs uppercase tracking-wider font-semibold mb-1 text-primary-foreground">
-              Feature planning
-            </h3>
+            
             <p className="text-xs text-slate-600">
               Plan and organize your app features before development
             </p>
