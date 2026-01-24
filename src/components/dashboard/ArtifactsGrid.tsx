@@ -71,30 +71,23 @@ export function ArtifactsGrid() {
       {/* Architect Banner */}
       <ArchitectBanner onStartBuilding={openChat} hasData={hasAnyData} />
 
-      {/* Feature Planning Header - Above both columns */}
-      <div className="mb-2">
-        <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-          Feature Planning
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          These artifacts guide you in aligning on scope, functionality, and user experience before moving into building.
-        </p>
-      </div>
-
       {/* Artifacts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Feature Planning Column */}
-        <div className="grid gap-4">
-          {planningCards.map(card => <ArtifactCard key={card.type} title={card.title} description={card.description} status={getCardStatus(card.type)} onClick={() => navigate(card.route)} />)}
+        <div>
+          
+          <div className="grid gap-4">
+            {planningCards.map(card => <ArtifactCard key={card.type} title={card.title} description={card.description} status={getCardStatus(card.type)} onClick={() => navigate(card.route)} />)}
+          </div>
         </div>
 
         {/* Launching Column */}
         <div>
           <div className="mb-4">
-            <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+            <h3 className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">
               Launching
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-slate-600">
               Technical artifacts and implementation guides
             </p>
           </div>
