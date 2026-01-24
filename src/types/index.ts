@@ -1,4 +1,4 @@
-export type TaskStatus = 'backlog' | 'planning' | 'in-progress' | 'review' | 'done';
+export type TaskStatus = 'backlog' | 'selected' | 'in_progress' | 'qa' | 'done';
 export type TaskColor = 'yellow' | 'coral' | 'mint' | 'lavender' | 'sky';
 export type TaskCategory = 'MVP' | 'V1' | 'Stretch Goals';
 export type TaskPriority = 'low' | 'medium' | 'high';
