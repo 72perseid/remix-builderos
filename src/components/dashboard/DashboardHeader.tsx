@@ -10,12 +10,11 @@ import {
 import { Plus, ChevronDown, Check, Loader2 } from "lucide-react";
 import { useProjectContext } from "@/contexts/ProjectContext";
 import { useChatContext } from "@/contexts/ChatContext";
+import { LogoUploader } from "./LogoUploader";
 
 export function DashboardHeader() {
   const { selectedApp, apps, loading, selectApp, clearSelection } = useProjectContext();
   const { openChat, setShouldClearOnOpen } = useChatContext();
-  
-  const appInitial = selectedApp?.app_name?.charAt(0).toUpperCase() || "A";
 
   const handleNewApp = () => {
     clearSelection();              // Step 1: Clear selectedAppId (creation mode)
@@ -30,12 +29,20 @@ export function DashboardHeader() {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
       <div className="flex items-center gap-4">
-        <Avatar className="w-10 h-10 rounded-lg">
-          <AvatarImage src={selectedApp?.logo || ""} className="rounded-lg" />
-          <AvatarFallback className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
-            {appInitial}
-          </AvatarFallback>
-        </Avatar>
+        {selectedApp ? (
+          <LogoUploader
+            appId={selectedApp.id}
+            appName={selectedApp.app_name || "App"}
+            currentLogo={selectedApp.logo}
+            size="md"
+          />
+        ) : (
+          <Avatar className="w-10 h-10 rounded-lg">
+            <AvatarFallback className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold text-lg">
+              A
+            </AvatarFallback>
+          </Avatar>
+        )}
         <div>
           <h2 className="text-xl font-bold text-white">
             {selectedApp?.app_name || "My App"}
