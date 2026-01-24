@@ -30,12 +30,32 @@ export function useTasks() {
         return [];
       }
 
+      // Map old status values to new ones
+      const mapStatus = (status: string | null): TaskStatus => {
+        if (!status) return 'backlog';
+        
+        // Map old statuses to new column structure
+        const statusMap: Record<string, TaskStatus> = {
+          'planning': 'selected',      // Old "planning" -> "Selected for Development"
+          'in-progress': 'in_progress', // Old "in-progress" -> "In Progress"
+          'review': 'qa',               // Old "review" -> "In QA"
+          // Keep these as-is
+          'backlog': 'backlog',
+          'selected': 'selected',
+          'in_progress': 'in_progress',
+          'qa': 'qa',
+          'done': 'done',
+        };
+        
+        return statusMap[status] || 'backlog';
+      };
+
       // Map database fields to Task type
       return (data || []).map(task => ({
         id: task.id,
         title: task.title,
         description: task.description || '',
-        status: (task.status || 'backlog') as TaskStatus,
+        status: mapStatus(task.status),
         priority: task.priority as Task['priority'] || 'medium',
         category: task.category || '',
         color: task.color as Task['color'] || 'gray',
