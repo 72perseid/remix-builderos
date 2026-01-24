@@ -61,9 +61,10 @@ export function useChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [newAppId, setNewAppId] = useState<string | null>(null);
+  const [isNewAppMode, setIsNewAppMode] = useState(false);
 
-  // Check if app is selected
-  const hasSelectedApp = !!selectedAppId;
+  // Check if app is selected OR in new app creation mode
+  const hasSelectedApp = !!selectedAppId || isNewAppMode;
 
   // Fetch or create session
   const sessionQuery = useQuery({
@@ -106,7 +107,7 @@ export function useChat() {
         throw error;
       }
     },
-    enabled: !!user?.id && hasSelectedApp,
+    enabled: !!user?.id && (hasSelectedApp || isNewAppMode),
     retry: 1,
     staleTime: 30000,
   });
@@ -136,7 +137,7 @@ export function useChat() {
         throw error;
       }
     },
-    enabled: !!sessionId && hasSelectedApp,
+    enabled: !!sessionId && (hasSelectedApp || isNewAppMode),
     retry: 1,
     staleTime: 10000,
   });
@@ -168,7 +169,7 @@ export function useChat() {
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       if (!sessionId || !user?.id) throw new Error('No session or user');
-      if (!selectedAppId) throw new Error('No app selected');
+      if (!selectedAppId && !isNewAppMode) throw new Error('No app selected');
 
       // Save user message to DB
       const { error: insertError } = await supabase
@@ -194,7 +195,8 @@ export function useChat() {
               message: content,
               user_id: user.id,
               session_id: sessionId,
-              app_idea_id: selectedAppId,
+              app_idea_id: selectedAppId, // null in new app mode
+              is_new_app: isNewAppMode,
             }),
           },
           REQUEST_TIMEOUT_MS
@@ -304,12 +306,92 @@ export function useChat() {
     [sendMessageMutation]
   );
 
+  // Start new app creation mode - auto-sends session start message
+  const startNewAppMode = useCallback(async () => {
+    if (!user?.id) return;
+
+    // Reset states
+    setIsFinalizing(false);
+    setNewAppId(null);
+    setIsNewAppMode(true);
+
+    try {
+      // Create new session
+      const { data: newSession, error } = await supabase
+        .from('chat_sessions')
+        .insert({ user_id: user.id, title: 'New App Chat' })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+      
+      setSessionId(newSession.id);
+      queryClient.invalidateQueries({ queryKey: ['chat-messages'] });
+
+      // Auto-send the hidden start message to trigger the webhook
+      setIsStreaming(true);
+      
+      try {
+        const response = await fetchWithTimeout(
+          N8N_CHAT_WEBHOOK,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: 'START_NEW_APP_SESSION',
+              user_id: user.id,
+              session_id: newSession.id,
+              app_idea_id: null,
+              is_new_app: true,
+            }),
+          },
+          REQUEST_TIMEOUT_MS
+        );
+
+        if (!response.ok) throw new Error('Failed to start session');
+
+        const data = await response.json();
+        const responseData = Array.isArray(data) ? data[0] : data;
+        const aiResponse = 
+          responseData?.output || 
+          responseData?.message || 
+          responseData?.response || 
+          responseData?.text || 
+          responseData?.content ||
+          (typeof responseData === 'string' ? responseData : 'Hi! Tell me about the app you want to build.');
+
+        // Save the AI response
+        await supabase
+          .from('chat_messages')
+          .insert({
+            session_id: newSession.id,
+            role: 'assistant',
+            content: aiResponse,
+          });
+
+        queryClient.invalidateQueries({ queryKey: ['chat-messages', newSession.id] });
+      } catch (error) {
+        console.error('Start session error:', error);
+      } finally {
+        setIsStreaming(false);
+      }
+    } catch (error) {
+      console.error('Start new app mode error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to start new app session.',
+        variant: 'destructive',
+      });
+    }
+  }, [user?.id, queryClient]);
+
   const clearChat = useCallback(async () => {
     if (!user?.id) return;
 
     // Reset finalizing state
     setIsFinalizing(false);
     setNewAppId(null);
+    setIsNewAppMode(false);
 
     try {
       // Create new session
@@ -344,8 +426,10 @@ export function useChat() {
     isStreaming,
     isFinalizing,
     newAppId,
+    isNewAppMode,
     sendMessage,
     clearChat,
+    startNewAppMode,
     resetFinalizing,
     error: messagesQuery.error || sendMessageMutation.error,
     hasSelectedApp,

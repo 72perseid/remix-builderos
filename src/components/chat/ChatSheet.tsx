@@ -18,20 +18,20 @@ interface ChatSheetProps {
 
 export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
   const navigate = useNavigate();
-  const { messages, loading, isStreaming, isFinalizing, newAppId, sendMessage, clearChat, resetFinalizing, hasSelectedApp } = useChat();
+  const { messages, loading, isStreaming, isFinalizing, newAppId, isNewAppMode, sendMessage, startNewAppMode, resetFinalizing, hasSelectedApp } = useChat();
   const { shouldClearOnOpen, setShouldClearOnOpen } = useChatContext();
   const { profile } = useProfile();
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [transitionComplete, setTransitionComplete] = useState(false);
 
-  // Clear chat when opened with shouldClearOnOpen flag (New App flow)
+  // Start new app mode when opened with shouldClearOnOpen flag (New App flow)
   useEffect(() => {
     if (open && shouldClearOnOpen) {
-      clearChat();
+      startNewAppMode();
       setShouldClearOnOpen(false);
     }
-  }, [open, shouldClearOnOpen, clearChat, setShouldClearOnOpen]);
+  }, [open, shouldClearOnOpen, startNewAppMode, setShouldClearOnOpen]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -131,8 +131,8 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
         ) : (
           <>
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              {!hasSelectedApp ? (
-                // No app selected state
+              {!hasSelectedApp && !isNewAppMode ? (
+                // No app selected state (only show when NOT in new app mode)
                 <div className="flex flex-col items-center justify-center h-48 text-center">
                   <AlertCircle className="w-10 h-10 text-yellow-500 mb-3" />
                   <p className="text-slate-300 font-medium">No App Selected</p>
