@@ -89,18 +89,8 @@ export function ArtifactsGrid() {
         </div>
 
         {/* Launching Column */}
-        <div>
-          <div className="mb-4">
-            <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-              Launching
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              Technical artifacts and implementation guides
-            </p>
-          </div>
-          <div className="grid gap-4">
-            {launchingCards.map(card => <ArtifactCard key={card.type} title={card.title} description={card.description} status={getCardStatus(card.type)} onClick={() => navigate(card.route)} />)}
-          </div>
+        <div className="grid gap-4">
+          {launchingCards.map(card => <ArtifactCard key={card.type} title={card.title} description={card.description} status={getCardStatus(card.type)} onClick={() => navigate(card.route)} />)}
         </div>
       </div>
     </div>;
