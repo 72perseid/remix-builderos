@@ -4,6 +4,7 @@ import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, Ar
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -662,7 +663,30 @@ export default function ProjectBoardPage() {
                       </p>
                       <div className="space-y-1">
                         <SidebarButton icon={<ArrowRight className="w-3.5 h-3.5" />} label="Move" />
-                        <SidebarButton icon={<Trash2 className="w-3.5 h-3.5" />} label="Delete" variant="danger" onClick={handleDeleteCard} />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <SidebarButton icon={<Trash2 className="w-3.5 h-3.5" />} label="Delete" variant="danger" />
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-[#1a2332] border-slate-700">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-slate-100">Delete this card?</AlertDialogTitle>
+                              <AlertDialogDescription className="text-slate-400">
+                                This action cannot be undone. This will permanently delete the card and all its data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-slate-700 border-slate-600 text-slate-200 hover:bg-slate-600 hover:text-white">
+                                Cancel
+                              </AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={handleDeleteCard}
+                                className="bg-red-600 text-white hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </div>
