@@ -615,101 +615,20 @@ export default function ProjectBoardPage() {
                   })} placeholder="Add a more detailed description..." className="bg-slate-800/50 border-slate-700/50 text-slate-200 placeholder:text-slate-500 min-h-[100px] resize-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:border-primary/50 text-sm rounded-lg" />
                     </div>
 
-                    {/* Acceptance Criteria Section */}
-                    {showAcceptanceCriteria && <div className="bg-slate-800/30 rounded-lg p-4">
-                        {/* Header with title and progress */}
-                        <div className="flex items-start justify-between mb-1">
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-200">Acceptance Criteria</h3>
-                            <p className="text-sm text-slate-500 mt-0.5">
-                              Define the requirements that must be met to complete this card.
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className="text-sm font-medium text-slate-300">
-                              {Math.round(progressPercent)}%
-                            </span>
-                            <div className="w-24 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
-                              <div 
-                                className={cn(
-                                  "h-full transition-all duration-300 rounded-full",
-                                  completedCount === totalCount && totalCount > 0 ? "bg-green-500" : "bg-green-500"
-                                )} 
-                                style={{ width: `${progressPercent}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Criteria List */}
-                        <div className="space-y-2 mt-4">
-                          {checklist.map(item => (
-                            <div 
-                              key={item.id} 
-                              className="flex items-center gap-3 group py-2 px-2 rounded-md hover:bg-slate-700/30 -mx-2 transition-colors"
-                            >
-                              <Checkbox 
-                                checked={item.done} 
-                                onCheckedChange={() => handleToggleCriteria(item.id)} 
-                                className="h-5 w-5 rounded border-slate-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500" 
-                              />
-                              <span className={cn(
-                                "flex-1 text-sm transition-colors",
-                                item.done ? "text-slate-500 line-through" : "text-slate-300"
-                              )}>
-                                {item.text}
-                              </span>
-                              <button 
-                                onClick={() => handleDeleteCriteria(item.id)} 
-                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
-                              >
-                                <Trash2 className="w-3.5 h-3.5 text-slate-500 hover:text-red-400" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Add Criteria Button */}
-                        <div className="flex justify-end mt-4">
-                          <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-3 py-2">
-                            <Input 
-                              value={newCriteriaText} 
-                              onChange={e => setNewCriteriaText(e.target.value)} 
-                              placeholder="Add a criterion..." 
-                              className="bg-transparent border-none text-sm text-slate-300 placeholder:text-slate-500 h-6 p-0 focus-visible:ring-0 w-40" 
-                              onKeyDown={e => {
-                                if (e.key === 'Enter' && newCriteriaText.trim()) {
-                                  e.preventDefault();
-                                  handleAddCriteria();
-                                }
-                              }} 
-                            />
-                            <button 
-                              onClick={handleAddCriteria}
-                              disabled={!newCriteriaText.trim()}
-                              className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Add item
-                            </button>
-                          </div>
-                        </div>
-                      </div>}
-
-                    {/* Tasks Section */}
-                    {showTasks && (() => {
+                    {/* Tasks Section - Always visible */}
+                    {(() => {
                       const tasks = editingCard.tasks || [];
                       const completedTasks = tasks.filter(t => t.done).length;
                       const totalTasks = tasks.length;
                       const tasksProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
                       
                       return (
-                        <div className="bg-slate-800/30 rounded-lg p-4">
+                        <div className="bg-[#161e2a] rounded-xl p-5 border border-slate-700/30">
                           {/* Header with title and progress */}
-                          <div className="flex items-start justify-between mb-1">
-                            <div>
-                              <h3 className="text-lg font-semibold text-slate-200">Tasks</h3>
-                              <p className="text-sm text-slate-500 mt-0.5">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1 max-w-[60%]">
+                              <h3 className="text-xl font-semibold text-white">Tasks</h3>
+                              <p className="text-sm text-slate-500 mt-1">
                                 Small chunks of work that contribute to this card's objectives.
                               </p>
                             </div>
@@ -717,12 +636,9 @@ export default function ProjectBoardPage() {
                               <span className="text-sm font-medium text-slate-300">
                                 {Math.round(tasksProgress)}%
                               </span>
-                              <div className="w-24 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                              <div className="w-32 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
                                 <div 
-                                  className={cn(
-                                    "h-full transition-all duration-300 rounded-full",
-                                    completedTasks === totalTasks && totalTasks > 0 ? "bg-green-500" : "bg-green-500"
-                                  )} 
+                                  className="h-full transition-all duration-300 rounded-full bg-green-500"
                                   style={{ width: `${tasksProgress}%` }}
                                 />
                               </div>
@@ -730,20 +646,20 @@ export default function ProjectBoardPage() {
                           </div>
 
                           {/* Tasks List */}
-                          <div className="space-y-2 mt-4">
+                          <div className="space-y-3">
                             {tasks.map(task => (
                               <div 
                                 key={task.id} 
-                                className="flex items-center gap-3 group py-2 px-2 rounded-md hover:bg-slate-700/30 -mx-2 transition-colors"
+                                className="flex items-center gap-4 group"
                               >
                                 <Checkbox 
                                   checked={task.done} 
                                   onCheckedChange={() => handleToggleTask(task.id)} 
-                                  className="h-5 w-5 rounded border-slate-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500" 
+                                  className="h-6 w-6 rounded-md border-2 border-slate-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500" 
                                 />
                                 <span className={cn(
-                                  "flex-1 text-sm transition-colors",
-                                  task.done ? "text-slate-500 line-through" : "text-slate-300"
+                                  "flex-1 text-base transition-colors",
+                                  task.done ? "text-slate-500 line-through" : "text-white"
                                 )}>
                                   {task.text}
                                 </span>
@@ -751,40 +667,141 @@ export default function ProjectBoardPage() {
                                   onClick={() => handleDeleteTask(task.id)} 
                                   className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
                                 >
-                                  <Trash2 className="w-3.5 h-3.5 text-slate-500 hover:text-red-400" />
+                                  <Trash2 className="w-4 h-4 text-slate-500 hover:text-red-400" />
                                 </button>
                               </div>
                             ))}
                           </div>
 
                           {/* Add Task Button */}
-                          <div className="flex justify-end mt-4">
-                            <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-3 py-2">
-                              <Input 
-                                value={newTaskText} 
-                                onChange={e => setNewTaskText(e.target.value)} 
-                                placeholder="Add a task..." 
-                                className="bg-transparent border-none text-sm text-slate-300 placeholder:text-slate-500 h-6 p-0 focus-visible:ring-0 w-40" 
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && newTaskText.trim()) {
-                                    e.preventDefault();
-                                    handleAddTask();
-                                  }
-                                }} 
-                              />
-                              <button 
-                                onClick={handleAddTask}
-                                disabled={!newTaskText.trim()}
-                                className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                <Plus className="w-4 h-4" />
-                                Add item
-                              </button>
-                            </div>
+                          <div className="flex justify-end mt-5">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button className="flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700/80 text-primary px-4 py-2.5 rounded-full text-sm font-medium transition-colors">
+                                  <Plus className="w-4 h-4" />
+                                  Add item
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-72 p-3 bg-[#1a2332] border-slate-700" side="top" align="end">
+                                <div className="space-y-2">
+                                  <Input 
+                                    value={newTaskText} 
+                                    onChange={e => setNewTaskText(e.target.value)} 
+                                    placeholder="Enter task..." 
+                                    className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500" 
+                                    onKeyDown={e => {
+                                      if (e.key === 'Enter' && newTaskText.trim()) {
+                                        e.preventDefault();
+                                        handleAddTask();
+                                      }
+                                    }}
+                                    autoFocus
+                                  />
+                                  <Button 
+                                    onClick={handleAddTask}
+                                    disabled={!newTaskText.trim()}
+                                    size="sm"
+                                    className="w-full"
+                                  >
+                                    Add Task
+                                  </Button>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                       );
                     })()}
+
+                    {/* Acceptance Criteria Section - Always visible */}
+                    <div className="bg-[#161e2a] rounded-xl p-5 border border-slate-700/30">
+                      {/* Header with title and progress */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1 max-w-[60%]">
+                          <h3 className="text-xl font-semibold text-white">Acceptance criteria</h3>
+                          <p className="text-sm text-slate-500 mt-1">
+                            Describe what needs to work for this card to be marked as complete.
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-sm font-medium text-slate-300">
+                            {Math.round(progressPercent)}%
+                          </span>
+                          <div className="w-32 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full transition-all duration-300 rounded-full bg-green-500"
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Criteria List */}
+                      <div className="space-y-3">
+                        {checklist.map(item => (
+                          <div 
+                            key={item.id} 
+                            className="flex items-center gap-4 group"
+                          >
+                            <Checkbox 
+                              checked={item.done} 
+                              onCheckedChange={() => handleToggleCriteria(item.id)} 
+                              className="h-6 w-6 rounded-md border-2 border-slate-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500" 
+                            />
+                            <span className={cn(
+                              "flex-1 text-base transition-colors",
+                              item.done ? "text-slate-500 line-through" : "text-white"
+                            )}>
+                              {item.text}
+                            </span>
+                            <button 
+                              onClick={() => handleDeleteCriteria(item.id)} 
+                              className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
+                            >
+                              <Trash2 className="w-4 h-4 text-slate-500 hover:text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Add Criteria Button */}
+                      <div className="flex justify-end mt-5">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700/80 text-primary px-4 py-2.5 rounded-full text-sm font-medium transition-colors">
+                              <Plus className="w-4 h-4" />
+                              Add item
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-72 p-3 bg-[#1a2332] border-slate-700" side="top" align="end">
+                            <div className="space-y-2">
+                              <Input 
+                                value={newCriteriaText} 
+                                onChange={e => setNewCriteriaText(e.target.value)} 
+                                placeholder="Enter criterion..." 
+                                className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500" 
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && newCriteriaText.trim()) {
+                                    e.preventDefault();
+                                    handleAddCriteria();
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <Button 
+                                onClick={handleAddCriteria}
+                                disabled={!newCriteriaText.trim()}
+                                size="sm"
+                                className="w-full"
+                              >
+                                Add Criterion
+                              </Button>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
                   </div>
 
                   {/* Right Column - Sidebar */}
@@ -795,8 +812,6 @@ export default function ProjectBoardPage() {
                         Add to card
                       </p>
                       <div className="space-y-1">
-                        <SidebarButton icon={<ListTodo className="w-3.5 h-3.5" />} label="Tasks" active={showTasks} onClick={() => setShowTasks(!showTasks)} />
-                        <SidebarButton icon={<CheckSquare className="w-3.5 h-3.5" />} label="Acceptance Criteria" active={showAcceptanceCriteria} onClick={() => setShowAcceptanceCriteria(!showAcceptanceCriteria)} />
                         <Popover open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
                           <PopoverTrigger asChild>
                             <SidebarButton icon={<Calendar className="w-3.5 h-3.5" />} label={editingCard.plannedDate ? format(new Date(editingCard.plannedDate), 'MMM d') : "Deadline"} active={!!editingCard.plannedDate} />
