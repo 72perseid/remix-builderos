@@ -513,7 +513,7 @@ export default function ProjectBoardPage() {
 
       {/* Edit Card Dialog - Refined Two-Column Layout */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-[#1a2332] border-slate-700/50 text-white sm:max-w-2xl p-0 gap-0 max-h-[85vh] overflow-hidden shadow-2xl">
+        <DialogContent className="bg-[#1a2332] border-slate-700/50 text-white sm:max-w-2xl p-0 gap-0 max-h-[85vh] overflow-hidden shadow-2xl [&>button]:hidden">
           {editingCard && <div className="flex flex-col max-h-[85vh]">
               {/* Header */}
               <div className="p-5 pb-4 border-b border-slate-700/30">
