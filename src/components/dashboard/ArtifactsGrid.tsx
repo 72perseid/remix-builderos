@@ -71,26 +71,52 @@ export function ArtifactsGrid() {
       {/* Architect Banner */}
       <ArchitectBanner onStartBuilding={openChat} hasData={hasAnyData} />
 
-      {/* Feature Planning Header - Above both columns */}
-      <div className="mb-2">
-        <h3 className="text-sm uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-          Feature Planning
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          These artifacts guide you in aligning on scope, functionality, and user experience before moving into building.
-        </p>
-      </div>
-
-      {/* Artifacts Grid */}
+      {/* Two-column layout with Feature Planning and Launching sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Feature Planning Column */}
-        <div className="grid gap-4">
-          {planningCards.map(card => <ArtifactCard key={card.type} title={card.title} description={card.description} status={getCardStatus(card.type)} onClick={() => navigate(card.route)} />)}
+        {/* Feature Planning Section */}
+        <div className="space-y-4">
+          <div className="mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-1">
+              Feature Planning
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Define your value proposition, validate your ideas, and create comprehensive product requirements.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {planningCards.map(card => (
+              <ArtifactCard 
+                key={card.type} 
+                title={card.title} 
+                description={card.description} 
+                status={getCardStatus(card.type)} 
+                onClick={() => navigate(card.route)} 
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Launching Column */}
-        <div className="grid gap-4">
-          {launchingCards.map(card => <ArtifactCard key={card.type} title={card.title} description={card.description} status={getCardStatus(card.type)} onClick={() => navigate(card.route)} />)}
+        {/* Launching Section */}
+        <div className="space-y-4">
+          <div className="mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-1">
+              Launching
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Design your database schema and organize your feature roadmap to prepare for development.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {launchingCards.map(card => (
+              <ArtifactCard 
+                key={card.type} 
+                title={card.title} 
+                description={card.description} 
+                status={getCardStatus(card.type)} 
+                onClick={() => navigate(card.route)} 
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>;
