@@ -536,6 +536,7 @@ export type Database = {
           position: number | null
           priority: string | null
           status: string | null
+          subtasks: Json | null
           title: string
           updated_at: string | null
           user_id: string
@@ -554,6 +555,7 @@ export type Database = {
           position?: number | null
           priority?: string | null
           status?: string | null
+          subtasks?: Json | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -572,6 +574,7 @@ export type Database = {
           position?: number | null
           priority?: string | null
           status?: string | null
+          subtasks?: Json | null
           title?: string
           updated_at?: string | null
           user_id?: string

@@ -4,6 +4,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { KanbanBoard, Column, Task } from '@/components/ui/kanban-board';
 import { toast } from 'sonner';
 import { Download, Loader2, LayoutGrid } from 'lucide-react';
+import { AcceptanceCriteriaItem } from '@/types';
 
 // Interface matching the exact n8n output format
 interface RoadmapContent {
@@ -14,8 +15,20 @@ interface RoadmapContent {
       tag: string;
       title: string;
       description: string;
+      subtasks?: string[];
+      acceptance_criteria?: string[];
     }[];
   }[];
+}
+
+// Convert string array to checklist item format with unique IDs
+function convertToChecklistItems(items: string[] | undefined): AcceptanceCriteriaItem[] {
+  if (!items || items.length === 0) return [];
+  return items.map(text => ({
+    id: crypto.randomUUID(),
+    text: text,
+    done: false
+  }));
 }
 
 // Color mapping for columns
@@ -73,6 +86,8 @@ export default function AIKanbanAssistantPage() {
       category: card.tag as 'MVP' | 'V1' | 'Stretch Goals',
       priority: 'medium' as const,
       estimatedEffort: '',
+      subtasks: convertToChecklistItems(card.subtasks),
+      checklist: convertToChecklistItems(card.acceptance_criteria),
     }));
 
     importTasks(tasksToImport);

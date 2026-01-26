@@ -21,6 +21,7 @@ export interface Task {
   category?: TaskCategory;
   priority?: TaskPriority;
   estimatedEffort?: string;
+  subtasks?: AcceptanceCriteriaItem[];
   checklist?: AcceptanceCriteriaItem[];
   createdAt: string;
   updatedAt: string;
