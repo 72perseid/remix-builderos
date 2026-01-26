@@ -617,47 +617,81 @@ export default function ProjectBoardPage() {
 
                     {/* Acceptance Criteria Section */}
                     {showAcceptanceCriteria && <div className="bg-slate-800/30 rounded-lg p-4">
-                        {/* Header with percentage */}
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <CheckSquare className="w-4 h-4 text-slate-500" />
-                            <span className="text-sm font-medium text-slate-300">Acceptance Criteria</span>
+                        {/* Header with title and progress */}
+                        <div className="flex items-start justify-between mb-1">
+                          <div>
+                            <h3 className="text-lg font-semibold text-slate-200">Acceptance Criteria</h3>
+                            <p className="text-sm text-slate-500 mt-0.5">
+                              Define the requirements that must be met to complete this card.
+                            </p>
                           </div>
-                          <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", progressPercent === 100 ? "bg-green-500/20 text-green-400" : "bg-slate-700/50 text-slate-400")}>
-                            {Math.round(progressPercent)}%
-                          </span>
-                        </div>
-                        
-                        {/* Thin Progress Bar */}
-                        <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden mb-3">
-                          <div className={cn("h-full transition-all duration-300 rounded-full", completedCount === totalCount && totalCount > 0 ? "bg-green-500" : "bg-primary")} style={{
-                      width: `${progressPercent}%`
-                    }} />
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-sm font-medium text-slate-300">
+                              {Math.round(progressPercent)}%
+                            </span>
+                            <div className="w-24 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                              <div 
+                                className={cn(
+                                  "h-full transition-all duration-300 rounded-full",
+                                  completedCount === totalCount && totalCount > 0 ? "bg-green-500" : "bg-green-500"
+                                )} 
+                                style={{ width: `${progressPercent}%` }}
+                              />
+                            </div>
+                          </div>
                         </div>
 
                         {/* Criteria List */}
-                        <div className="space-y-0.5">
-                          {checklist.map(item => <div key={item.id} className="flex items-center gap-2.5 group py-1.5 px-2 rounded-md hover:bg-slate-700/30 -mx-2 transition-colors">
-                              <Checkbox checked={item.done} onCheckedChange={() => handleToggleCriteria(item.id)} className="h-4 w-4 rounded border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
-                              <span className={cn("flex-1 text-sm transition-colors", item.done ? "text-slate-500 line-through" : "text-slate-300")}>
+                        <div className="space-y-2 mt-4">
+                          {checklist.map(item => (
+                            <div 
+                              key={item.id} 
+                              className="flex items-center gap-3 group py-2 px-2 rounded-md hover:bg-slate-700/30 -mx-2 transition-colors"
+                            >
+                              <Checkbox 
+                                checked={item.done} 
+                                onCheckedChange={() => handleToggleCriteria(item.id)} 
+                                className="h-5 w-5 rounded border-slate-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500" 
+                              />
+                              <span className={cn(
+                                "flex-1 text-sm transition-colors",
+                                item.done ? "text-slate-500 line-through" : "text-slate-300"
+                              )}>
                                 {item.text}
                               </span>
-                              <button onClick={() => handleDeleteCriteria(item.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all">
-                                <Trash2 className="w-3 h-3 text-slate-500 hover:text-red-400" />
+                              <button 
+                                onClick={() => handleDeleteCriteria(item.id)} 
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-slate-500 hover:text-red-400" />
                               </button>
-                            </div>)}
-
-                          {/* Add New Criteria */}
-                          <div className="flex items-center gap-2.5 py-1.5 px-2 -mx-2">
-                            <div className="w-4 h-4 flex items-center justify-center">
-                              <Plus className="w-3 h-3 text-slate-500" />
                             </div>
-                            <Input value={newCriteriaText} onChange={e => setNewCriteriaText(e.target.value)} placeholder="Add an item..." className="bg-transparent border-none text-sm text-slate-300 placeholder:text-slate-500 h-6 p-0 focus-visible:ring-0" onKeyDown={e => {
-                        if (e.key === 'Enter' && newCriteriaText.trim()) {
-                          e.preventDefault();
-                          handleAddCriteria();
-                        }
-                      }} />
+                          ))}
+                        </div>
+
+                        {/* Add Criteria Button */}
+                        <div className="flex justify-end mt-4">
+                          <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-3 py-2">
+                            <Input 
+                              value={newCriteriaText} 
+                              onChange={e => setNewCriteriaText(e.target.value)} 
+                              placeholder="Add a criterion..." 
+                              className="bg-transparent border-none text-sm text-slate-300 placeholder:text-slate-500 h-6 p-0 focus-visible:ring-0 w-40" 
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' && newCriteriaText.trim()) {
+                                  e.preventDefault();
+                                  handleAddCriteria();
+                                }
+                              }} 
+                            />
+                            <button 
+                              onClick={handleAddCriteria}
+                              disabled={!newCriteriaText.trim()}
+                              className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Add item
+                            </button>
                           </div>
                         </div>
                       </div>}
@@ -751,22 +785,6 @@ export default function ProjectBoardPage() {
                         </div>
                       );
                     })()}
-
-                    {/* Activity Section */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <MessageSquare className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm font-medium text-slate-300">Activity</span>
-                      </div>
-                      <div className="flex items-start gap-2.5">
-                        <Avatar className="w-7 h-7">
-                          <AvatarFallback className="bg-primary/80 text-primary-foreground text-xs font-medium">
-                            U
-                          </AvatarFallback>
-                        </Avatar>
-                        <Input placeholder="Write a comment..." className="bg-slate-800/50 border-slate-700/50 text-slate-200 placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-primary/50 text-sm h-9 rounded-lg" />
-                      </div>
-                    </div>
                   </div>
 
                   {/* Right Column - Sidebar */}
