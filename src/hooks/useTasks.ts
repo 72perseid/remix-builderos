@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
-import { Task, TaskStatus } from '@/types';
+import { Task, TaskStatus, AcceptanceCriteriaItem } from '@/types';
 
 export function useTasks() {
   const { user } = useAuth();
@@ -50,6 +50,22 @@ export function useTasks() {
         return statusMap[status] || 'backlog';
       };
 
+      // Parse checklist JSON safely
+      const parseChecklist = (checklist: unknown): AcceptanceCriteriaItem[] => {
+        if (!checklist) return [];
+        if (Array.isArray(checklist)) {
+          return checklist.filter(
+            (item): item is AcceptanceCriteriaItem => 
+              typeof item === 'object' && 
+              item !== null && 
+              'id' in item && 
+              'text' in item && 
+              'done' in item
+          );
+        }
+        return [];
+      };
+
       // Map database fields to Task type
       return (data || []).map(task => ({
         id: task.id,
@@ -62,6 +78,7 @@ export function useTasks() {
         plannedDate: task.planned_date || undefined,
         completedDate: task.completed_date || undefined,
         estimatedEffort: task.estimated_effort || undefined,
+        checklist: parseChecklist(task.checklist),
         position: task.position || 0,
         createdAt: task.created_at || new Date().toISOString(),
         updatedAt: task.updated_at || new Date().toISOString(),
@@ -91,6 +108,7 @@ export function useTasks() {
           color: task.color || null,
           planned_date: task.plannedDate || null,
           estimated_effort: task.estimatedEffort || null,
+          checklist: task.checklist || [],
           position: maxPosition,
           created_at: now,
           updated_at: now,
@@ -124,6 +142,7 @@ export function useTasks() {
       if (updates.plannedDate !== undefined) dbUpdates.planned_date = updates.plannedDate;
       if (updates.estimatedEffort !== undefined) dbUpdates.estimated_effort = updates.estimatedEffort;
       if (updates.position !== undefined) dbUpdates.position = updates.position;
+      if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
 
       // Auto-set completion date when moved to done
       if (updates.status === 'done') {

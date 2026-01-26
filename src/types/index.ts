@@ -3,6 +3,12 @@ export type TaskColor = 'yellow' | 'coral' | 'mint' | 'lavender' | 'sky';
 export type TaskCategory = 'MVP' | 'V1' | 'Stretch Goals';
 export type TaskPriority = 'low' | 'medium' | 'high';
 
+export interface AcceptanceCriteriaItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -15,6 +21,7 @@ export interface Task {
   category?: TaskCategory;
   priority?: TaskPriority;
   estimatedEffort?: string;
+  checklist?: AcceptanceCriteriaItem[];
   createdAt: string;
   updatedAt: string;
 }

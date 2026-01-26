@@ -525,6 +525,7 @@ export type Database = {
         Row: {
           app_idea_id: string | null
           category: string | null
+          checklist: Json | null
           color: string | null
           completed_date: string | null
           created_at: string | null
@@ -542,6 +543,7 @@ export type Database = {
         Insert: {
           app_idea_id?: string | null
           category?: string | null
+          checklist?: Json | null
           color?: string | null
           completed_date?: string | null
           created_at?: string | null
@@ -559,6 +561,7 @@ export type Database = {
         Update: {
           app_idea_id?: string | null
           category?: string | null
+          checklist?: Json | null
           color?: string | null
           completed_date?: string | null
           created_at?: string | null
