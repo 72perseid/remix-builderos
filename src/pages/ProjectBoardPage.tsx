@@ -87,14 +87,14 @@ const tagToColumnMapping: Record<string, string> = {
   'Stretch Goals': 'backlog'
 };
 
-// Label colors (Trello-style)
+// Label colors (matching app theme)
 const labelColors: Record<string, { bg: string; hover: string }> = {
-  MVP: { bg: '#4bce97', hover: '#7ee2b8' },
-  V1: { bg: '#579dff', hover: '#85b8ff' },
-  'Stretch Goals': { bg: '#9f8fef', hover: '#b8acf6' },
-  high: { bg: '#f87168', hover: '#fd9891' },
-  medium: { bg: '#f5cd47', hover: '#f8e6a0' },
-  low: { bg: '#4bce97', hover: '#7ee2b8' }
+  MVP: { bg: '#10b981', hover: '#34d399' },
+  V1: { bg: '#3b82f6', hover: '#60a5fa' },
+  'Stretch Goals': { bg: '#8b5cf6', hover: '#a78bfa' },
+  high: { bg: '#ef4444', hover: '#f87171' },
+  medium: { bg: '#f59e0b', hover: '#fbbf24' },
+  low: { bg: '#10b981', hover: '#34d399' }
 };
 
 // Trello-style Task Card
@@ -111,10 +111,10 @@ function TaskCard({ card, isOverlay, onClick }: TaskCardProps) {
     <div 
       onClick={onClick}
       className={cn(
-        "bg-[#22272b] rounded-lg cursor-pointer transition-all border border-white/5",
+        "bg-[#1a2332] rounded-lg cursor-pointer transition-all border border-slate-700/50",
         isOverlay 
           ? "shadow-2xl rotate-2 scale-105" 
-          : "hover:bg-[#282e33] hover:border-white/10 hover:shadow-lg"
+          : "hover:bg-[#1e2940] hover:border-slate-600 hover:shadow-lg"
       )}
     >
       {/* Cover Color */}
@@ -169,15 +169,15 @@ function TaskColumn({ columnId, title, cards, onAddCard, onEditCard }: TaskColum
   return (
     <KanbanColumn 
       value={columnId} 
-      className="flex-shrink-0 w-[272px] bg-black/25 backdrop-blur-sm rounded-xl border border-white/10 flex flex-col max-h-[calc(100vh-180px)]" 
+      className="flex-shrink-0 w-[272px] bg-[#161e2a]/80 backdrop-blur-sm rounded-xl border border-slate-700/50 flex flex-col max-h-[calc(100vh-180px)]" 
       disabled
     >
       {/* Column Header */}
       <div className="p-2 px-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-[#b6c2cf] text-sm">{title}</h3>
+          <h3 className="font-semibold text-white text-sm">{title}</h3>
           <button className="p-1 hover:bg-white/10 rounded transition-colors">
-            <MoreHorizontal className="w-4 h-4 text-[#9fadbc]" />
+            <MoreHorizontal className="w-4 h-4 text-slate-400" />
           </button>
         </div>
       </div>
@@ -194,11 +194,11 @@ function TaskColumn({ columnId, title, cards, onAddCard, onEditCard }: TaskColum
         ))}
       </KanbanColumnContent>
 
-      {/* Add Card Button - Trello style */}
+      {/* Add Card Button */}
       <div className="p-2">
         <button 
           onClick={() => onAddCard(columnId)} 
-          className="w-full py-1.5 px-2 hover:bg-white/10 text-[#9fadbc] hover:text-[#b6c2cf] rounded-lg text-sm transition-colors flex items-center gap-2 text-left"
+          className="w-full py-1.5 px-2 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg text-sm transition-colors flex items-center gap-2 text-left"
         >
           <Plus className="w-4 h-4" />
           Add a card
@@ -223,8 +223,8 @@ function SidebarButton({ icon, label, onClick, variant = 'default' }: SidebarBut
       className={cn(
         "w-full px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 transition-colors text-left",
         variant === 'danger' 
-          ? "bg-[#a1bdd914] hover:bg-red-500/20 text-[#b6c2cf] hover:text-red-400"
-          : "bg-[#a1bdd914] hover:bg-[#a6c5e229] text-[#9fadbc]"
+          ? "bg-slate-700/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400"
+          : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300"
       )}
     >
       {icon}
@@ -411,43 +411,43 @@ export default function ProjectBoardPage() {
         </Kanban>
       ) : (
         /* Empty State */
-        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-white/10 bg-black/20 backdrop-blur-sm">
-          <LayoutGrid className="w-12 h-12 text-white/30 mb-4" />
-          <h3 className="text-lg font-semibold text-white/80 mb-2">No Tasks Yet</h3>
-          <p className="text-white/50 text-sm text-center max-w-md">
+        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-[#161e2a]/80">
+          <LayoutGrid className="w-12 h-12 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold text-white mb-2">No Tasks Yet</h3>
+          <p className="text-slate-400 text-sm text-center max-w-md">
             Use the BuilderOS Architect on the Dashboard to generate your feature roadmap.
             Once generated, your tasks will appear here organized by development stage.
           </p>
         </div>
       )}
 
-      {/* Add Card Dialog - Simplified Trello-style */}
+      {/* Add Card Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="bg-[#323940] border-none text-white sm:max-w-sm p-0 gap-0">
+        <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-sm p-0 gap-0">
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-[#9fadbc]">
+              <span className="text-sm text-slate-400">
                 Add card to {activeColumn?.title}
               </span>
               <button 
                 onClick={() => setIsAddDialogOpen(false)}
                 className="p-1 hover:bg-white/10 rounded"
               >
-                <X className="w-4 h-4 text-[#9fadbc]" />
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
             <Textarea
               value={newCardTitle}
               onChange={e => setNewCardTitle(e.target.value)}
               placeholder="Enter a title for this card..."
-              className="bg-[#22272b] border-none text-[#b6c2cf] placeholder:text-[#596773] min-h-[80px] resize-none focus-visible:ring-1 focus-visible:ring-[#579dff]"
+              className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[80px] resize-none focus-visible:ring-1 focus-visible:ring-primary"
               autoFocus
             />
             <div className="flex items-center gap-2 mt-3">
               <Button 
                 onClick={handleAddCard} 
                 disabled={!newCardTitle.trim()}
-                className="bg-[#579dff] hover:bg-[#85b8ff] text-[#1d2125] font-medium"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 size="sm"
               >
                 Add card
@@ -456,16 +456,16 @@ export default function ProjectBoardPage() {
                 onClick={() => setIsAddDialogOpen(false)}
                 className="p-2 hover:bg-white/10 rounded"
               >
-                <X className="w-5 h-5 text-[#9fadbc]" />
+                <X className="w-5 h-5 text-slate-400" />
               </button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Card Dialog - Trello-style Two-Column Layout */}
+      {/* Edit Card Dialog - Two-Column Layout */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-[#323940] border-none text-white sm:max-w-3xl p-0 gap-0 max-h-[90vh] overflow-hidden">
+        <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-3xl p-0 gap-0 max-h-[90vh] overflow-hidden">
           {editingCard && (
             <>
               {/* Cover Area */}
@@ -479,14 +479,14 @@ export default function ProjectBoardPage() {
               <div className="p-6">
                 {/* Header - Title */}
                 <div className="flex items-start gap-3 mb-6">
-                  <LayoutGrid className="w-6 h-6 text-[#9fadbc] mt-1 flex-shrink-0" />
+                  <LayoutGrid className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0" />
                   <div className="flex-1">
                     <Input
                       value={editingCard.title}
                       onChange={e => setEditingCard({ ...editingCard, title: e.target.value })}
-                      className="bg-transparent border-none text-xl font-semibold text-[#b6c2cf] p-0 h-auto focus-visible:ring-0 focus-visible:bg-[#22272b] rounded px-2 -mx-2"
+                      className="bg-transparent border-none text-xl font-semibold text-white p-0 h-auto focus-visible:ring-0 focus-visible:bg-[#1a2332] rounded px-2 -mx-2"
                     />
-                    <p className="text-sm text-[#9fadbc] mt-1">
+                    <p className="text-sm text-slate-400 mt-1">
                       in list <span className="underline">{editingCardColumn?.title}</span>
                     </p>
                   </div>
@@ -494,7 +494,7 @@ export default function ProjectBoardPage() {
                     onClick={() => setIsEditDialogOpen(false)}
                     className="p-2 hover:bg-white/10 rounded"
                   >
-                    <X className="w-5 h-5 text-[#9fadbc]" />
+                    <X className="w-5 h-5 text-slate-400" />
                   </button>
                 </div>
 
@@ -527,32 +527,32 @@ export default function ProjectBoardPage() {
                     {/* Description Section */}
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <AlignLeft className="w-5 h-5 text-[#9fadbc]" />
-                        <h3 className="font-semibold text-[#b6c2cf]">Description</h3>
+                        <AlignLeft className="w-5 h-5 text-slate-400" />
+                        <h3 className="font-semibold text-white">Description</h3>
                       </div>
                       <Textarea
                         value={editingCard.description}
                         onChange={e => setEditingCard({ ...editingCard, description: e.target.value })}
                         placeholder="Add a more detailed description..."
-                        className="bg-[#22272b] border-none text-[#b6c2cf] placeholder:text-[#596773] min-h-[120px] resize-none focus-visible:ring-1 focus-visible:ring-[#579dff] ml-8"
+                        className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[120px] resize-none focus-visible:ring-1 focus-visible:ring-primary ml-8"
                       />
                     </div>
 
                     {/* Activity Section */}
                     <div>
                       <div className="flex items-center gap-3 mb-3">
-                        <MessageSquare className="w-5 h-5 text-[#9fadbc]" />
-                        <h3 className="font-semibold text-[#b6c2cf]">Activity</h3>
+                        <MessageSquare className="w-5 h-5 text-slate-400" />
+                        <h3 className="font-semibold text-white">Activity</h3>
                       </div>
                       <div className="flex items-start gap-3 ml-8">
                         <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-[#579dff] text-[#1d2125] text-xs">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                             U
                           </AvatarFallback>
                         </Avatar>
                         <Input
                           placeholder="Write a comment..."
-                          className="bg-[#22272b] border-none text-[#b6c2cf] placeholder:text-[#596773] focus-visible:ring-1 focus-visible:ring-[#579dff]"
+                          className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-primary"
                         />
                       </div>
                     </div>
@@ -562,7 +562,7 @@ export default function ProjectBoardPage() {
                   <div className="w-[170px] space-y-4 flex-shrink-0">
                     {/* Add to card section */}
                     <div>
-                      <p className="text-xs font-semibold text-[#9fadbc] mb-2 uppercase tracking-wide">
+                      <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
                         Add to card
                       </p>
                       <div className="space-y-1">
@@ -576,7 +576,7 @@ export default function ProjectBoardPage() {
 
                     {/* Actions section */}
                     <div>
-                      <p className="text-xs font-semibold text-[#9fadbc] mb-2 uppercase tracking-wide">
+                      <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
                         Actions
                       </p>
                       <div className="space-y-1">
@@ -594,11 +594,11 @@ export default function ProjectBoardPage() {
                 </div>
 
                 {/* Save Button */}
-                <div className="flex justify-end mt-6 pt-4 border-t border-white/10">
+                <div className="flex justify-end mt-6 pt-4 border-t border-slate-700/50">
                   <Button 
                     onClick={handleSaveEdit}
                     disabled={!editingCard.title.trim()}
-                    className="bg-[#579dff] hover:bg-[#85b8ff] text-[#1d2125] font-medium"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                   >
                     Save Changes
                   </Button>

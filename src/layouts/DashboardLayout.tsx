@@ -20,12 +20,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <SidebarProvider>
         <div className="min-h-screen flex w-full bg-[#0B0E14]">
           <DashboardSidebar />
-          <main className={cn(
-            "flex-1 flex flex-col overflow-hidden",
-            isProjectBoard 
-              ? "bg-gradient-to-br from-[#563b7e] via-[#3a2463] to-[#1d1449]" 
-              : "bg-[#0f1219]"
-          )}>
+          <main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
             <DashboardHeader />
             <DashboardTabs />
             <div className={cn(
