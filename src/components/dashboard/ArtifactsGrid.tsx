@@ -76,7 +76,7 @@ export function ArtifactsGrid() {
         {/* Feature Planning Section */}
         <div className="space-y-4">
           <div className="mb-2">
-            <h3 className="text-lg font-semibold text-foreground mb-1">
+            <h3 className="text-lg font-semibold text-white mb-1">
               Feature Planning
             </h3>
             <p className="text-sm text-muted-foreground">
@@ -99,7 +99,7 @@ export function ArtifactsGrid() {
         {/* Launching Section */}
         <div className="space-y-4">
           <div className="mb-2">
-            <h3 className="text-lg font-semibold text-foreground mb-1">
+            <h3 className="text-lg font-semibold text-white mb-1">
               Launching
             </h3>
             <p className="text-sm text-muted-foreground">
