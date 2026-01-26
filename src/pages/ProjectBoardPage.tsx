@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
 import { 
   Loader2, LayoutGrid, Plus, MoreHorizontal, X,
@@ -270,33 +270,38 @@ function TaskColumn({ columnId, title, cards, onAddCard, onEditCard }: TaskColum
   );
 }
 
-// Trello-style Sidebar Button
-interface SidebarButtonProps {
+// Trello-style Sidebar Button with forwardRef for Popover support
+interface SidebarButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
   label: string;
-  onClick?: () => void;
   variant?: 'default' | 'danger';
   active?: boolean;
 }
 
-function SidebarButton({ icon, label, onClick, variant = 'default', active }: SidebarButtonProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 transition-colors text-left",
-        variant === 'danger' 
-          ? "bg-slate-700/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400"
-          : active
-            ? "bg-primary/20 text-primary border border-primary/30"
-            : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300"
-      )}
-    >
-      {icon}
-      {label}
-    </button>
-  );
-}
+const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
+  ({ icon, label, onClick, variant = 'default', active, className, ...props }, ref) => {
+    return (
+      <button
+        ref={ref}
+        onClick={onClick}
+        className={cn(
+          "w-full px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 transition-colors text-left",
+          variant === 'danger' 
+            ? "bg-slate-700/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400"
+            : active
+              ? "bg-primary/20 text-primary border border-primary/30"
+              : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300",
+          className
+        )}
+        {...props}
+      >
+        {icon}
+        {label}
+      </button>
+    );
+  }
+);
+SidebarButton.displayName = 'SidebarButton';
 
 export default function ProjectBoardPage() {
   const { data: artifact, loading } = useArtifact('kanban');
@@ -663,50 +668,40 @@ export default function ProjectBoardPage() {
                     />
                   </div>
 
-                  {/* Acceptance Criteria Section */}
+                  {/* Acceptance Criteria Section - Minimal Trello-style */}
                   {showAcceptanceCriteria && (
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <CheckSquare className="w-5 h-5 text-slate-400" />
-                        <h3 className="font-semibold text-white">Acceptance Criteria</h3>
-                        {totalCount > 0 && (
-                          <span className={cn(
-                            "text-xs px-2 py-0.5 rounded",
-                            completedCount === totalCount
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-slate-700 text-slate-400"
-                          )}>
-                            {completedCount}/{totalCount} passed
-                          </span>
-                        )}
+                    <div className="ml-8">
+                      {/* Header with percentage */}
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <CheckSquare className="w-4 h-4 text-slate-400" />
+                          <span className="text-sm text-slate-300">Acceptance Criteria</span>
+                        </div>
+                        <span className="text-xs text-slate-500">{Math.round(progressPercent)}%</span>
                       </div>
                       
-                      {/* Progress Bar */}
-                      {totalCount > 0 && (
-                        <div className="ml-8 mb-3">
-                          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                            <div 
-                              className={cn(
-                                "h-full transition-all duration-300",
-                                completedCount === totalCount ? "bg-green-500" : "bg-primary"
-                              )}
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
-                        </div>
-                      )}
+                      {/* Thin Progress Bar (4px) */}
+                      <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden mb-3">
+                        <div 
+                          className={cn(
+                            "h-full transition-all duration-300",
+                            completedCount === totalCount && totalCount > 0 ? "bg-green-500" : "bg-primary"
+                          )}
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
 
-                      {/* Criteria List */}
-                      <div className="ml-8 space-y-2">
+                      {/* Criteria List - Minimal styling */}
+                      <div className="space-y-1">
                         {checklist.map(item => (
                           <div 
                             key={item.id} 
-                            className="flex items-center gap-3 group p-2 rounded hover:bg-[#1a2332] -mx-2"
+                            className="flex items-center gap-2 group py-1 px-1 rounded hover:bg-slate-800/50 -mx-1"
                           >
                             <Checkbox 
                               checked={item.done}
                               onCheckedChange={() => handleToggleCriteria(item.id)}
-                              className="border-slate-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              className="h-4 w-4 border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                             />
                             <span className={cn(
                               "flex-1 text-sm",
@@ -716,35 +711,27 @@ export default function ProjectBoardPage() {
                             </span>
                             <button
                               onClick={() => handleDeleteCriteria(item.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
                             >
-                              <X className="w-3 h-3 text-slate-400 hover:text-red-400" />
+                              <Trash2 className="w-3 h-3 text-slate-500" />
                             </button>
                           </div>
                         ))}
 
-                        {/* Add New Criteria Input */}
-                        <div className="flex items-center gap-2">
+                        {/* Add New Criteria - Inline input */}
+                        <div className="flex items-center gap-2 py-1">
                           <Input
                             value={newCriteriaText}
                             onChange={e => setNewCriteriaText(e.target.value)}
-                            placeholder="Add an item..."
-                            className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 text-sm h-9 focus-visible:ring-1 focus-visible:ring-primary"
+                            placeholder="+ Add an item"
+                            className="bg-transparent border-none text-sm text-slate-400 placeholder:text-slate-500 h-7 p-0 focus-visible:ring-0 focus-visible:text-white"
                             onKeyDown={e => {
-                              if (e.key === 'Enter') {
+                              if (e.key === 'Enter' && newCriteriaText.trim()) {
                                 e.preventDefault();
                                 handleAddCriteria();
                               }
                             }}
                           />
-                          <Button
-                            onClick={handleAddCriteria}
-                            disabled={!newCriteriaText.trim()}
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                          >
-                            Add
-                          </Button>
                         </div>
                       </div>
                     </div>
@@ -786,18 +773,21 @@ export default function ProjectBoardPage() {
                       />
                       <Popover open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
                         <PopoverTrigger asChild>
-                          <div>
-                            <SidebarButton 
-                              icon={<Calendar className="w-4 h-4" />} 
-                              label={editingCard.plannedDate 
-                                ? format(new Date(editingCard.plannedDate), 'MMM d, yyyy')
-                                : "Deadline"
-                              }
-                              active={!!editingCard.plannedDate}
-                            />
-                          </div>
+                          <SidebarButton 
+                            icon={<Calendar className="w-4 h-4" />} 
+                            label={editingCard.plannedDate 
+                              ? format(new Date(editingCard.plannedDate), 'MMM d')
+                              : "Deadline"
+                            }
+                            active={!!editingCard.plannedDate}
+                          />
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 bg-[#1a2332] border-slate-700" align="start">
+                        <PopoverContent 
+                          className="w-auto p-0 bg-[#1a2332] border-slate-700 z-[100]" 
+                          side="left" 
+                          align="start"
+                          sideOffset={8}
+                        >
                           <CalendarComponent
                             mode="single"
                             selected={editingCard.plannedDate ? new Date(editingCard.plannedDate) : undefined}
