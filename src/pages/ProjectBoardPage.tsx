@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, MessageSquare } from 'lucide-react';
+import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, MessageSquare, ListTodo } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -28,6 +28,13 @@ interface ArtifactContent {
   }[];
 }
 
+// Task item interface for card tasks
+interface TaskItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 // Card interface for the Kanban
 interface KanbanCard {
   id: string;
@@ -38,6 +45,7 @@ interface KanbanCard {
   coverColor?: string;
   plannedDate?: string;
   checklist?: AcceptanceCriteriaItem[];
+  tasks?: TaskItem[];
 }
 
 // Column configuration for new 5-column layout
@@ -319,6 +327,10 @@ export default function ProjectBoardPage() {
   const [showAcceptanceCriteria, setShowAcceptanceCriteria] = useState(false);
   const [newCriteriaText, setNewCriteriaText] = useState('');
 
+  // Tasks state
+  const [showTasks, setShowTasks] = useState(false);
+  const [newTaskText, setNewTaskText] = useState('');
+
   // Deadline picker state
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 
@@ -389,6 +401,7 @@ export default function ProjectBoardPage() {
     setEditingCard(null);
     setEditingCardColumnId(null);
     setShowAcceptanceCriteria(false);
+    setShowTasks(false);
   }, [editingCard]);
   const handleDeleteCard = useCallback(() => {
     if (!editingCard) return;
@@ -405,6 +418,7 @@ export default function ProjectBoardPage() {
     setEditingCard(null);
     setEditingCardColumnId(null);
     setShowAcceptanceCriteria(false);
+    setShowTasks(false);
   }, [editingCard]);
 
   // Acceptance Criteria handlers
@@ -436,6 +450,40 @@ export default function ProjectBoardPage() {
     setEditingCard({
       ...editingCard,
       checklist: (editingCard.checklist || []).filter(item => item.id !== criteriaId)
+    });
+  }, [editingCard]);
+
+  // Task handlers
+  const handleAddTask = useCallback(() => {
+    if (!newTaskText.trim() || !editingCard) return;
+    const newTask: TaskItem = {
+      id: `task-${Date.now()}`,
+      text: newTaskText.trim(),
+      done: false
+    };
+    setEditingCard({
+      ...editingCard,
+      tasks: [...(editingCard.tasks || []), newTask]
+    });
+    setNewTaskText('');
+  }, [newTaskText, editingCard]);
+  
+  const handleToggleTask = useCallback((taskId: string) => {
+    if (!editingCard) return;
+    setEditingCard({
+      ...editingCard,
+      tasks: (editingCard.tasks || []).map(item => item.id === taskId ? {
+        ...item,
+        done: !item.done
+      } : item)
+    });
+  }, [editingCard]);
+  
+  const handleDeleteTask = useCallback((taskId: string) => {
+    if (!editingCard) return;
+    setEditingCard({
+      ...editingCard,
+      tasks: (editingCard.tasks || []).filter(item => item.id !== taskId)
     });
   }, [editingCard]);
 
@@ -614,11 +662,101 @@ export default function ProjectBoardPage() {
                         </div>
                       </div>}
 
+                    {/* Tasks Section */}
+                    {showTasks && (() => {
+                      const tasks = editingCard.tasks || [];
+                      const completedTasks = tasks.filter(t => t.done).length;
+                      const totalTasks = tasks.length;
+                      const tasksProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+                      
+                      return (
+                        <div className="bg-slate-800/30 rounded-lg p-4">
+                          {/* Header with title and progress */}
+                          <div className="flex items-start justify-between mb-1">
+                            <div>
+                              <h3 className="text-lg font-semibold text-slate-200">Tasks</h3>
+                              <p className="text-sm text-slate-500 mt-0.5">
+                                Small chunks of work that contribute to this card's objectives.
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-sm font-medium text-slate-300">
+                                {Math.round(tasksProgress)}%
+                              </span>
+                              <div className="w-24 h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                                <div 
+                                  className={cn(
+                                    "h-full transition-all duration-300 rounded-full",
+                                    completedTasks === totalTasks && totalTasks > 0 ? "bg-green-500" : "bg-green-500"
+                                  )} 
+                                  style={{ width: `${tasksProgress}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Tasks List */}
+                          <div className="space-y-2 mt-4">
+                            {tasks.map(task => (
+                              <div 
+                                key={task.id} 
+                                className="flex items-center gap-3 group py-2 px-2 rounded-md hover:bg-slate-700/30 -mx-2 transition-colors"
+                              >
+                                <Checkbox 
+                                  checked={task.done} 
+                                  onCheckedChange={() => handleToggleTask(task.id)} 
+                                  className="h-5 w-5 rounded border-slate-500 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500" 
+                                />
+                                <span className={cn(
+                                  "flex-1 text-sm transition-colors",
+                                  task.done ? "text-slate-500 line-through" : "text-slate-300"
+                                )}>
+                                  {task.text}
+                                </span>
+                                <button 
+                                  onClick={() => handleDeleteTask(task.id)} 
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5 text-slate-500 hover:text-red-400" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Task Button */}
+                          <div className="flex justify-end mt-4">
+                            <div className="flex items-center gap-2 bg-slate-700/50 rounded-lg px-3 py-2">
+                              <Input 
+                                value={newTaskText} 
+                                onChange={e => setNewTaskText(e.target.value)} 
+                                placeholder="Add a task..." 
+                                className="bg-transparent border-none text-sm text-slate-300 placeholder:text-slate-500 h-6 p-0 focus-visible:ring-0 w-40" 
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && newTaskText.trim()) {
+                                    e.preventDefault();
+                                    handleAddTask();
+                                  }
+                                }} 
+                              />
+                              <button 
+                                onClick={handleAddTask}
+                                disabled={!newTaskText.trim()}
+                                className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Plus className="w-4 h-4" />
+                                Add item
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {/* Activity Section */}
                     <div>
                       <div className="flex items-center gap-2 mb-3">
                         <MessageSquare className="w-4 h-4 text-slate-500" />
-                        <span className="text-sm font-medium text-slate-300">Tasks</span>
+                        <span className="text-sm font-medium text-slate-300">Activity</span>
                       </div>
                       <div className="flex items-start gap-2.5">
                         <Avatar className="w-7 h-7">
@@ -639,6 +777,7 @@ export default function ProjectBoardPage() {
                         Add to card
                       </p>
                       <div className="space-y-1">
+                        <SidebarButton icon={<ListTodo className="w-3.5 h-3.5" />} label="Tasks" active={showTasks} onClick={() => setShowTasks(!showTasks)} />
                         <SidebarButton icon={<CheckSquare className="w-3.5 h-3.5" />} label="Acceptance Criteria" active={showAcceptanceCriteria} onClick={() => setShowAcceptanceCriteria(!showAcceptanceCriteria)} />
                         <Popover open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
                           <PopoverTrigger asChild>
