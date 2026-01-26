@@ -2,8 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
 import { 
   Loader2, LayoutGrid, Plus, MoreHorizontal, X,
-  Users, Tag, CheckSquare, Calendar, Image, 
-  ArrowRight, Copy, Trash2, AlignLeft, MessageSquare
+  CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, MessageSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay } from '@/components/ui/kanban';
@@ -12,6 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { format, isPast, isToday, differenceInDays } from 'date-fns';
+import { AcceptanceCriteriaItem } from '@/types';
 
 // Interface matching the artifact content structure
 interface ArtifactContent {
@@ -34,6 +38,8 @@ interface KanbanCard {
   description: string;
   priority?: 'low' | 'medium' | 'high';
   coverColor?: string;
+  plannedDate?: string;
+  checklist?: AcceptanceCriteriaItem[];
 }
 
 // Column configuration for new 5-column layout
@@ -97,6 +103,30 @@ const labelColors: Record<string, { bg: string; hover: string }> = {
   low: { bg: '#10b981', hover: '#34d399' }
 };
 
+// Get deadline badge color based on urgency
+function getDeadlineBadgeStyle(plannedDate: string, isDone: boolean) {
+  if (isDone) {
+    return 'bg-slate-600/30 text-slate-400 border-slate-500/30';
+  }
+  
+  const date = new Date(plannedDate);
+  const today = new Date();
+  
+  if (isPast(date) && !isToday(date)) {
+    // Overdue - red
+    return 'bg-red-500/20 text-red-400 border-red-500/40';
+  }
+  
+  const daysUntilDue = differenceInDays(date, today);
+  if (daysUntilDue <= 3) {
+    // Due soon - yellow
+    return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40';
+  }
+  
+  // Future - gray
+  return 'bg-slate-600/30 text-slate-400 border-slate-500/30';
+}
+
 // Trello-style Task Card
 interface TaskCardProps {
   card: KanbanCard;
@@ -106,6 +136,9 @@ interface TaskCardProps {
 
 function TaskCard({ card, isOverlay, onClick }: TaskCardProps) {
   const labels = [card.tag, card.priority].filter(Boolean);
+  const checklist = card.checklist || [];
+  const completedCount = checklist.filter(item => item.done).length;
+  const totalCount = checklist.length;
   
   return (
     <div 
@@ -150,6 +183,35 @@ function TaskCard({ card, isOverlay, onClick }: TaskCardProps) {
           <p className="text-xs text-[#9fadbc] line-clamp-2 mb-2">
             {card.description}
           </p>
+        )}
+        
+        {/* Badges Row - Deadline & Acceptance Criteria */}
+        {(card.plannedDate || totalCount > 0) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Deadline Badge */}
+            {card.plannedDate && (
+              <span className={cn(
+                "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded font-medium border",
+                getDeadlineBadgeStyle(card.plannedDate, false)
+              )}>
+                <Calendar className="w-3 h-3" />
+                {format(new Date(card.plannedDate), 'MMM d')}
+              </span>
+            )}
+            
+            {/* Acceptance Criteria Progress Badge */}
+            {totalCount > 0 && (
+              <span className={cn(
+                "inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded font-medium border",
+                completedCount === totalCount 
+                  ? "bg-green-500/20 text-green-400 border-green-500/40"
+                  : "bg-slate-600/30 text-slate-400 border-slate-500/30"
+              )}>
+                <CheckSquare className="w-3 h-3" />
+                {completedCount}/{totalCount}
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -214,9 +276,10 @@ interface SidebarButtonProps {
   label: string;
   onClick?: () => void;
   variant?: 'default' | 'danger';
+  active?: boolean;
 }
 
-function SidebarButton({ icon, label, onClick, variant = 'default' }: SidebarButtonProps) {
+function SidebarButton({ icon, label, onClick, variant = 'default', active }: SidebarButtonProps) {
   return (
     <button
       onClick={onClick}
@@ -224,7 +287,9 @@ function SidebarButton({ icon, label, onClick, variant = 'default' }: SidebarBut
         "w-full px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 transition-colors text-left",
         variant === 'danger' 
           ? "bg-slate-700/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400"
-          : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300"
+          : active
+            ? "bg-primary/20 text-primary border border-primary/30"
+            : "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300"
       )}
     >
       {icon}
@@ -267,7 +332,9 @@ export default function ProjectBoardPage() {
             title: card.title,
             description: card.description,
             priority: undefined,
-            coverColor: undefined
+            coverColor: undefined,
+            plannedDate: undefined,
+            checklist: []
           });
         }
       });
@@ -282,6 +349,13 @@ export default function ProjectBoardPage() {
   const [editingCard, setEditingCard] = useState<KanbanCard | null>(null);
   const [editingCardColumnId, setEditingCardColumnId] = useState<string | null>(null);
   const [newCardTitle, setNewCardTitle] = useState('');
+  
+  // Acceptance Criteria state
+  const [showAcceptanceCriteria, setShowAcceptanceCriteria] = useState(false);
+  const [newCriteriaText, setNewCriteriaText] = useState('');
+  
+  // Deadline picker state
+  const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 
   // Update columns when artifact changes
   useMemo(() => {
@@ -314,7 +388,9 @@ export default function ProjectBoardPage() {
       title: newCardTitle.trim(),
       description: '',
       tag: 'MVP',
-      priority: undefined
+      priority: undefined,
+      plannedDate: undefined,
+      checklist: []
     };
     
     setColumns(prev => ({
@@ -328,8 +404,10 @@ export default function ProjectBoardPage() {
   }, [newCardTitle, activeColumnId]);
 
   const handleEditCard = useCallback((card: KanbanCard, columnId: string) => {
-    setEditingCard({ ...card });
+    setEditingCard({ ...card, checklist: card.checklist || [] });
     setEditingCardColumnId(columnId);
+    setShowAcceptanceCriteria(false);
+    setNewCriteriaText('');
     setIsEditDialogOpen(true);
   }, []);
 
@@ -355,6 +433,7 @@ export default function ProjectBoardPage() {
     setIsEditDialogOpen(false);
     setEditingCard(null);
     setEditingCardColumnId(null);
+    setShowAcceptanceCriteria(false);
   }, [editingCard]);
 
   const handleDeleteCard = useCallback(() => {
@@ -371,10 +450,65 @@ export default function ProjectBoardPage() {
     setIsEditDialogOpen(false);
     setEditingCard(null);
     setEditingCardColumnId(null);
+    setShowAcceptanceCriteria(false);
+  }, [editingCard]);
+
+  // Acceptance Criteria handlers
+  const handleAddCriteria = useCallback(() => {
+    if (!newCriteriaText.trim() || !editingCard) return;
+    
+    const newItem: AcceptanceCriteriaItem = {
+      id: `ac-${Date.now()}`,
+      text: newCriteriaText.trim(),
+      done: false
+    };
+    
+    setEditingCard({
+      ...editingCard,
+      checklist: [...(editingCard.checklist || []), newItem]
+    });
+    setNewCriteriaText('');
+  }, [newCriteriaText, editingCard]);
+
+  const handleToggleCriteria = useCallback((criteriaId: string) => {
+    if (!editingCard) return;
+    
+    setEditingCard({
+      ...editingCard,
+      checklist: (editingCard.checklist || []).map(item =>
+        item.id === criteriaId ? { ...item, done: !item.done } : item
+      )
+    });
+  }, [editingCard]);
+
+  const handleDeleteCriteria = useCallback((criteriaId: string) => {
+    if (!editingCard) return;
+    
+    setEditingCard({
+      ...editingCard,
+      checklist: (editingCard.checklist || []).filter(item => item.id !== criteriaId)
+    });
+  }, [editingCard]);
+
+  // Deadline handler
+  const handleSetDeadline = useCallback((date: Date | undefined) => {
+    if (!editingCard) return;
+    
+    setEditingCard({
+      ...editingCard,
+      plannedDate: date ? format(date, 'yyyy-MM-dd') : undefined
+    });
+    setIsDeadlineOpen(false);
   }, [editingCard]);
 
   const activeColumn = COLUMN_CONFIG.find(col => col.id === activeColumnId);
   const editingCardColumn = COLUMN_CONFIG.find(col => col.id === editingCardColumnId);
+
+  // Calculate acceptance criteria progress
+  const checklist = editingCard?.checklist || [];
+  const completedCount = checklist.filter(item => item.done).length;
+  const totalCount = checklist.length;
+  const progressPercent = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   if (loading) {
     return (
@@ -463,148 +597,260 @@ export default function ProjectBoardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Card Dialog - Two-Column Layout */}
+      {/* Edit Card Dialog - Simplified Two-Column Layout */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-3xl p-0 gap-0 max-h-[90vh] overflow-hidden">
           {editingCard && (
-            <>
-              {/* Cover Area */}
-              {editingCard.coverColor && (
-                <div 
-                  className="h-24 w-full"
-                  style={{ backgroundColor: editingCard.coverColor }}
-                />
-              )}
-              
-              <div className="p-6">
-                {/* Header - Title */}
-                <div className="flex items-start gap-3 mb-6">
-                  <LayoutGrid className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0" />
-                  <div className="flex-1">
-                    <Input
-                      value={editingCard.title}
-                      onChange={e => setEditingCard({ ...editingCard, title: e.target.value })}
-                      className="bg-transparent border-none text-xl font-semibold text-white p-0 h-auto focus-visible:ring-0 focus-visible:bg-[#1a2332] rounded px-2 -mx-2"
-                    />
-                    <p className="text-sm text-slate-400 mt-1">
-                      in list <span className="underline">{editingCardColumn?.title}</span>
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => setIsEditDialogOpen(false)}
-                    className="p-2 hover:bg-white/10 rounded"
-                  >
-                    <X className="w-5 h-5 text-slate-400" />
-                  </button>
+            <div className="p-6">
+              {/* Header - Title */}
+              <div className="flex items-start gap-3 mb-6">
+                <LayoutGrid className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0" />
+                <div className="flex-1">
+                  <Input
+                    value={editingCard.title}
+                    onChange={e => setEditingCard({ ...editingCard, title: e.target.value })}
+                    className="bg-transparent border-none text-xl font-semibold text-white p-0 h-auto focus-visible:ring-0 focus-visible:bg-[#1a2332] rounded px-2 -mx-2"
+                  />
+                  <p className="text-sm text-slate-400 mt-1">
+                    in list <span className="underline">{editingCardColumn?.title}</span>
+                  </p>
                 </div>
+                <button 
+                  onClick={() => setIsEditDialogOpen(false)}
+                  className="p-2 hover:bg-white/10 rounded"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
 
-                {/* Two Column Layout */}
-                <div className="flex gap-4">
-                  {/* Left Column - Main Content */}
-                  <div className="flex-1 space-y-6">
-                    {/* Labels Preview */}
-                    {(editingCard.tag || editingCard.priority) && (
-                      <div className="flex gap-1 flex-wrap">
-                        {editingCard.tag && (
-                          <span 
-                            className="px-3 py-1 rounded text-xs font-medium text-[#1d2125]"
-                            style={{ backgroundColor: labelColors[editingCard.tag]?.bg || '#596773' }}
-                          >
-                            {editingCard.tag}
-                          </span>
-                        )}
-                        {editingCard.priority && (
-                          <span 
-                            className="px-3 py-1 rounded text-xs font-medium text-[#1d2125] capitalize"
-                            style={{ backgroundColor: labelColors[editingCard.priority]?.bg || '#596773' }}
-                          >
-                            {editingCard.priority}
-                          </span>
-                        )}
-                      </div>
-                    )}
+              {/* Two Column Layout */}
+              <div className="flex gap-4">
+                {/* Left Column - Main Content */}
+                <div className="flex-1 space-y-6">
+                  {/* Labels Preview (read-only) */}
+                  {(editingCard.tag || editingCard.priority) && (
+                    <div className="flex gap-1 flex-wrap">
+                      {editingCard.tag && (
+                        <span 
+                          className="px-3 py-1 rounded text-xs font-medium text-[#1d2125]"
+                          style={{ backgroundColor: labelColors[editingCard.tag]?.bg || '#596773' }}
+                        >
+                          {editingCard.tag}
+                        </span>
+                      )}
+                      {editingCard.priority && (
+                        <span 
+                          className="px-3 py-1 rounded text-xs font-medium text-[#1d2125] capitalize"
+                          style={{ backgroundColor: labelColors[editingCard.priority]?.bg || '#596773' }}
+                        >
+                          {editingCard.priority}
+                        </span>
+                      )}
+                    </div>
+                  )}
 
-                    {/* Description Section */}
+                  {/* Description Section */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <AlignLeft className="w-5 h-5 text-slate-400" />
+                      <h3 className="font-semibold text-white">Description</h3>
+                    </div>
+                    <Textarea
+                      value={editingCard.description}
+                      onChange={e => setEditingCard({ ...editingCard, description: e.target.value })}
+                      placeholder="Add a more detailed description..."
+                      className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[120px] resize-none focus-visible:ring-1 focus-visible:ring-primary ml-8"
+                    />
+                  </div>
+
+                  {/* Acceptance Criteria Section */}
+                  {showAcceptanceCriteria && (
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <AlignLeft className="w-5 h-5 text-slate-400" />
-                        <h3 className="font-semibold text-white">Description</h3>
+                        <CheckSquare className="w-5 h-5 text-slate-400" />
+                        <h3 className="font-semibold text-white">Acceptance Criteria</h3>
+                        {totalCount > 0 && (
+                          <span className={cn(
+                            "text-xs px-2 py-0.5 rounded",
+                            completedCount === totalCount
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-slate-700 text-slate-400"
+                          )}>
+                            {completedCount}/{totalCount} passed
+                          </span>
+                        )}
                       </div>
-                      <Textarea
-                        value={editingCard.description}
-                        onChange={e => setEditingCard({ ...editingCard, description: e.target.value })}
-                        placeholder="Add a more detailed description..."
-                        className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[120px] resize-none focus-visible:ring-1 focus-visible:ring-primary ml-8"
+                      
+                      {/* Progress Bar */}
+                      {totalCount > 0 && (
+                        <div className="ml-8 mb-3">
+                          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div 
+                              className={cn(
+                                "h-full transition-all duration-300",
+                                completedCount === totalCount ? "bg-green-500" : "bg-primary"
+                              )}
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Criteria List */}
+                      <div className="ml-8 space-y-2">
+                        {checklist.map(item => (
+                          <div 
+                            key={item.id} 
+                            className="flex items-center gap-3 group p-2 rounded hover:bg-[#1a2332] -mx-2"
+                          >
+                            <Checkbox 
+                              checked={item.done}
+                              onCheckedChange={() => handleToggleCriteria(item.id)}
+                              className="border-slate-500 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            />
+                            <span className={cn(
+                              "flex-1 text-sm",
+                              item.done ? "text-slate-500 line-through" : "text-slate-300"
+                            )}>
+                              {item.text}
+                            </span>
+                            <button
+                              onClick={() => handleDeleteCriteria(item.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                            >
+                              <X className="w-3 h-3 text-slate-400 hover:text-red-400" />
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Add New Criteria Input */}
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={newCriteriaText}
+                            onChange={e => setNewCriteriaText(e.target.value)}
+                            placeholder="Add an item..."
+                            className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 text-sm h-9 focus-visible:ring-1 focus-visible:ring-primary"
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleAddCriteria();
+                              }
+                            }}
+                          />
+                          <Button
+                            onClick={handleAddCriteria}
+                            disabled={!newCriteriaText.trim()}
+                            size="sm"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                          >
+                            Add
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Activity Section */}
+                  <div>
+                    <div className="flex items-center gap-3 mb-3">
+                      <MessageSquare className="w-5 h-5 text-slate-400" />
+                      <h3 className="font-semibold text-white">Activity</h3>
+                    </div>
+                    <div className="flex items-start gap-3 ml-8">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                          U
+                        </AvatarFallback>
+                      </Avatar>
+                      <Input
+                        placeholder="Write a comment..."
+                        className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-primary"
                       />
                     </div>
-
-                    {/* Activity Section */}
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <MessageSquare className="w-5 h-5 text-slate-400" />
-                        <h3 className="font-semibold text-white">Activity</h3>
-                      </div>
-                      <div className="flex items-start gap-3 ml-8">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                            U
-                          </AvatarFallback>
-                        </Avatar>
-                        <Input
-                          placeholder="Write a comment..."
-                          className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-primary"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column - Sidebar */}
-                  <div className="w-[170px] space-y-4 flex-shrink-0">
-                    {/* Add to card section */}
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
-                        Add to card
-                      </p>
-                      <div className="space-y-1">
-                        <SidebarButton icon={<Users className="w-4 h-4" />} label="Members" />
-                        <SidebarButton icon={<Tag className="w-4 h-4" />} label="Labels" />
-                        <SidebarButton icon={<CheckSquare className="w-4 h-4" />} label="Checklist" />
-                        <SidebarButton icon={<Calendar className="w-4 h-4" />} label="Dates" />
-                        <SidebarButton icon={<Image className="w-4 h-4" />} label="Cover" />
-                      </div>
-                    </div>
-
-                    {/* Actions section */}
-                    <div>
-                      <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
-                        Actions
-                      </p>
-                      <div className="space-y-1">
-                        <SidebarButton icon={<ArrowRight className="w-4 h-4" />} label="Move" />
-                        <SidebarButton icon={<Copy className="w-4 h-4" />} label="Copy" />
-                        <SidebarButton 
-                          icon={<Trash2 className="w-4 h-4" />} 
-                          label="Delete" 
-                          variant="danger"
-                          onClick={handleDeleteCard}
-                        />
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                {/* Save Button */}
-                <div className="flex justify-end mt-6 pt-4 border-t border-slate-700/50">
-                  <Button 
-                    onClick={handleSaveEdit}
-                    disabled={!editingCard.title.trim()}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-                  >
-                    Save Changes
-                  </Button>
+                {/* Right Column - Sidebar */}
+                <div className="w-[170px] space-y-4 flex-shrink-0">
+                  {/* Add to card section */}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
+                      Add to card
+                    </p>
+                    <div className="space-y-1">
+                      <SidebarButton 
+                        icon={<CheckSquare className="w-4 h-4" />} 
+                        label="Acceptance Criteria"
+                        active={showAcceptanceCriteria}
+                        onClick={() => setShowAcceptanceCriteria(!showAcceptanceCriteria)}
+                      />
+                      <Popover open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
+                        <PopoverTrigger asChild>
+                          <div>
+                            <SidebarButton 
+                              icon={<Calendar className="w-4 h-4" />} 
+                              label={editingCard.plannedDate 
+                                ? format(new Date(editingCard.plannedDate), 'MMM d, yyyy')
+                                : "Deadline"
+                              }
+                              active={!!editingCard.plannedDate}
+                            />
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-[#1a2332] border-slate-700" align="start">
+                          <CalendarComponent
+                            mode="single"
+                            selected={editingCard.plannedDate ? new Date(editingCard.plannedDate) : undefined}
+                            onSelect={handleSetDeadline}
+                            initialFocus
+                            className="p-3 pointer-events-auto"
+                          />
+                          {editingCard.plannedDate && (
+                            <div className="p-2 border-t border-slate-700">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                onClick={() => handleSetDeadline(undefined)}
+                              >
+                                Remove deadline
+                              </Button>
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </div>
+
+                  {/* Actions section */}
+                  <div>
+                    <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
+                      Actions
+                    </p>
+                    <div className="space-y-1">
+                      <SidebarButton icon={<ArrowRight className="w-4 h-4" />} label="Move" />
+                      <SidebarButton 
+                        icon={<Trash2 className="w-4 h-4" />} 
+                        label="Delete" 
+                        variant="danger"
+                        onClick={handleDeleteCard}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </>
+
+              {/* Save Button */}
+              <div className="flex justify-end mt-6 pt-4 border-t border-slate-700/50">
+                <Button 
+                  onClick={handleSaveEdit}
+                  disabled={!editingCard.title.trim()}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>
