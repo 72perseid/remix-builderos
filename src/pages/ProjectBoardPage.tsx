@@ -602,240 +602,257 @@ export default function ProjectBoardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Card Dialog - Simplified Two-Column Layout */}
+      {/* Edit Card Dialog - Refined Two-Column Layout */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-3xl p-0 gap-0 max-h-[90vh] overflow-hidden">
+        <DialogContent className="bg-[#1a2332] border-slate-700/50 text-white sm:max-w-2xl p-0 gap-0 max-h-[85vh] overflow-hidden shadow-2xl">
           {editingCard && (
-            <div className="p-6">
-              {/* Header - Title */}
-              <div className="flex items-start gap-3 mb-6">
-                <LayoutGrid className="w-6 h-6 text-slate-400 mt-1 flex-shrink-0" />
-                <div className="flex-1">
-                  <Input
-                    value={editingCard.title}
-                    onChange={e => setEditingCard({ ...editingCard, title: e.target.value })}
-                    className="bg-transparent border-none text-xl font-semibold text-white p-0 h-auto focus-visible:ring-0 focus-visible:bg-[#1a2332] rounded px-2 -mx-2"
-                  />
-                  <p className="text-sm text-slate-400 mt-1">
-                    in list <span className="underline">{editingCardColumn?.title}</span>
-                  </p>
+            <div className="flex flex-col max-h-[85vh]">
+              {/* Header */}
+              <div className="p-5 pb-4 border-b border-slate-700/30">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center flex-shrink-0">
+                    <LayoutGrid className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <Input
+                      value={editingCard.title}
+                      onChange={e => setEditingCard({ ...editingCard, title: e.target.value })}
+                      className="bg-transparent border-none text-lg font-semibold text-white p-0 h-auto focus-visible:ring-0 hover:bg-slate-800/50 focus-visible:bg-slate-800/50 rounded px-2 -mx-2 py-1"
+                    />
+                    <p className="text-xs text-slate-500 mt-0.5 px-2 -mx-2">
+                      in list <span className="text-slate-400">{editingCardColumn?.title}</span>
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsEditDialogOpen(false)}
+                    className="p-1.5 hover:bg-slate-700/50 rounded-lg transition-colors"
+                  >
+                    <X className="w-4 h-4 text-slate-400" />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setIsEditDialogOpen(false)}
-                  className="p-2 hover:bg-white/10 rounded"
-                >
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
+
+                {/* Labels Preview (read-only) */}
+                {(editingCard.tag || editingCard.priority) && (
+                  <div className="flex gap-1.5 flex-wrap mt-3 ml-11">
+                    {editingCard.tag && (
+                      <span 
+                        className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold text-white/90"
+                        style={{ backgroundColor: labelColors[editingCard.tag]?.bg || '#596773' }}
+                      >
+                        {editingCard.tag}
+                      </span>
+                    )}
+                    {editingCard.priority && (
+                      <span 
+                        className="px-2.5 py-0.5 rounded-md text-[11px] font-semibold text-white/90 capitalize"
+                        style={{ backgroundColor: labelColors[editingCard.priority]?.bg || '#596773' }}
+                      >
+                        {editingCard.priority}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* Two Column Layout */}
-              <div className="flex gap-4">
-                {/* Left Column - Main Content */}
-                <div className="flex-1 space-y-6">
-                  {/* Labels Preview (read-only) */}
-                  {(editingCard.tag || editingCard.priority) && (
-                    <div className="flex gap-1 flex-wrap">
-                      {editingCard.tag && (
-                        <span 
-                          className="px-3 py-1 rounded text-xs font-medium text-[#1d2125]"
-                          style={{ backgroundColor: labelColors[editingCard.tag]?.bg || '#596773' }}
-                        >
-                          {editingCard.tag}
-                        </span>
-                      )}
-                      {editingCard.priority && (
-                        <span 
-                          className="px-3 py-1 rounded text-xs font-medium text-[#1d2125] capitalize"
-                          style={{ backgroundColor: labelColors[editingCard.priority]?.bg || '#596773' }}
-                        >
-                          {editingCard.priority}
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Description Section */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <AlignLeft className="w-5 h-5 text-slate-400" />
-                      <h3 className="font-semibold text-white">Description</h3>
-                    </div>
-                    <Textarea
-                      value={editingCard.description}
-                      onChange={e => setEditingCard({ ...editingCard, description: e.target.value })}
-                      placeholder="Add a more detailed description..."
-                      className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 min-h-[120px] resize-none focus-visible:ring-1 focus-visible:ring-primary ml-8"
-                    />
-                  </div>
-
-                  {/* Acceptance Criteria Section - Minimal Trello-style */}
-                  {showAcceptanceCriteria && (
-                    <div className="ml-8">
-                      {/* Header with percentage */}
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <CheckSquare className="w-4 h-4 text-slate-400" />
-                          <span className="text-sm text-slate-300">Acceptance Criteria</span>
-                        </div>
-                        <span className="text-xs text-slate-500">{Math.round(progressPercent)}%</span>
+              {/* Body - Scrollable */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="flex gap-5 p-5">
+                  {/* Left Column - Main Content */}
+                  <div className="flex-1 space-y-5 min-w-0">
+                    {/* Description Section */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlignLeft className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm font-medium text-slate-300">Description</span>
                       </div>
-                      
-                      {/* Thin Progress Bar (4px) */}
-                      <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden mb-3">
-                        <div 
-                          className={cn(
-                            "h-full transition-all duration-300",
-                            completedCount === totalCount && totalCount > 0 ? "bg-green-500" : "bg-primary"
-                          )}
-                          style={{ width: `${progressPercent}%` }}
+                      <Textarea
+                        value={editingCard.description}
+                        onChange={e => setEditingCard({ ...editingCard, description: e.target.value })}
+                        placeholder="Add a more detailed description..."
+                        className="bg-slate-800/50 border-slate-700/50 text-slate-200 placeholder:text-slate-500 min-h-[100px] resize-none focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:border-primary/50 text-sm rounded-lg"
+                      />
+                    </div>
+
+                    {/* Acceptance Criteria Section */}
+                    {showAcceptanceCriteria && (
+                      <div className="bg-slate-800/30 rounded-lg p-4">
+                        {/* Header with percentage */}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <CheckSquare className="w-4 h-4 text-slate-500" />
+                            <span className="text-sm font-medium text-slate-300">Acceptance Criteria</span>
+                          </div>
+                          <span className={cn(
+                            "text-xs font-medium px-2 py-0.5 rounded-full",
+                            progressPercent === 100 
+                              ? "bg-green-500/20 text-green-400" 
+                              : "bg-slate-700/50 text-slate-400"
+                          )}>
+                            {Math.round(progressPercent)}%
+                          </span>
+                        </div>
+                        
+                        {/* Thin Progress Bar */}
+                        <div className="h-1 bg-slate-700/50 rounded-full overflow-hidden mb-3">
+                          <div 
+                            className={cn(
+                              "h-full transition-all duration-300 rounded-full",
+                              completedCount === totalCount && totalCount > 0 ? "bg-green-500" : "bg-primary"
+                            )}
+                            style={{ width: `${progressPercent}%` }}
+                          />
+                        </div>
+
+                        {/* Criteria List */}
+                        <div className="space-y-0.5">
+                          {checklist.map(item => (
+                            <div 
+                              key={item.id} 
+                              className="flex items-center gap-2.5 group py-1.5 px-2 rounded-md hover:bg-slate-700/30 -mx-2 transition-colors"
+                            >
+                              <Checkbox 
+                                checked={item.done}
+                                onCheckedChange={() => handleToggleCriteria(item.id)}
+                                className="h-4 w-4 rounded border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                              />
+                              <span className={cn(
+                                "flex-1 text-sm transition-colors",
+                                item.done ? "text-slate-500 line-through" : "text-slate-300"
+                              )}>
+                                {item.text}
+                              </span>
+                              <button
+                                onClick={() => handleDeleteCriteria(item.id)}
+                                className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
+                              >
+                                <Trash2 className="w-3 h-3 text-slate-500 hover:text-red-400" />
+                              </button>
+                            </div>
+                          ))}
+
+                          {/* Add New Criteria */}
+                          <div className="flex items-center gap-2.5 py-1.5 px-2 -mx-2">
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              <Plus className="w-3 h-3 text-slate-500" />
+                            </div>
+                            <Input
+                              value={newCriteriaText}
+                              onChange={e => setNewCriteriaText(e.target.value)}
+                              placeholder="Add an item..."
+                              className="bg-transparent border-none text-sm text-slate-300 placeholder:text-slate-500 h-6 p-0 focus-visible:ring-0"
+                              onKeyDown={e => {
+                                if (e.key === 'Enter' && newCriteriaText.trim()) {
+                                  e.preventDefault();
+                                  handleAddCriteria();
+                                }
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Activity Section */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <MessageSquare className="w-4 h-4 text-slate-500" />
+                        <span className="text-sm font-medium text-slate-300">Activity</span>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <Avatar className="w-7 h-7">
+                          <AvatarFallback className="bg-primary/80 text-primary-foreground text-xs font-medium">
+                            U
+                          </AvatarFallback>
+                        </Avatar>
+                        <Input
+                          placeholder="Write a comment..."
+                          className="bg-slate-800/50 border-slate-700/50 text-slate-200 placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-primary/50 text-sm h-9 rounded-lg"
                         />
                       </div>
+                    </div>
+                  </div>
 
-                      {/* Criteria List - Minimal styling */}
+                  {/* Right Column - Sidebar */}
+                  <div className="w-40 space-y-4 flex-shrink-0">
+                    {/* Add to card section */}
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                        Add to card
+                      </p>
                       <div className="space-y-1">
-                        {checklist.map(item => (
-                          <div 
-                            key={item.id} 
-                            className="flex items-center gap-2 group py-1 px-1 rounded hover:bg-slate-800/50 -mx-1"
-                          >
-                            <Checkbox 
-                              checked={item.done}
-                              onCheckedChange={() => handleToggleCriteria(item.id)}
-                              className="h-4 w-4 border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                            />
-                            <span className={cn(
-                              "flex-1 text-sm",
-                              item.done ? "text-slate-500 line-through" : "text-slate-300"
-                            )}>
-                              {item.text}
-                            </span>
-                            <button
-                              onClick={() => handleDeleteCriteria(item.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 hover:text-red-400 transition-opacity"
-                            >
-                              <Trash2 className="w-3 h-3 text-slate-500" />
-                            </button>
-                          </div>
-                        ))}
-
-                        {/* Add New Criteria - Inline input */}
-                        <div className="flex items-center gap-2 py-1">
-                          <Input
-                            value={newCriteriaText}
-                            onChange={e => setNewCriteriaText(e.target.value)}
-                            placeholder="+ Add an item"
-                            className="bg-transparent border-none text-sm text-slate-400 placeholder:text-slate-500 h-7 p-0 focus-visible:ring-0 focus-visible:text-white"
-                            onKeyDown={e => {
-                              if (e.key === 'Enter' && newCriteriaText.trim()) {
-                                e.preventDefault();
-                                handleAddCriteria();
+                        <SidebarButton 
+                          icon={<CheckSquare className="w-3.5 h-3.5" />} 
+                          label="Acceptance Criteria"
+                          active={showAcceptanceCriteria}
+                          onClick={() => setShowAcceptanceCriteria(!showAcceptanceCriteria)}
+                        />
+                        <Popover open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
+                          <PopoverTrigger asChild>
+                            <SidebarButton 
+                              icon={<Calendar className="w-3.5 h-3.5" />} 
+                              label={editingCard.plannedDate 
+                                ? format(new Date(editingCard.plannedDate), 'MMM d')
+                                : "Deadline"
                               }
-                            }}
-                          />
-                        </div>
+                              active={!!editingCard.plannedDate}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent 
+                            className="w-auto p-0 bg-[#1a2332] border-slate-700 z-[100] shadow-xl" 
+                            side="left" 
+                            align="start"
+                            sideOffset={8}
+                          >
+                            <CalendarComponent
+                              mode="single"
+                              selected={editingCard.plannedDate ? new Date(editingCard.plannedDate) : undefined}
+                              onSelect={handleSetDeadline}
+                              initialFocus
+                              className="p-3 pointer-events-auto"
+                            />
+                            {editingCard.plannedDate && (
+                              <div className="p-2 border-t border-slate-700">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 text-xs"
+                                  onClick={() => handleSetDeadline(undefined)}
+                                >
+                                  Remove deadline
+                                </Button>
+                              </div>
+                            )}
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
-                  )}
 
-                  {/* Activity Section */}
-                  <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <MessageSquare className="w-5 h-5 text-slate-400" />
-                      <h3 className="font-semibold text-white">Activity</h3>
-                    </div>
-                    <div className="flex items-start gap-3 ml-8">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          U
-                        </AvatarFallback>
-                      </Avatar>
-                      <Input
-                        placeholder="Write a comment..."
-                        className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-primary"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Sidebar */}
-                <div className="w-[170px] space-y-4 flex-shrink-0">
-                  {/* Add to card section */}
-                  <div>
-                    <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
-                      Add to card
-                    </p>
-                    <div className="space-y-1">
-                      <SidebarButton 
-                        icon={<CheckSquare className="w-4 h-4" />} 
-                        label="Acceptance Criteria"
-                        active={showAcceptanceCriteria}
-                        onClick={() => setShowAcceptanceCriteria(!showAcceptanceCriteria)}
-                      />
-                      <Popover open={isDeadlineOpen} onOpenChange={setIsDeadlineOpen}>
-                        <PopoverTrigger asChild>
-                          <SidebarButton 
-                            icon={<Calendar className="w-4 h-4" />} 
-                            label={editingCard.plannedDate 
-                              ? format(new Date(editingCard.plannedDate), 'MMM d')
-                              : "Deadline"
-                            }
-                            active={!!editingCard.plannedDate}
-                          />
-                        </PopoverTrigger>
-                        <PopoverContent 
-                          className="w-auto p-0 bg-[#1a2332] border-slate-700 z-[100]" 
-                          side="left" 
-                          align="start"
-                          sideOffset={8}
-                        >
-                          <CalendarComponent
-                            mode="single"
-                            selected={editingCard.plannedDate ? new Date(editingCard.plannedDate) : undefined}
-                            onSelect={handleSetDeadline}
-                            initialFocus
-                            className="p-3 pointer-events-auto"
-                          />
-                          {editingCard.plannedDate && (
-                            <div className="p-2 border-t border-slate-700">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                                onClick={() => handleSetDeadline(undefined)}
-                              >
-                                Remove deadline
-                              </Button>
-                            </div>
-                          )}
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-
-                  {/* Actions section */}
-                  <div>
-                    <p className="text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wide">
-                      Actions
-                    </p>
-                    <div className="space-y-1">
-                      <SidebarButton icon={<ArrowRight className="w-4 h-4" />} label="Move" />
-                      <SidebarButton 
-                        icon={<Trash2 className="w-4 h-4" />} 
-                        label="Delete" 
-                        variant="danger"
-                        onClick={handleDeleteCard}
-                      />
+                    {/* Actions section */}
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                        Actions
+                      </p>
+                      <div className="space-y-1">
+                        <SidebarButton icon={<ArrowRight className="w-3.5 h-3.5" />} label="Move" />
+                        <SidebarButton 
+                          icon={<Trash2 className="w-3.5 h-3.5" />} 
+                          label="Delete" 
+                          variant="danger"
+                          onClick={handleDeleteCard}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Save Button */}
-              <div className="flex justify-end mt-6 pt-4 border-t border-slate-700/50">
+              {/* Footer */}
+              <div className="flex justify-end p-4 border-t border-slate-700/30 bg-slate-800/20">
                 <Button 
                   onClick={handleSaveEdit}
                   disabled={!editingCard.title.trim()}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-5"
                 >
                   Save Changes
                 </Button>
