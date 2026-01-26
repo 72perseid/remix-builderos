@@ -421,6 +421,22 @@ export default function ProjectBoardPage() {
     setShowTasks(false);
   }, [editingCard]);
 
+  // Move card to different column
+  const handleMoveCard = useCallback((targetColumnId: string) => {
+    if (!editingCard || !editingCardColumnId || targetColumnId === editingCardColumnId) return;
+    
+    setColumns(prev => {
+      const updated = { ...prev };
+      // Remove from current column
+      updated[editingCardColumnId] = updated[editingCardColumnId].filter(c => c.id !== editingCard.id);
+      // Add to target column
+      updated[targetColumnId] = [...(updated[targetColumnId] || []), editingCard];
+      return updated;
+    });
+    
+    setEditingCardColumnId(targetColumnId);
+  }, [editingCard, editingCardColumnId]);
+
   // Acceptance Criteria handlers
   const handleAddCriteria = useCallback(() => {
     if (!newCriteriaText.trim() || !editingCard) return;
@@ -834,7 +850,38 @@ export default function ProjectBoardPage() {
                         Actions
                       </p>
                       <div className="space-y-1">
-                        <SidebarButton icon={<ArrowRight className="w-3.5 h-3.5" />} label="Move" />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <SidebarButton icon={<ArrowRight className="w-3.5 h-3.5" />} label="Move" />
+                          </PopoverTrigger>
+                          <PopoverContent className="w-48 p-2 bg-[#1a2332] border-slate-700 z-[100]" side="left" align="start" sideOffset={8}>
+                            <p className="text-xs font-semibold text-slate-400 mb-2 px-2">Move to</p>
+                            <div className="space-y-0.5">
+                              {COLUMN_CONFIG.map(col => (
+                                <button
+                                  key={col.id}
+                                  onClick={() => handleMoveCard(col.id)}
+                                  disabled={col.id === editingCardColumnId}
+                                  className={cn(
+                                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors text-left",
+                                    col.id === editingCardColumnId 
+                                      ? "bg-slate-700/50 text-slate-500 cursor-not-allowed" 
+                                      : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                                  )}
+                                >
+                                  <div 
+                                    className="w-2 h-2 rounded-full flex-shrink-0" 
+                                    style={{ backgroundColor: col.color }}
+                                  />
+                                  <span className="truncate">{col.title}</span>
+                                  {col.id === editingCardColumnId && (
+                                    <span className="text-[10px] text-slate-500 ml-auto">(current)</span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <SidebarButton icon={<Trash2 className="w-3.5 h-3.5" />} label="Delete" variant="danger" />
