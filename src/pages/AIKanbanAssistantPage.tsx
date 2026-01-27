@@ -5,6 +5,7 @@ import { KanbanBoard, Column, Task } from '@/components/ui/kanban-board';
 import { toast } from 'sonner';
 import { Download, Loader2, LayoutGrid } from 'lucide-react';
 import { AcceptanceCriteriaItem } from '@/types';
+import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
 
 // Interface matching the exact n8n output format
 interface RoadmapContent {
@@ -105,34 +106,42 @@ export default function AIKanbanAssistantPage() {
   }
 
   return (
-    <div className="max-w-full space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Roadmap & Features</h1>
-          <p className="text-slate-400 mt-1">
-            {kanbanColumns.length > 0 
-              ? `${totalCards} features across ${kanbanColumns.length} columns • Drag and drop to organize`
-              : 'Your feature roadmap will appear here once generated'
-            }
-          </p>
+    <div className="flex h-full">
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-full space-y-6 p-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Roadmap & Features</h1>
+              <p className="text-slate-400 mt-1">
+                {kanbanColumns.length > 0 
+                  ? `${totalCards} features across ${kanbanColumns.length} columns • Drag and drop to organize`
+                  : 'Your feature roadmap will appear here once generated'
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* Kanban Board */}
+          {kanbanColumns.length > 0 ? (
+            <KanbanBoard columns={kanbanColumns} />
+          ) : (
+            /* Empty State */
+            <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-[#161e2a]/80">
+              <LayoutGrid className="w-12 h-12 text-slate-500 mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">No Roadmap Yet</h3>
+              <p className="text-slate-400 text-sm text-center max-w-md">
+                Use the BuilderOS Architect on the Dashboard to generate your feature roadmap. 
+                Once generated, your columns and cards will appear here.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Kanban Board */}
-      {kanbanColumns.length > 0 ? (
-        <KanbanBoard columns={kanbanColumns} />
-      ) : (
-        /* Empty State */
-        <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-[#161e2a]/80">
-          <LayoutGrid className="w-12 h-12 text-slate-500 mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No Roadmap Yet</h3>
-          <p className="text-slate-400 text-sm text-center max-w-md">
-            Use the BuilderOS Architect on the Dashboard to generate your feature roadmap. 
-            Once generated, your columns and cards will appear here.
-          </p>
-        </div>
-      )}
+      {/* Copilot Sidebar */}
+      <ArtifactCopilot context="roadmap" heading="Product Manager" />
     </div>
   );
 }
