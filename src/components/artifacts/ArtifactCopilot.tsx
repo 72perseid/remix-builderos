@@ -72,7 +72,7 @@ export function ArtifactCopilot({ context, heading = 'Copilot' }: ArtifactCopilo
   }
 
   return (
-    <div className="w-80 h-full flex flex-col bg-slate-950 border-r border-slate-800/50 shrink-0 order-first">
+    <div className="w-80 h-full flex flex-col bg-slate-950 border-r border-white/10 shrink-0 order-first">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/50">
         <div className="flex items-center gap-2">
@@ -83,9 +83,9 @@ export function ArtifactCopilot({ context, heading = 'Copilot' }: ArtifactCopilo
           variant="ghost"
           size="icon"
           onClick={() => setIsOpen(false)}
-          className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-800 ml-auto"
+          className="h-8 w-8 text-white hover:text-white hover:bg-slate-700 ml-auto"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="h-5 w-5" />
         </Button>
       </div>
 
