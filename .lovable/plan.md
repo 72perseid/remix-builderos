@@ -1,69 +1,97 @@
 
+# Add "Start Building" CTA to Project Board
 
-# Remove Empty State from Project Board
+## Overview
 
-## Problem
+Add a consistent "Start Building" call-to-action banner to both the Artifacts tab and Project Board tab, with both redirecting users to the onboarding chat at `/onboarding?mode=setup`.
 
-The Project Board currently shows a "No Tasks Yet" placeholder when there are zero tasks, preventing users who skipped onboarding from seeing the empty Kanban columns and adding cards manually.
+## Changes Required
 
-## Location
+### File 1: `src/components/ProtectedRoute.tsx`
 
-**File:** `src/pages/ProjectBoardPage.tsx`  
-**Lines:** 607-628
-
-## Current Code
+**Update the mode check logic** to allow `mode=setup`:
 
 ```tsx
-{totalCards > 0 ? <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id}>
-    <KanbanBoard className="flex-1 gap-3">
-      {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
-    </KanbanBoard>
-    <KanbanOverlay>
-      {({ value }) => {
-        const card = findCard(value as string);
-        if (!card) return null;
-        return <TaskCard card={card} isOverlay />;
-      }}
-    </KanbanOverlay>
-  </Kanban> : (/* Empty State */
-<div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-[#161e2a]/80">
-    <LayoutGrid className="w-12 h-12 text-muted-foreground mb-4" />
-    <h3 className="text-lg font-semibold text-white mb-2">No Tasks Yet</h3>
-    <p className="text-slate-400 text-sm text-center max-w-md">
-      Use the BuilderOS Architect on the Dashboard to generate your feature roadmap.
-      Once generated, your tasks will appear here organized by development stage.
-    </p>
-  </div>)}
+// Current:
+const isNewAppMode = searchParams.get('mode') === 'new';
+
+// Updated:
+const mode = searchParams.get('mode');
+const isAllowedMode = mode === 'new' || mode === 'setup';
 ```
 
-## Solution
+Update the redirect condition:
+```tsx
+// Change from:
+if (profile && profile.onboarded === true && isOnOnboardingPage && !isNewAppMode) {
 
-Remove the ternary conditional and always render the `<Kanban>` component:
+// To:
+if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
+```
+
+---
+
+### File 2: `src/components/dashboard/ArtifactsGrid.tsx`
+
+**Change the banner's onClick** from opening the sidebar chat to navigating to onboarding:
 
 ```tsx
-<Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id}>
-  <KanbanBoard className="flex-1 gap-3">
-    {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
-  </KanbanBoard>
-  <KanbanOverlay>
-    {({ value }) => {
-      const card = findCard(value as string);
-      if (!card) return null;
-      return <TaskCard card={card} isOverlay />;
-    }}
-  </KanbanOverlay>
-</Kanban>
+// Current:
+<ArchitectBanner onStartBuilding={openChat} hasData={hasAnyData} />
+
+// Updated:
+<ArchitectBanner 
+  onStartBuilding={() => navigate('/onboarding?mode=setup')} 
+  hasData={hasAnyData} 
+/>
 ```
 
-## Changes Summary
+Remove the unused `useChatContext` import since `openChat` is no longer needed.
 
-| Item | Action |
+---
+
+### File 3: `src/pages/ProjectBoardPage.tsx`
+
+**Add the ArchitectBanner** above the Kanban board:
+
+Add imports:
+```tsx
+import { useNavigate } from 'react-router-dom';
+import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
+```
+
+Add navigation hook and data check:
+```tsx
+const navigate = useNavigate();
+const hasAnyData = totalCards > 0;
+```
+
+Add banner above the Kanban component:
+```tsx
+return <div className="h-full flex flex-col">
+  {/* Architect Banner */}
+  <ArchitectBanner 
+    onStartBuilding={() => navigate('/onboarding?mode=setup')} 
+    hasData={hasAnyData} 
+  />
+  
+  {/* Kanban Board */}
+  <Kanban<KanbanCard> ...>
+```
+
+---
+
+## Summary
+
+| File | Change |
 |------|--------|
-| `totalCards > 0 ?` check | Remove |
-| Empty state `<div>` block | Delete entirely |
-| `<Kanban>` component | Always render |
+| `ProtectedRoute.tsx` | Allow `mode=setup` to access onboarding |
+| `ArtifactsGrid.tsx` | Navigate to `/onboarding?mode=setup` instead of opening chat |
+| `ProjectBoardPage.tsx` | Add ArchitectBanner with same navigation |
 
 ## Result
 
-After this change, users who skip onboarding will see all 5 empty columns (Backlog, Selected for Development, In Progress, In QA, Done) with "Add a card" buttons, allowing them to create tasks immediately.
-
+After these changes:
+- Users see "Start Building" on both Artifacts and Project Board tabs
+- Clicking either button navigates to `/onboarding?mode=setup`
+- Users who previously skipped can re-enter onboarding to generate content
