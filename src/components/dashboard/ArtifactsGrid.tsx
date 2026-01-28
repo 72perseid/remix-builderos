@@ -118,6 +118,7 @@ export function ArtifactsGrid() {
               Building
             </h2>
             <p className="text-sm text-muted-foreground">
+              Design your database schema, define relationships, and plan your technical architecture.
               Design your database schema and technical architecture.
             </p>
           </div>
