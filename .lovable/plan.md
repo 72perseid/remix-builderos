@@ -1,118 +1,132 @@
 
 
-# Update ArtifactsGrid to Filter Cards by Artifact Type
+# Redirect "New App" Flow to Onboarding Page
 
-## Current Architecture Analysis
+## Overview
 
-The `ArtifactsGrid.tsx` already implements a hybrid approach:
-
-1. **Static card configuration** (`artifactCards` array) defines:
-   - Card metadata: `title`, `description`, `route`
-   - Category grouping: `planning`, `building`, `launching`
-   - Database type mapping: `type` (e.g., `business_model`, `validation`)
-
-2. **Dynamic status resolution** via `useArtifacts()`:
-   - Fetches artifacts from Supabase by `type` and `status`
-   - `getCardStatus()` matches config types against fetched data
-
-This design is intentional - it ensures all 4 artifact cards are always visible (locked/available/completed states), even if no data exists yet.
-
-## Proposed Refinement
-
-The current implementation already groups by category which maps to type. To make the grouping logic more explicit and type-driven, I'll refactor to:
-
-1. **Create a type-to-category mapping** that explicitly defines which artifact types belong to which section
-2. **Filter the static cards using this mapping** for clarity
-
-### Type Mapping
-
-| Artifact Type | Section |
-|---------------|---------|
-| `business_model` | Feature Planning |
-| `validation` | Feature Planning |
-| `product_brief` | Feature Planning |
-| `db_design` | Building |
-| `kanban` | (Removed - redundant with Project Board) |
+Change the "New App" button behavior to navigate to the full-screen Onboarding AI interface (`/onboarding?mode=new`) instead of opening the sidebar chat.
 
 ---
 
-## Implementation
+## Current State
 
-### File: `src/components/dashboard/ArtifactsGrid.tsx`
+### DashboardHeader.tsx (lines 19-23)
+```typescript
+const handleNewApp = () => {
+  clearSelection();              // Step 1: Clear selectedAppId (creation mode)
+  setShouldClearOnOpen(true);    // Step 2: Signal to clear chat
+  openChat();                    // Step 3: Open chat UI
+};
+```
+
+### OnboardingPage.tsx already supports `?mode=new`
+- **Line 20**: Parses `isNewAppMode` from URL params
+- **Lines 48-53**: Clears messages when `isNewAppMode` is true
+- **Lines 56-61**: Auto-starts session with `isNewApp` flag
+- **Lines 84-88**: Skips updating `profile.onboarded` when in new app mode
+
+---
+
+## Required Changes
+
+### File 1: `src/components/dashboard/DashboardHeader.tsx`
 
 **Changes:**
-
-1. Add explicit type-to-section mapping constant
-2. Refactor filtering logic to use the mapping
-3. Keep static card definitions for UI metadata
+1. Import `useNavigate` from react-router-dom
+2. Remove unused `useChatContext` import (no longer needed)
+3. Update `handleNewApp` to navigate instead of opening sidebar chat
 
 ```typescript
-// Type-to-section mapping
-const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launching'> = {
-  business_model: 'planning',
-  validation: 'planning',
-  product_brief: 'planning',
-  db_design: 'building',
-  kanban: 'building', // Not displayed but included for completeness
-};
+// Add import
+import { useNavigate } from 'react-router-dom';
 
-// Filter cards by section using the type mapping
-const planningCards = artifactCards.filter(
-  card => TYPE_SECTION_MAP[card.type] === 'planning'
-);
-const buildingCards = artifactCards.filter(
-  card => TYPE_SECTION_MAP[card.type] === 'building'
-);
+// Update function
+const handleNewApp = () => {
+  clearSelection();
+  navigate('/onboarding?mode=new');
+};
+```
+
+### File 2: `src/pages/OnboardingPage.tsx`
+
+**Minor fix needed:** The existing `useEffect` for clearing messages has a dependency issue. When `clearMessages` is in the dependency array and messages change, it could cause unexpected behavior. We need to ensure it only runs once when `isNewAppMode` becomes true.
+
+**Change:** Reset `sessionStarted` flag to trigger a fresh session start.
+
+```typescript
+// Lines 48-53 - Already correct but let's ensure proper behavior
+useEffect(() => {
+  if (isNewAppMode) {
+    clearMessages();
+    setSessionStarted(false);  // Already present - ensures fresh session
+  }
+}, [isNewAppMode]);  // Remove clearMessages from deps to avoid re-runs
 ```
 
 ---
 
-## Visual Structure (Unchanged)
+## Data Flow
 
 ```text
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Architect Banner                            │
-├─────────────────────┬─────────────────────┬─────────────────────────┤
-│  Feature Planning   │      Building       │       Launching         │
-├─────────────────────┼─────────────────────┼─────────────────────────┤
-│ ┌─────────────────┐ │ ┌─────────────────┐ │ ┌───────────────────┐   │
-│ │ Business Model  │ │ │ Database Design │ │ │   Coming Soon     │   │
-│ │ (business_model)│ │ │   (db_design)   │ │ │   🚀 Placeholder  │   │
-│ └─────────────────┘ │ └─────────────────┘ │ └───────────────────┘   │
-│ ┌─────────────────┐ │                     │                         │
-│ │Validation Strat.│ │                     │                         │
-│ │  (validation)   │ │                     │                         │
-│ └─────────────────┘ │                     │                         │
-│ ┌─────────────────┐ │                     │                         │
-│ │  Product Brief  │ │                     │                         │
-│ │ (product_brief) │ │                     │                         │
-│ └─────────────────┘ │                     │                         │
-└─────────────────────┴─────────────────────┴─────────────────────────┘
+User clicks "New App"
+        │
+        ▼
+┌──────────────────────────┐
+│ clearSelection()         │  ← Clears localStorage selection
+│ navigate('/onboarding    │
+│   ?mode=new')            │
+└──────────────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ OnboardingPage loads     │
+│ isNewAppMode = true      │
+└──────────────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ useEffect triggers:      │
+│  • clearMessages()       │  ← Clears chat + new session ID
+│  • setSessionStarted(    │
+│      false)              │
+└──────────────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ Auto-start effect runs:  │
+│  startSession(true)      │  ← Sends START_NEW_APP_SESSION
+└──────────────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ User chats with AI...    │
+│ JSON_GENERATION_COMPLETE │
+└──────────────────────────┘
+        │
+        ▼
+┌──────────────────────────┐
+│ performFinalTransition() │
+│  • Skip profile update   │  ← isNewAppMode check
+│  • Wait 25s for backend  │
+│  • Refresh & navigate    │
+└──────────────────────────┘
 ```
 
 ---
 
-## Technical Details
+## Files to Modify
 
-### Why Keep Static Card Definitions?
-
-The static `artifactCards` array is necessary because:
-
-1. **UI Metadata**: Title, description, and route aren't stored in the database
-2. **Always-Visible Cards**: Users need to see locked cards before data exists
-3. **Navigation**: Routes are defined at compile time
-
-The Supabase data only provides `type` and `status` - not enough to render the full card UI.
-
-### Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/components/dashboard/ArtifactsGrid.tsx` | Add `TYPE_SECTION_MAP`, refactor filter logic |
+| File | Change |
+|------|--------|
+| `src/components/dashboard/DashboardHeader.tsx` | Replace `openChat()` with `navigate('/onboarding?mode=new')` |
+| `src/pages/OnboardingPage.tsx` | Fix `useEffect` dependency to prevent re-runs |
 
 ---
 
-## Summary
+## Edge Cases Handled
 
-This is a minor refactor that makes the type-to-section mapping more explicit in the code. The visual output remains identical to the current implementation, but the logic becomes clearer and more maintainable.
+1. **Cancel button**: Already shows "Cancel" in new app mode (line 187)
+2. **Skip updating onboarded**: Already implemented (lines 84-88, 162-166)
+3. **Session ID reset**: `clearMessages()` already generates new session ID
+4. **Header title**: Already customized for new app mode (lines 170-173)
 
