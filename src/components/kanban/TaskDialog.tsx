@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Task, TaskColor, TaskStatus, TaskCategory, TaskPriority } from '@/types';
+import { Task, TaskColor, TaskStatus, TaskCategory, TaskPriority, AcceptanceCriteriaItem } from '@/types';
 import {
   Dialog,
   DialogContent,
@@ -62,6 +62,8 @@ export function TaskDialog({
   const [priority, setPriority] = useState<TaskPriority | ''>('');
   const [plannedDate, setPlannedDate] = useState('');
   const [estimatedEffort, setEstimatedEffort] = useState('');
+  const [subtasks, setSubtasks] = useState<AcceptanceCriteriaItem[]>([]);
+  const [checklist, setChecklist] = useState<AcceptanceCriteriaItem[]>([]);
 
   useEffect(() => {
     if (task) {
@@ -73,6 +75,8 @@ export function TaskDialog({
       setPriority(task.priority || '');
       setPlannedDate(task.plannedDate || '');
       setEstimatedEffort(task.estimatedEffort || '');
+      setSubtasks(task.subtasks || []);
+      setChecklist(task.checklist || []);
     } else {
       setTitle('');
       setDescription('');
@@ -82,6 +86,8 @@ export function TaskDialog({
       setPriority('');
       setPlannedDate('');
       setEstimatedEffort('');
+      setSubtasks([]);
+      setChecklist([]);
     }
   }, [task, defaultStatus, open]);
 
@@ -98,6 +104,8 @@ export function TaskDialog({
       plannedDate: plannedDate || undefined,
       estimatedEffort: estimatedEffort || undefined,
       completedDate: task?.completedDate,
+      subtasks,
+      checklist,
     });
 
     onOpenChange(false);

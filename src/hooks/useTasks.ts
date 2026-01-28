@@ -143,6 +143,7 @@ export function useTasks() {
       if (updates.plannedDate !== undefined) dbUpdates.planned_date = updates.plannedDate;
       if (updates.estimatedEffort !== undefined) dbUpdates.estimated_effort = updates.estimatedEffort;
       if (updates.position !== undefined) dbUpdates.position = updates.position;
+      if (updates.subtasks !== undefined) dbUpdates.subtasks = updates.subtasks;
       if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
 
       // Auto-set completion date when moved to done
@@ -150,12 +151,15 @@ export function useTasks() {
         dbUpdates.completed_date = now;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('tasks')
         .update(dbUpdates)
-        .eq('id', id);
+        .eq('id', id)
+        .select()
+        .single();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
