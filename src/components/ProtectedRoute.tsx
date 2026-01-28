@@ -51,9 +51,11 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // If profile exists and user hasn't completed onboarding, redirect to onboarding
-  // Skip redirect if already on onboarding page
+  // Skip redirect if already on onboarding page OR if user explicitly skipped
   const isOnOnboardingPage = location.pathname === '/onboarding';
-  if (profile && profile.onboarded === false && !isOnOnboardingPage) {
+  const hasSkippedOnboarding = sessionStorage.getItem('onboarding_skipped') === 'true';
+  
+  if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding) {
     return <Navigate to="/onboarding" replace />;
   }
 
