@@ -104,7 +104,7 @@ export default function DatabaseDesignPage() {
   }
 
   return (
-    <div className="flex h-full bg-background min-h-screen">
+    <div className="flex h-full bg-[#0B0E14] min-h-screen">
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-6xl mx-auto space-y-6 p-6">
