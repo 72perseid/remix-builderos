@@ -78,8 +78,13 @@ export function TaskDialog({
   const [newTagLabel, setNewTagLabel] = useState('');
   const [newTagColor, setNewTagColor] = useState(TAG_COLORS[0]);
   const [tagSearch, setTagSearch] = useState('');
+  
+  // Edit tag state
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [editTagLabel, setEditTagLabel] = useState('');
+  const [editTagColor, setEditTagColor] = useState('');
 
-  const { tags: projectTags, createTag, deleteTag, linkTagToTask, unlinkTagFromTask, isCreating } = useProjectTags();
+  const { tags: projectTags, createTag, updateTag, deleteTag, linkTagToTask, unlinkTagFromTask, isCreating, isUpdating } = useProjectTags();
 
   useEffect(() => {
     if (open) {
@@ -108,6 +113,9 @@ export function TaskDialog({
       setTagSearch('');
       setNewTagLabel('');
       setNewTagColor(TAG_COLORS[0]);
+      setEditingTagId(null);
+      setEditTagLabel('');
+      setEditTagColor('');
     }
   }, [task, defaultStatus, open]);
 
@@ -161,7 +169,28 @@ export function TaskDialog({
     deleteTag(tagId);
     // Remove from linked tags if present
     setLinkedTags(prev => prev.filter(t => t.id !== tagId));
+    setEditingTagId(null);
     toast.success('Tag deleted');
+  };
+
+  const handleOpenEditTag = (tag: ProjectTag) => {
+    setEditingTagId(tag.id);
+    setEditTagLabel(tag.label);
+    setEditTagColor(tag.color);
+  };
+
+  const handleSaveEditTag = async () => {
+    if (!editingTagId || !editTagLabel.trim()) return;
+
+    try {
+      const updatedTag = await updateTag(editingTagId, editTagLabel.trim(), editTagColor);
+      // Update in local state
+      setLinkedTags(prev => prev.map(t => t.id === editingTagId ? updatedTag : t));
+      setEditingTagId(null);
+      toast.success('Tag updated');
+    } catch (error) {
+      toast.error('Failed to update tag');
+    }
   };
 
   const handleSave = async () => {
@@ -230,26 +259,109 @@ export function TaskDialog({
           <div className="space-y-2">
             <Label className="text-slate-300">Tags</Label>
             <div className="flex flex-wrap gap-2 items-center">
-              {/* Linked tags */}
+              {/* Linked tags with edit popover */}
               {linkedTags.map(tag => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded font-medium"
-                  style={{
-                    backgroundColor: `${tag.color}20`,
-                    color: tag.color,
-                    border: `1px solid ${tag.color}40`
+                <Popover 
+                  key={tag.id} 
+                  open={editingTagId === tag.id} 
+                  onOpenChange={(open) => {
+                    if (open) {
+                      handleOpenEditTag(tag);
+                    } else {
+                      setEditingTagId(null);
+                    }
                   }}
                 >
-                  {tag.label}
-                  <button
-                    type="button"
-                    onClick={() => handleUnlinkTag(tag.id)}
-                    className="hover:opacity-70"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
+                  <PopoverTrigger asChild>
+                    <span
+                      className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                      style={{
+                        backgroundColor: `${tag.color}20`,
+                        color: tag.color,
+                        border: `1px solid ${tag.color}40`
+                      }}
+                    >
+                      <span className="cursor-pointer">{tag.label}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUnlinkTag(tag.id);
+                        }}
+                        className="hover:opacity-70"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600" align="start">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-white font-medium">Edit Tag</span>
+                        <button
+                          type="button"
+                          onClick={() => setEditingTagId(null)}
+                          className="text-slate-400 hover:text-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs text-slate-400">Label</Label>
+                        <Input
+                          value={editTagLabel}
+                          onChange={(e) => setEditTagLabel(e.target.value)}
+                          placeholder="Tag name..."
+                          className="h-8 bg-[#0f1729] border-slate-600 text-white text-sm placeholder:text-slate-500"
+                          autoFocus
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label className="text-xs text-slate-400">Color</Label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {TAG_COLORS.map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => setEditTagColor(c)}
+                              className={cn(
+                                'w-6 h-6 rounded-full flex items-center justify-center transition-all',
+                                editTagColor === c && 'ring-2 ring-offset-1 ring-offset-[#1a2744] ring-white'
+                              )}
+                              style={{ backgroundColor: c }}
+                            >
+                              {editTagColor === c && <Check className="h-3 w-3 text-white" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-600">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteProjectTag(tag.id)}
+                          className="h-8 px-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleSaveEditTag}
+                          disabled={!editTagLabel.trim() || isUpdating}
+                          className="h-8 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               ))}
 
               {/* Add tag popover */}
