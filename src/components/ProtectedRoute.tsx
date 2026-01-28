@@ -1,4 +1,4 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useXanoSync } from '@/hooks/useXanoSync';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +12,8 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isAuthenticated, loading } = useAuth();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isNewAppMode = searchParams.get('mode') === 'new';
 
   // Auto-sync Xano data when user is authenticated
   useXanoSync(user);
@@ -56,7 +58,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // If user is on onboarding page but already onboarded, redirect to dashboard
-  if (profile && profile.onboarded === true && isOnOnboardingPage) {
+  // Unless they're in "new app" mode (creating a second app)
+  if (profile && profile.onboarded === true && isOnOnboardingPage && !isNewAppMode) {
     return <Navigate to="/dashboard" replace />;
   }
 
