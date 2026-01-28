@@ -1,6 +1,6 @@
 export type TaskStatus = 'backlog' | 'selected' | 'in_progress' | 'qa' | 'done';
 export type TaskColor = 'yellow' | 'coral' | 'mint' | 'lavender' | 'sky';
-export type TaskCategory = 'MVP' | 'V1' | 'Stretch Goals';
+export type TaskCategory = 'MVP' | 'V1' | 'V2' | 'V3' | 'Stretch Goals';
 export type TaskPriority = 'low' | 'medium' | 'high';
 
 export interface AcceptanceCriteriaItem {
