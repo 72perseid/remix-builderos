@@ -164,11 +164,11 @@ export default function OnboardingPage() {
     setIsSkipping(true);
 
     try {
-      // Attempt to update 'onboarded' status
+      // Mark user as NOT onboarded when skipping
       if (user?.id && !isNewAppMode) {
         const { error } = await supabase
           .from('profiles')
-          .update({ onboarded: true })
+          .update({ onboarded: false })
           .eq('id', user.id);
 
         if (error) console.error("Update failed, skipping anyway:", error);
