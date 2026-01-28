@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useArtifact } from '@/hooks/useArtifact';
+import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
 import { useTasks } from '@/hooks/useTasks';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -399,6 +401,7 @@ export default function ProjectBoardPage() {
   // Deadline picker state
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 
+  const navigate = useNavigate();
   const totalCards = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
   
   const findCard = useCallback((id: string): KanbanCard | undefined => {
@@ -603,6 +606,12 @@ export default function ProjectBoardPage() {
   }
   
   return <div className="h-full flex flex-col">
+      {/* Architect Banner */}
+      <ArchitectBanner 
+        onStartBuilding={() => navigate('/onboarding?mode=setup')} 
+        hasData={totalCards > 0} 
+      />
+      
       {/* Kanban Board */}
       <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id}>
         <KanbanBoard className="flex-1 gap-3">

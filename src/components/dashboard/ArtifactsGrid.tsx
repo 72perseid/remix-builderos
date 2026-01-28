@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
-import { useChatContext } from '@/contexts/ChatContext';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -52,9 +51,6 @@ export function ArtifactsGrid() {
     artifacts,
     loading
   } = useArtifacts();
-  const {
-    openChat
-  } = useChatContext();
   const navigate = useNavigate();
 
   // Check if user has any artifacts
@@ -77,7 +73,7 @@ export function ArtifactsGrid() {
   
   return <div className="space-y-8">
       {/* Architect Banner */}
-      <ArchitectBanner onStartBuilding={openChat} hasData={hasAnyData} />
+      <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
 
       {/* Three-column layout with Feature Planning, Building, and Launching sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
