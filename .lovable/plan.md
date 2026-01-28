@@ -1,45 +1,73 @@
 
-# Fix Missing Project Board Route
+# Revert Artifact Navigation to SPA Mode
 
-## Problem
+## Overview
 
-The `/project-board` route is missing from `App.tsx`. While `ProjectBoardPage` is imported (line 17), there is no corresponding `<Route>` definition, causing a 404 error when clicking the "Project Board" tab.
+Change artifact card navigation from opening in a new browser tab (`window.open`) back to using React Router's `useNavigate` hook for same-window SPA navigation. The Focus Mode layout (no sidebar) will remain unchanged.
+
+---
+
+## Current State
+
+### ArtifactsGrid.tsx (lines 99 and 122)
+Currently uses `window.open()` to open artifacts in new tabs:
+```typescript
+onClick={() => window.open(card.route, '_blank')}
+```
+
+The component does not import `useNavigate` from react-router-dom.
 
 ---
 
 ## Solution
 
-Add the missing route definition for `/project-board`, wrapped in `DashboardLayout` so it includes the sidebar, header, and tabs.
+### File: `src/components/dashboard/ArtifactsGrid.tsx`
 
----
-
-## Implementation
-
-### File: `src/App.tsx`
-
-Add the following route after the `/app-idea` route (around line 49):
-
+**Change 1: Add import for useNavigate**
+Add at the top of the file:
 ```typescript
-<Route path="/project-board" element={
-  <ProtectedRoute>
-    <DashboardLayout><ProjectBoardPage /></DashboardLayout>
-  </ProtectedRoute>
-} />
+import { useNavigate } from 'react-router-dom';
+```
+
+**Change 2: Initialize the navigate hook**
+Inside the component, add:
+```typescript
+const navigate = useNavigate();
+```
+
+**Change 3: Update click handlers (lines 99 and 122)**
+Replace both instances of:
+```typescript
+onClick={() => window.open(card.route, '_blank')}
+```
+With:
+```typescript
+onClick={() => navigate(card.route)}
 ```
 
 ---
 
-## Route Structure After Fix
+## What Stays the Same
 
-| Route | Layout | Component |
-|-------|--------|-----------|
-| `/dashboard` | DashboardLayout | Dashboard |
-| `/app-idea` | DashboardLayout | AppIdeaPage |
-| `/project-board` | DashboardLayout | ProjectBoardPage |
-| `/business-model` | None (Focus Mode) | BusinessModelPage |
-| `/database-design` | None (Focus Mode) | DatabaseDesignPage |
-| `/validation` | None (Focus Mode) | ValidationPage |
-| `/product-brief` | None (Focus Mode) | ProductBriefPage |
+- **App.tsx routing** - Artifact routes remain outside `DashboardLayout` (Focus Mode preserved)
+- **Artifact page layouts** - Pages still render without the dashboard sidebar
+- **Back button behavior** - `ArtifactBackButton` will work correctly with browser history
+
+---
+
+## Navigation Flow After Change
+
+```text
+User clicks artifact card
+        ↓
+navigate('/business-model')  ← SPA navigation (same window)
+        ↓
+BusinessModelPage renders in Focus Mode (no sidebar)
+        ↓
+User clicks "Back to Artifacts"
+        ↓
+navigate('/dashboard')  ← Returns to dashboard
+```
 
 ---
 
@@ -47,10 +75,4 @@ Add the following route after the `/app-idea` route (around line 49):
 
 | File | Change |
 |------|--------|
-| `src/App.tsx` | Add route definition for `/project-board` with `DashboardLayout` wrapper |
-
----
-
-## Summary
-
-This is a one-line addition to restore the missing route. The import for `ProjectBoardPage` already exists, so we only need to add the route definition.
+| `src/components/dashboard/ArtifactsGrid.tsx` | Add `useNavigate` import, initialize hook, replace `window.open()` with `navigate()` |
