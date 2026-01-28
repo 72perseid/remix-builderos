@@ -1,18 +1,30 @@
 
 
-# Fix Skip Button with Fail-Safe Navigation
+# Fix Skip Button Redirect Loop
 
-## Problem
+## Root Cause
 
-The current `handleSkip` function has navigation calls in both `try` and `catch` blocks, but if an unexpected error occurs or the function gets stuck during the Supabase call, the user may never get redirected. Moving navigation to `finally` guarantees it always executes.
+There is a **redirect loop** caused by conflicting logic:
+
+1. `handleSkip` sets `onboarded: false` and navigates to `/dashboard`
+2. `ProtectedRoute` sees `onboarded === false` and redirects back to `/onboarding`
+3. This creates an infinite loop
 
 ## Solution
 
-### File: `src/pages/OnboardingPage.tsx`
+We need to allow users who explicitly skipped onboarding to access the dashboard, even with `onboarded: false`. There are two approaches:
 
-**Update handleSkip function (lines 162-188)**
+### Recommended Approach: Add "skipped" tracking
 
-Move the `navigate('/dashboard', { replace: true })` call from both `try` and `catch` blocks into the `finally` block:
+Add a new flag to track that the user intentionally skipped, so we can distinguish between:
+- User who has never seen onboarding (`onboarded: false`, should redirect)
+- User who skipped onboarding (`onboarded: false` + `skipped: true`, should access dashboard)
+
+### Changes Required
+
+**File 1: `src/pages/OnboardingPage.tsx`**
+
+Update `handleSkip` to use sessionStorage to track the skip action:
 
 ```typescript
 const handleSkip = async () => {
@@ -20,15 +32,19 @@ const handleSkip = async () => {
   setIsSkipping(true);
 
   try {
-    // Attempt to update 'onboarded' status
+    // Mark user as NOT onboarded when skipping
     if (user?.id && !isNewAppMode) {
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarded: true })
+        .update({ onboarded: false })
         .eq('id', user.id);
 
       if (error) console.error("Update failed, skipping anyway:", error);
     }
+    
+    // Mark that user explicitly skipped (prevents redirect loop)
+    sessionStorage.setItem('onboarding_skipped', 'true');
+    
   } catch (err) {
     console.error("Skip error:", err);
   } finally {
@@ -39,24 +55,46 @@ const handleSkip = async () => {
 };
 ```
 
+**File 2: `src/components/ProtectedRoute.tsx`**
+
+Update the redirect logic to check if user explicitly skipped:
+
+```typescript
+// If profile exists and user hasn't completed onboarding, redirect to onboarding
+// Skip redirect if already on onboarding page OR if user explicitly skipped
+const isOnOnboardingPage = location.pathname === '/onboarding';
+const hasSkippedOnboarding = sessionStorage.getItem('onboarding_skipped') === 'true';
+
+if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding) {
+  return <Navigate to="/onboarding" replace />;
+}
+```
+
 ---
 
-## What Changed
+## Technical Details
 
-| Before | After |
-|--------|-------|
-| `navigate()` in `try` block | Removed |
-| `navigate()` in `catch` block | Removed |
-| `finally` only resets `isSkipping` | `finally` now handles BOTH navigation AND state reset |
+| Component | Current Behavior | New Behavior |
+|-----------|------------------|--------------|
+| `handleSkip` | Sets `onboarded: false`, navigates | Also sets `sessionStorage` flag |
+| `ProtectedRoute` | Blocks all `onboarded: false` users | Allows skipped users through |
+| Dashboard | Never accessible for skipped users | Accessible with empty state |
 
 ---
 
-## Why This Works
+## Why sessionStorage?
 
-The `finally` block in JavaScript **always executes**, regardless of:
-- Success in `try` block
-- Error thrown and caught in `catch` block
-- Network timeouts or unexpected issues
+- **Session-scoped**: Clears when browser closes, so fresh sessions check onboarding again
+- **No database changes**: No schema migration needed
+- **Immediate effect**: Works without waiting for database round-trip
+- **Simple**: No additional state management required
 
-This guarantees the user is redirected to `/dashboard` no matter what happens with the database update.
+---
+
+## Result
+
+After these changes:
+- Click Skip → Profile updated to `onboarded: false` → sessionStorage flag set → Navigate to `/dashboard`
+- ProtectedRoute sees flag → Allows access → User sees empty dashboard
+- On next login (new session) → Flag cleared → User redirected to onboarding again (if still `onboarded: false`)
 
