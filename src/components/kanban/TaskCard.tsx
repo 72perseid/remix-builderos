@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar, Pencil, Trash2, GripVertical } from 'lucide-react';
 import { format, isPast, isToday } from 'date-fns';
-import { InlineTagEditor } from './InlineTagEditor';
 
 interface TaskCardProps {
   task: Task;
@@ -60,9 +59,19 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
 
         {/* Tags & Priority Badges */}
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {/* Dynamic project tags with inline editing */}
+          {/* Dynamic project tags */}
           {task.tags?.slice(0, 3).map(tag => (
-            <InlineTagEditor key={tag.id} tag={tag} />
+            <span
+              key={tag.id}
+              className="text-[10px] px-2 py-0.5 rounded font-medium"
+              style={{
+                backgroundColor: `${tag.color}20`,
+                color: tag.color,
+                border: `1px solid ${tag.color}40`
+              }}
+            >
+              {tag.label}
+            </span>
           ))}
           {(task.tags?.length || 0) > 3 && (
             <span className="text-[10px] px-1.5 py-0.5 rounded text-slate-400 bg-slate-700/50">
