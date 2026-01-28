@@ -10,6 +10,7 @@ interface ArtifactCardProps {
   description: string;
   status: ArtifactStatus;
   onClick?: () => void;
+  className?: string;
 }
 
 const statusConfig = {
@@ -55,7 +56,7 @@ const getCardIcon = (title: string): ReactNode => {
   }
 };
 
-export function ArtifactCard({ title, description, status, onClick }: ArtifactCardProps) {
+export function ArtifactCard({ title, description, status, onClick, className }: ArtifactCardProps) {
   const isClickable = status === "available" || status === "completed";
   const config = statusConfig[status];
 
@@ -66,7 +67,8 @@ export function ArtifactCard({ title, description, status, onClick }: ArtifactCa
         "group relative overflow-hidden border-0 bg-transparent",
         isClickable && "cursor-pointer",
         status === "locked" && "opacity-60",
-        status === "loading" && "animate-pulse"
+        status === "loading" && "animate-pulse",
+        className
       )}
     >
       {/* Background layers */}
