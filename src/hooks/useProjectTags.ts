@@ -71,6 +71,26 @@ export function useProjectTags() {
     },
   });
 
+  // Update an existing tag
+  const updateTagMutation = useMutation({
+    mutationFn: async ({ tagId, label, color }: { tagId: string; label: string; color: string }) => {
+      const { data, error } = await supabase
+        .from('project_tags')
+        .update({ label, color })
+        .eq('id', tagId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as ProjectTag;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectTagsQueryKey });
+      // Also invalidate tasks since tag display changed
+      queryClient.invalidateQueries({ queryKey: tasksQueryKeyPrefix });
+    },
+  });
+
   // Delete a tag (cascades to task_tags)
   const deleteTagMutation = useMutation({
     mutationFn: async (tagId: string) => {
@@ -129,6 +149,13 @@ export function useProjectTags() {
     [createTagMutation]
   );
 
+  const updateTag = useCallback(
+    async (tagId: string, label: string, color: string) => {
+      return updateTagMutation.mutateAsync({ tagId, label, color });
+    },
+    [updateTagMutation]
+  );
+
   const deleteTag = useCallback(
     (tagId: string) => {
       deleteTagMutation.mutate(tagId);
@@ -154,10 +181,12 @@ export function useProjectTags() {
     tags,
     loading: isLoading,
     createTag,
+    updateTag,
     deleteTag,
     linkTagToTask,
     unlinkTagFromTask,
     isCreating: createTagMutation.isPending,
+    isUpdating: updateTagMutation.isPending,
     isDeleting: deleteTagMutation.isPending,
   };
 }
