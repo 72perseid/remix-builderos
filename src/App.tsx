@@ -49,32 +49,22 @@ const App = () => (
             } />
             <Route path="/business-model" element={
               <ProtectedRoute>
-                <DashboardLayout><BusinessModelPage /></DashboardLayout>
+                <BusinessModelPage />
               </ProtectedRoute>
             } />
             <Route path="/database-design" element={
               <ProtectedRoute>
-                <DashboardLayout><DatabaseDesignPage /></DashboardLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/ai-kanban-assistant" element={
-              <ProtectedRoute>
-                <DashboardLayout><AIKanbanAssistantPage /></DashboardLayout>
-              </ProtectedRoute>
-            } />
-            <Route path="/project-board" element={
-              <ProtectedRoute>
-                <DashboardLayout><ProjectBoardPage /></DashboardLayout>
+                <DatabaseDesignPage />
               </ProtectedRoute>
             } />
             <Route path="/validation" element={
               <ProtectedRoute>
-                <DashboardLayout><ValidationPage /></DashboardLayout>
+                <ValidationPage />
               </ProtectedRoute>
             } />
             <Route path="/product-brief" element={
               <ProtectedRoute>
-                <DashboardLayout><ProductBriefPage /></DashboardLayout>
+                <ProductBriefPage />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

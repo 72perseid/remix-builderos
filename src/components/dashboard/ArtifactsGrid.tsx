@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
@@ -48,7 +47,6 @@ const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launchin
 };
 
 export function ArtifactsGrid() {
-  const navigate = useNavigate();
   const {
     artifacts,
     loading
@@ -98,7 +96,7 @@ export function ArtifactsGrid() {
                 title={card.title} 
                 description={card.description} 
                 status={getCardStatus(card.type)} 
-                onClick={() => navigate(card.route)} 
+                onClick={() => window.open(card.route, '_blank')} 
               />
             ))}
           </div>
@@ -121,7 +119,7 @@ export function ArtifactsGrid() {
                 title={card.title} 
                 description={card.description} 
                 status={getCardStatus(card.type)} 
-                onClick={() => navigate(card.route)} 
+                onClick={() => window.open(card.route, '_blank')} 
               />
             ))}
           </div>
