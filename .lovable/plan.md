@@ -1,123 +1,172 @@
 
+# Fix Data Loss: Persist Tasks and Acceptance Criteria to Database
 
-# Update Artifact Import Logic for Subtasks and Acceptance Criteria
+## Problem Analysis
 
-## Overview
-Update the import flow to properly map AI-generated `subtasks` and `acceptance_criteria` from the JSON artifact into the Supabase `tasks` table columns (`subtasks` and `checklist`).
+After examining the codebase, I found the root cause of the data loss:
 
-## Current State
-- The `tasks` table has both `subtasks` (jsonb) and `checklist` (jsonb) columns
-- The current import logic in `AIKanbanAssistantPage.tsx` only maps basic fields (title, description, status, etc.)
-- The `importTasks` function in `useTasks.ts` does not include `subtasks` or `checklist` in the insert operation
-- The `Task` type in `src/types/index.ts` only defines `checklist` but not `subtasks`
+**Current State:**
+- `ProjectBoardPage.tsx` manages cards entirely in local React state (`useState`)
+- Cards are initially loaded from an artifact (read-only JSON blob)
+- When users add "Tasks" or "Acceptance Criteria", they're stored in local state only
+- On page refresh, all data is lost because nothing is saved to Supabase
 
-## Implementation Steps
+**The Missing Link:**
+The `useTasks` hook exists and has database persistence logic, but `ProjectBoardPage.tsx` does NOT use it. Instead, it has its own isolated local state.
 
-### Step 1: Update Types (src/types/index.ts)
-Add a `subtasks` field to the `Task` interface to mirror `checklist`:
+---
 
-```text
-Task interface additions:
-- subtasks?: AcceptanceCriteriaItem[]  (same structure as checklist)
+## Required Changes
+
+### 1. Update `useTasks.ts` - Add `subtasks` to update mutation
+
+**Current Issue:** The `updateTaskMutation` handles `checklist` but is missing `subtasks`.
+
+**Changes:**
+- Add `subtasks` mapping in the `updateTaskMutation` function
+- Add `.select()` after update for confirmation
+
+```typescript
+// Line ~146 in useTasks.ts - Add this line:
+if (updates.subtasks !== undefined) dbUpdates.subtasks = updates.subtasks;
+if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
 ```
 
-### Step 2: Update RoadmapContent Interface (src/pages/AIKanbanAssistantPage.tsx)
-Expand the card interface to include the new AI JSON fields:
+---
 
-```text
-cards: {
-  tag: string;
-  title: string;
-  description: string;
-  subtasks?: string[];           // NEW: AI-generated subtasks
-  acceptance_criteria?: string[]; // NEW: AI-generated acceptance criteria
-}[]
+### 2. Update `TaskDialog.tsx` - Include subtasks/checklist in save
+
+**Current Issue:** The `handleSave` function doesn't include `subtasks` or `checklist` fields.
+
+**Changes:**
+- Add local state for `subtasks` and `checklist`
+- Load these from task prop in useEffect
+- Include them in the `onSave` callback
+
+```typescript
+// Add state variables
+const [subtasks, setSubtasks] = useState<AcceptanceCriteriaItem[]>([]);
+const [checklist, setChecklist] = useState<AcceptanceCriteriaItem[]>([]);
+
+// In useEffect - load from task
+setSubtasks(task.subtasks || []);
+setChecklist(task.checklist || []);
+
+// In handleSave - include in payload
+onSave({
+  ...otherFields,
+  subtasks,
+  checklist,
+});
 ```
 
-### Step 3: Create Conversion Helper Function (src/pages/AIKanbanAssistantPage.tsx)
-Add a utility function to convert string arrays to the required JSONB format:
+---
 
-```text
-function convertToChecklistItems(items: string[] | undefined): AcceptanceCriteriaItem[] {
-  if (!items || items.length === 0) return [];
-  return items.map(text => ({
-    id: crypto.randomUUID(),  // Generate unique ID
-    text: text,
-    done: false
-  }));
-}
+### 3. Refactor `ProjectBoardPage.tsx` - Integrate with useTasks hook
+
+**This is the critical fix.** The page needs to:
+
+1. **Import and use `useTasks` hook** instead of local state
+2. **Map between KanbanCard and Task types**
+3. **Call `updateTask` mutation** when saving changes
+
+**Key Changes:**
+
+```typescript
+// Import the hook
+import { useTasks } from '@/hooks/useTasks';
+
+// Use it in component
+const { tasks, updateTask, addTask, deleteTask } = useTasks();
+
+// Transform tasks to columns format for display
+const columns = useMemo(() => {
+  const cols: Record<string, KanbanCard[]> = {};
+  COLUMN_CONFIG.forEach(c => cols[c.id] = []);
+  
+  tasks.forEach(task => {
+    const card: KanbanCard = {
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      tag: task.category || 'MVP',
+      priority: task.priority,
+      plannedDate: task.plannedDate,
+      checklist: task.checklist || [],
+      tasks: task.subtasks || [],  // Map subtasks to tasks
+    };
+    cols[task.status]?.push(card);
+  });
+  
+  return cols;
+}, [tasks]);
+
+// Update handleSaveEdit to call the mutation
+const handleSaveEdit = useCallback(() => {
+  if (!editingCard) return;
+  
+  updateTask(editingCard.id, {
+    title: editingCard.title,
+    description: editingCard.description,
+    plannedDate: editingCard.plannedDate,
+    subtasks: editingCard.tasks,      // UI "Tasks" -> DB subtasks
+    checklist: editingCard.checklist, // UI "Acceptance Criteria" -> DB checklist
+  });
+  
+  setIsEditDialogOpen(false);
+}, [editingCard, updateTask]);
 ```
 
-### Step 4: Update Import Mapping (src/pages/AIKanbanAssistantPage.tsx)
-Modify `handleImportToKanban` to include the new fields:
+---
+
+## Data Flow After Fix
 
 ```text
-const tasksToImport = allCards.map((card) => ({
-  title: card.title,
-  description: card.description || '',
-  status: 'backlog',
-  color: 'lavender',
-  category: card.tag,
-  priority: 'medium',
-  estimatedEffort: '',
-  subtasks: convertToChecklistItems(card.subtasks),        // NEW
-  checklist: convertToChecklistItems(card.acceptance_criteria), // NEW
-}));
++----------------+      +-------------+      +-----------+
+|   UI Layer     |      | useTasks    |      | Supabase  |
+|                |      | Hook        |      | Database  |
++----------------+      +-------------+      +-----------+
+        |                     |                    |
+        | User adds task      |                    |
+        |-------------------->|                    |
+        |                     | UPDATE tasks SET   |
+        |                     | subtasks = [...]   |
+        |                     |------------------->|
+        |                     |                    |
+        |                     |<-------------------| 
+        |                     | Invalidate query   |
+        |<--------------------|                    |
+        | Re-render with      |                    |
+        | persisted data      |                    |
 ```
 
-### Step 5: Update importTasks Function (src/hooks/useTasks.ts)
-Add `subtasks` and `checklist` to the database insert operation:
+---
 
-```text
-const tasksToInsert = newTasks.map((task, index) => ({
-  // ... existing fields ...
-  subtasks: task.subtasks || [],      // NEW
-  checklist: task.checklist || [],     // NEW
-}));
-```
+## Field Mapping Reference
 
-### Step 6: Update Query Parsing (src/hooks/useTasks.ts)
-Add parsing for `subtasks` when fetching tasks from the database:
+| UI Section | Card Field | Task Type Field | DB Column |
+|------------|------------|-----------------|-----------|
+| Tasks | `tasks` | `subtasks` | `subtasks` (JSONB) |
+| Acceptance Criteria | `checklist` | `checklist` | `checklist` (JSONB) |
 
-```text
-// In the query mapping:
-subtasks: parseChecklist(task.subtasks),  // Reuse existing parseChecklist function
-checklist: parseChecklist(task.checklist),
-```
-
-## Data Flow Diagram
-
-```text
-+------------------+     +------------------------+     +------------------+
-| AI JSON Artifact |     | AIKanbanAssistantPage  |     | Supabase tasks   |
-+------------------+     +------------------------+     +------------------+
-|                  |     |                        |     |                  |
-| card.subtasks    | --> | convertToChecklistItems| --> | subtasks (jsonb) |
-| ["Do X", "Do Y"] |     | [{id, text, done}]     |     |                  |
-|                  |     |                        |     |                  |
-| card.acceptance_ | --> | convertToChecklistItems| --> | checklist (jsonb)|
-| criteria         |     | [{id, text, done}]     |     |                  |
-+------------------+     +------------------------+     +------------------+
-```
+---
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/types/index.ts` | Add `subtasks` field to `Task` interface |
-| `src/pages/AIKanbanAssistantPage.tsx` | Update interface, add converter, update mapping |
-| `src/hooks/useTasks.ts` | Add fields to import insert + parse subtasks on fetch |
+| `src/hooks/useTasks.ts` | Add `subtasks` to update mutation, add `.select()` |
+| `src/components/kanban/TaskDialog.tsx` | Add subtasks/checklist state and include in save |
+| `src/pages/ProjectBoardPage.tsx` | Integrate with `useTasks` hook, persist changes to DB |
 
 ---
 
-## Technical Details
+## Expected Outcome
 
-### UUID Generation
-Using `crypto.randomUUID()` which is available in all modern browsers and provides cryptographically secure unique IDs.
-
-### Empty Array Handling
-If `subtasks` or `acceptance_criteria` is missing or empty in the AI JSON, an empty array `[]` will be saved to the database.
-
-### Backward Compatibility
-Existing tasks without subtasks/checklist data will continue to work as the parsing functions already handle null/undefined values gracefully.
+After these changes:
+1. Opening the Project Board loads tasks from Supabase (not just artifact)
+2. Adding a "Task" item updates the `subtasks` JSONB column
+3. Adding an "Acceptance Criteria" item updates the `checklist` JSONB column
+4. Refreshing the page shows all previously saved data
+5. Data persists across sessions
 
