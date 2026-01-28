@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useTasks } from '@/hooks/useTasks';
-import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft } from 'lucide-react';
+import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format, isPast, isToday, differenceInDays } from 'date-fns';
-import { AcceptanceCriteriaItem, Task, TaskStatus } from '@/types';
+import { AcceptanceCriteriaItem, Task, TaskStatus, TaskCategory, TaskPriority } from '@/types';
 import { toast } from 'sonner';
 
 // Interface matching the artifact content structure
@@ -98,6 +98,8 @@ const columnMapping: Record<string, TaskStatus> = {
 const tagToColumnMapping: Record<string, TaskStatus> = {
   'MVP': 'selected',
   'V1': 'backlog',
+  'V2': 'backlog',
+  'V3': 'backlog',
   'Stretch Goals': 'backlog'
 };
 
@@ -113,6 +115,14 @@ const labelColors: Record<string, {
   V1: {
     bg: '#3b82f6',
     hover: '#60a5fa'
+  },
+  V2: {
+    bg: '#6366f1',
+    hover: '#818cf8'
+  },
+  V3: {
+    bg: '#ec4899',
+    hover: '#f472b6'
   },
   'Stretch Goals': {
     bg: '#8b5cf6',
@@ -445,8 +455,8 @@ export default function ProjectBoardPage() {
       title: editingCard.title,
       description: editingCard.description,
       plannedDate: editingCard.plannedDate,
-      category: editingCard.tag as 'MVP' | 'V1' | 'Stretch Goals',
-      priority: editingCard.priority,
+      category: editingCard.tag as TaskCategory,
+      priority: editingCard.priority as TaskPriority,
       status: editingCard.status,
       subtasks: editingCard.tasks || [],      // UI "Tasks" -> DB subtasks
       checklist: editingCard.checklist || [], // UI "Acceptance Criteria" -> DB checklist
@@ -889,6 +899,82 @@ export default function ProjectBoardPage() {
 
                   {/* Right Column - Sidebar */}
                   <div className="w-40 space-y-4 flex-shrink-0">
+                    {/* Category & Priority section */}
+                    <div>
+                      <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                        Labels
+                      </p>
+                      <div className="space-y-1">
+                        {/* Category Selector */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <SidebarButton 
+                              icon={<Tag className="w-3.5 h-3.5" />} 
+                              label={editingCard.tag || "Category"} 
+                              active={!!editingCard.tag}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent className="w-40 p-2 bg-[#1a2332] border-slate-700 z-[100]" side="left" align="start" sideOffset={8}>
+                            <p className="text-xs font-semibold text-slate-400 mb-2 px-2">Category</p>
+                            <div className="space-y-0.5">
+                              {(['MVP', 'V1', 'V2', 'V3', 'Stretch Goals'] as const).map(cat => (
+                                <button
+                                  key={cat}
+                                  onClick={() => setEditingCard(prev => prev ? { ...prev, tag: cat } : null)}
+                                  className={cn(
+                                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors text-left",
+                                    editingCard.tag === cat 
+                                      ? "bg-primary/20 text-primary" 
+                                      : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                                  )}
+                                >
+                                  <div 
+                                    className="w-3 h-3 rounded-sm flex-shrink-0" 
+                                    style={{ backgroundColor: labelColors[cat]?.bg || '#596773' }}
+                                  />
+                                  <span>{cat}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+
+                        {/* Priority Selector */}
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <SidebarButton 
+                              icon={<Flag className="w-3.5 h-3.5" />} 
+                              label={editingCard.priority ? editingCard.priority.charAt(0).toUpperCase() + editingCard.priority.slice(1) : "Priority"} 
+                              active={!!editingCard.priority}
+                            />
+                          </PopoverTrigger>
+                          <PopoverContent className="w-36 p-2 bg-[#1a2332] border-slate-700 z-[100]" side="left" align="start" sideOffset={8}>
+                            <p className="text-xs font-semibold text-slate-400 mb-2 px-2">Priority</p>
+                            <div className="space-y-0.5">
+                              {(['high', 'medium', 'low'] as const).map(priority => (
+                                <button
+                                  key={priority}
+                                  onClick={() => setEditingCard(prev => prev ? { ...prev, priority } : null)}
+                                  className={cn(
+                                    "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors text-left capitalize",
+                                    editingCard.priority === priority 
+                                      ? "bg-primary/20 text-primary" 
+                                      : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                                  )}
+                                >
+                                  <div 
+                                    className="w-3 h-3 rounded-sm flex-shrink-0" 
+                                    style={{ backgroundColor: labelColors[priority]?.bg || '#596773' }}
+                                  />
+                                  <span>{priority}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </div>
+
                     {/* Add to card section */}
                     <div>
                       <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
