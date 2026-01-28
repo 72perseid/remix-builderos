@@ -52,7 +52,7 @@ export default function ProductBriefPage() {
   const timeline = content?.timeline;
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full bg-background min-h-screen">
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="max-w-5xl mx-auto space-y-6 p-6">
