@@ -2,7 +2,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardTabs } from "@/components/dashboard/DashboardTabs";
-import { ChatFAB } from "@/components/chat/ChatFAB";
+
 import { ChatProvider } from "@/contexts/ChatContext";
 import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               {children}
             </div>
           </main>
-          <ChatFAB />
+          
         </div>
       </SidebarProvider>
     </ChatProvider>
