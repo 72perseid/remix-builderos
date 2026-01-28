@@ -47,6 +47,11 @@ const App = () => (
                 <DashboardLayout><AppIdeaPage /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/project-board" element={
+              <ProtectedRoute>
+                <DashboardLayout><ProjectBoardPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
             <Route path="/business-model" element={
               <ProtectedRoute>
                 <BusinessModelPage />
