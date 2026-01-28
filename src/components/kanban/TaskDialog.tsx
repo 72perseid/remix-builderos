@@ -287,7 +287,7 @@ export function TaskDialog({
                         <span>{tag.label}</span>
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="z-[9999] w-64 p-3 bg-[#1a2744] border-slate-600" align="start">
+                    <PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600" align="start">
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-white font-medium">Edit Tag</span>
