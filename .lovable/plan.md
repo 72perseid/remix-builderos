@@ -1,78 +1,90 @@
 
-# Revert Artifact Navigation to SPA Mode
+# Fix Skip Button on Onboarding Page
 
-## Overview
+## Problem
 
-Change artifact card navigation from opening in a new browser tab (`window.open`) back to using React Router's `useNavigate` hook for same-window SPA navigation. The Focus Mode layout (no sidebar) will remain unchanged.
-
----
-
-## Current State
-
-### ArtifactsGrid.tsx (lines 99 and 122)
-Currently uses `window.open()` to open artifacts in new tabs:
-```typescript
-onClick={() => window.open(card.route, '_blank')}
-```
-
-The component does not import `useNavigate` from react-router-dom.
-
----
+The Skip button appears to do nothing because:
+1. No visual loading feedback when clicked
+2. No error handling if the database update fails
+3. Button remains clickable during the async operation
 
 ## Solution
 
-### File: `src/components/dashboard/ArtifactsGrid.tsx`
+### File: `src/pages/OnboardingPage.tsx`
 
-**Change 1: Add import for useNavigate**
-Add at the top of the file:
+**Change 1: Add a loading state for skip action**
+
+Add a new state variable after line 36:
 ```typescript
-import { useNavigate } from 'react-router-dom';
+const [isSkipping, setIsSkipping] = useState(false);
 ```
 
-**Change 2: Initialize the navigate hook**
-Inside the component, add:
+**Change 2: Rewrite handleSkip with proper loading state and error handling**
+
+Replace the current `handleSkip` function (lines 161-169) with:
 ```typescript
-const navigate = useNavigate();
+const handleSkip = async () => {
+  if (isSkipping) return; // Prevent double-clicks
+  
+  setIsSkipping(true);
+  
+  try {
+    // Mark as onboarded even if skipping (only if not in new app mode)
+    if (user?.id && !isNewAppMode) {
+      const { error } = await supabase.from('profiles').update({
+        onboarded: true
+      }).eq('id', user.id);
+      
+      if (error) {
+        console.error('Failed to update profile:', error);
+        // Still navigate even if update fails - don't leave user stuck
+      }
+    }
+    
+    navigate('/dashboard', { replace: true });
+  } catch (err) {
+    console.error('Skip failed:', err);
+    // Navigate anyway to prevent user from being stuck
+    navigate('/dashboard', { replace: true });
+  } finally {
+    setIsSkipping(false);
+  }
+};
 ```
 
-**Change 3: Update click handlers (lines 99 and 122)**
-Replace both instances of:
+**Change 3: Update the Skip button with loading state**
+
+Update the Button component (lines 187-189) to show loading and be disabled during skip:
 ```typescript
-onClick={() => window.open(card.route, '_blank')}
-```
-With:
-```typescript
-onClick={() => navigate(card.route)}
+<Button 
+  variant="ghost" 
+  onClick={handleSkip} 
+  disabled={isSkipping}
+  className="text-muted-foreground hover:text-foreground"
+>
+  {isSkipping ? (
+    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+  ) : null}
+  {isNewAppMode ? 'Cancel' : 'Skip'}
+</Button>
 ```
 
 ---
 
-## What Stays the Same
+## Changes Summary
 
-- **App.tsx routing** - Artifact routes remain outside `DashboardLayout` (Focus Mode preserved)
-- **Artifact page layouts** - Pages still render without the dashboard sidebar
-- **Back button behavior** - `ArtifactBackButton` will work correctly with browser history
-
----
-
-## Navigation Flow After Change
-
-```text
-User clicks artifact card
-        ↓
-navigate('/business-model')  ← SPA navigation (same window)
-        ↓
-BusinessModelPage renders in Focus Mode (no sidebar)
-        ↓
-User clicks "Back to Artifacts"
-        ↓
-navigate('/dashboard')  ← Returns to dashboard
-```
+| Location | Change |
+|----------|--------|
+| Line 36 | Add `isSkipping` state |
+| Lines 161-169 | Rewrite `handleSkip` with loading state, error handling, and `{ replace: true }` |
+| Lines 187-189 | Update Button with `disabled={isSkipping}` and loading spinner |
 
 ---
 
-## Files to Modify
+## Result
 
-| File | Change |
-|------|--------|
-| `src/components/dashboard/ArtifactsGrid.tsx` | Add `useNavigate` import, initialize hook, replace `window.open()` with `navigate()` |
+- Button shows spinner when clicked
+- Button is disabled during the operation (prevents double-clicks)
+- Database update errors are logged but don't block navigation
+- User always gets redirected to dashboard (no stuck states)
+- Navigation uses `replace: true` for clean browser history
