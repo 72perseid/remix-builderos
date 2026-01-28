@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,17 +10,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, ChevronDown, Check, Loader2 } from "lucide-react";
 import { useProjectContext } from "@/contexts/ProjectContext";
-import { useChatContext } from "@/contexts/ChatContext";
 import { LogoUploader } from "./LogoUploader";
 
 export function DashboardHeader() {
+  const navigate = useNavigate();
   const { selectedApp, apps, loading, selectApp, clearSelection } = useProjectContext();
-  const { openChat, setShouldClearOnOpen } = useChatContext();
 
   const handleNewApp = () => {
-    clearSelection();              // Step 1: Clear selectedAppId (creation mode)
-    setShouldClearOnOpen(true);    // Step 2: Signal to clear chat
-    openChat();                    // Step 3: Open chat UI
+    clearSelection();
+    navigate('/onboarding?mode=new');
   };
 
   const handleSelectApp = (appId: string) => {

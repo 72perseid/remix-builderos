@@ -50,7 +50,8 @@ export default function OnboardingPage() {
       clearMessages();
       setSessionStarted(false);
     }
-  }, [isNewAppMode, clearMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNewAppMode]);
 
   // Auto-start session on mount
   useEffect(() => {
