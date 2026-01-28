@@ -1,124 +1,60 @@
 
+# Fix Tag Edit Popover Visibility in TaskDialog
 
-# Fix Edit Tag Discoverability in TaskDialog
+## Problem Identified
+After examining the code, I found that:
+1. **The Pencil icon IS present** in the `linkedTags.map` loop (line 286)
+2. **The issue is z-index conflict**: Both Dialog and Popover use `z-50`, causing the popover to render behind or at the same level as the dialog overlay
 
-## Problem
-The "Edit Tag" feature exists but is not discoverable. Users cannot tell that clicking on a tag pill opens an edit popover because:
-1. No visual indicator (pencil icon) shows it's editable
-2. The cursor doesn't clearly indicate clickability
-3. The popover trigger encompasses the X button, causing confusion
+When a Popover is rendered inside a Dialog, Radix UI portals both to the document body. Since they have the same z-index, the dialog overlay can obscure the popover content.
 
 ## Solution
+Add a higher z-index to the PopoverContent specifically for the tag edit popover so it appears above the dialog.
 
-Update the tag pill structure in `TaskDialog.tsx` to improve discoverability and interaction:
+## Implementation
 
-### UI Changes
+### File: `src/components/kanban/TaskDialog.tsx`
 
-**Before (Current Structure):**
-```
-[Tag Label X]  <- entire thing is popover trigger, X inside
-```
-
-**After (Improved Structure):**
-```
-[✏ Tag Label] [X]  <- pill with pencil is popover trigger, X is separate
-```
-
-### Implementation Details
-
-**File: `src/components/kanban/TaskDialog.tsx`**
-
-1. **Add Pencil Icon Import**: Import the `Pencil` icon from lucide-react
-
-2. **Restructure Tag Pill Layout**: 
-   - Wrap just the editable portion (pencil + label) in `PopoverTrigger`
-   - Keep the X (unlink) button completely outside the trigger
-   - Use a flex container to group both elements visually as one pill
-
-3. **Visual Cues**:
-   - Add `Pencil` icon (h-3 w-3) inside the tag pill, before the label text
-   - Add `cursor-pointer` to the editable portion
-   - Add `hover:opacity-80` transition for visual feedback
-
-4. **Separation**:
-   - The X button remains separate with `stopPropagation` already in place
-   - Add a subtle visual separator (slight gap or divider) between label and X
-
-### Code Changes (Lines 263-295)
-
-Replace the current linked tags mapping with:
+**Change 1**: Update the edit tag PopoverContent (around line 290) to have a higher z-index:
 
 ```tsx
-{linkedTags.map(tag => (
-  <div key={tag.id} className="inline-flex items-center">
-    <Popover 
-      open={editingTagId === tag.id} 
-      onOpenChange={(open) => {
-        if (open) {
-          handleOpenEditTag(tag);
-        } else {
-          setEditingTagId(null);
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-l font-medium cursor-pointer hover:opacity-80 transition-opacity"
-          style={{
-            backgroundColor: `${tag.color}20`,
-            color: tag.color,
-            border: `1px solid ${tag.color}40`,
-            borderRight: 'none'
-          }}
-        >
-          <Pencil className="h-3 w-3" />
-          <span>{tag.label}</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600" align="start">
-        {/* ... existing edit popover content ... */}
-      </PopoverContent>
-    </Popover>
-    
-    {/* Separate Unlink Button */}
-    <button
-      type="button"
-      onClick={() => handleUnlinkTag(tag.id)}
-      className="inline-flex items-center px-1.5 py-1 rounded-r text-xs hover:opacity-70 transition-opacity"
-      style={{
-        backgroundColor: `${tag.color}20`,
-        color: tag.color,
-        border: `1px solid ${tag.color}40`,
-        borderLeft: 'none'
-      }}
-    >
-      <X className="h-3 w-3" />
-    </button>
-  </div>
-))}
+// Before (line 290)
+<PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600" align="start">
+
+// After
+<PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600 z-[100]" align="start">
 ```
 
-### Visual Result
+**Change 2**: Also update the "Add Tag" PopoverContent (around line 389) for consistency:
 
-```
-+--------------------+
-| Tags               |
-+--------------------+
-| [✏ MVP][×] [✏ Backend][×]  [+ Add Tag] |
-+--------------------+
-   ^^^^^^^            ^^^
-   Clickable for      Separate unlink
-   edit popover       button
+```tsx
+// Before (line 389)
+<PopoverContent className="w-56 p-2 bg-[#1a2744] border-slate-600" align="start">
+
+// After
+<PopoverContent className="w-56 p-2 bg-[#1a2744] border-slate-600 z-[100]" align="start">
 ```
 
-### Summary of Changes
+## Summary of Changes
 
-| Change | Description |
-|--------|-------------|
-| Add Pencil icon | Import and display `Pencil` from lucide-react inside each tag pill |
-| Restructure trigger | Only wrap the editable content (pencil + label) in PopoverTrigger |
-| Separate X button | Move X button completely outside the Popover component |
-| Add cursor styles | Ensure `cursor-pointer` on the editable portion |
-| Visual grouping | Use `rounded-l` and `rounded-r` to make both parts look like one pill |
+| Location | Change |
+|----------|--------|
+| Line 290 (Edit Tag Popover) | Add `z-[100]` class to ensure it appears above dialog |
+| Line 389 (Add Tag Popover) | Add `z-[100]` class for consistency |
 
+## Why This Works
+
+- Dialog overlay uses `z-50` 
+- Dialog content uses `z-50`
+- By setting the PopoverContent to `z-[100]`, it will always render above the dialog elements
+- This is the standard pattern for nested overlays in Radix UI
+
+## Visual Confirmation
+
+The Pencil icon is already in the code at line 286:
+```tsx
+<Pencil className="h-3 w-3" />
+<span>{tag.label}</span>
+```
+
+The tag pills with the pencil icon should be visible. If they aren't showing, there may be no `linkedTags` data. But the z-index fix will ensure the edit popover appears correctly when clicking the tag.
