@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, MessageSquare, ListTodo } from 'lucide-react';
+import { useTasks } from '@/hooks/useTasks';
+import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -8,12 +9,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format, isPast, isToday, differenceInDays } from 'date-fns';
-import { AcceptanceCriteriaItem } from '@/types';
+import { AcceptanceCriteriaItem, Task, TaskStatus } from '@/types';
+import { toast } from 'sonner';
 
 // Interface matching the artifact content structure
 interface ArtifactContent {
@@ -35,7 +36,7 @@ interface TaskItem {
   done: boolean;
 }
 
-// Card interface for the Kanban
+// Card interface for the Kanban (UI representation)
 interface KanbanCard {
   id: string;
   tag: string;
@@ -46,11 +47,12 @@ interface KanbanCard {
   plannedDate?: string;
   checklist?: AcceptanceCriteriaItem[];
   tasks?: TaskItem[];
+  status: TaskStatus;
 }
 
 // Column configuration for new 5-column layout
 const COLUMN_CONFIG: {
-  id: string;
+  id: TaskStatus;
   title: string;
   color: string;
 }[] = [{
@@ -76,7 +78,7 @@ const COLUMN_CONFIG: {
 }];
 
 // Map old column IDs and tags to new column IDs
-const columnMapping: Record<string, string> = {
+const columnMapping: Record<string, TaskStatus> = {
   'backlog': 'backlog',
   'todo': 'selected',
   'to-do': 'selected',
@@ -93,7 +95,7 @@ const columnMapping: Record<string, string> = {
 };
 
 // Map card tags to target columns
-const tagToColumnMapping: Record<string, string> = {
+const tagToColumnMapping: Record<string, TaskStatus> = {
   'MVP': 'selected',
   'V1': 'backlog',
   'Stretch Goals': 'backlog'
@@ -193,7 +195,7 @@ function TaskCard({
         {/* Badges Row - Deadline & Acceptance Criteria */}
         {(card.plannedDate || totalCount > 0) && <div className="flex items-center gap-2 flex-wrap">
             {/* Deadline Badge */}
-            {card.plannedDate && <span className={cn("inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded font-medium border", getDeadlineBadgeStyle(card.plannedDate, false))}>
+            {card.plannedDate && <span className={cn("inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded font-medium border", getDeadlineBadgeStyle(card.plannedDate, card.status === 'done'))}>
                 <Calendar className="w-3 h-3" />
                 {format(new Date(card.plannedDate), 'MMM d')}
               </span>}
@@ -210,11 +212,11 @@ function TaskCard({
 
 // Trello-style Column
 interface TaskColumnProps {
-  columnId: string;
+  columnId: TaskStatus;
   title: string;
   cards: KanbanCard[];
-  onAddCard: (columnId: string) => void;
-  onEditCard: (card: KanbanCard, columnId: string) => void;
+  onAddCard: (columnId: TaskStatus) => void;
+  onEditCard: (card: KanbanCard, columnId: TaskStatus) => void;
 }
 function TaskColumn({
   columnId,
@@ -273,74 +275,122 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(({
       </button>;
 });
 SidebarButton.displayName = 'SidebarButton';
+
+// Helper to convert Task to KanbanCard
+function taskToCard(task: Task): KanbanCard {
+  return {
+    id: task.id,
+    tag: task.category || 'MVP',
+    title: task.title,
+    description: task.description || '',
+    priority: task.priority,
+    plannedDate: task.plannedDate,
+    checklist: task.checklist || [],
+    tasks: task.subtasks || [],
+    status: task.status,
+  };
+}
+
 export default function ProjectBoardPage() {
   const {
     data: artifact,
-    loading
+    loading: artifactLoading
   } = useArtifact('kanban');
 
-  // Parse artifact content and build initial columns
-  const initialColumns = useMemo(() => {
+  const { 
+    tasks, 
+    loading: tasksLoading, 
+    addTask, 
+    updateTask, 
+    deleteTask, 
+    importTasks,
+    getTasksByStatus 
+  } = useTasks();
+
+  const [hasImportedArtifact, setHasImportedArtifact] = useState(false);
+
+  // Import artifact tasks to database on first load (if no tasks exist)
+  useEffect(() => {
+    if (artifactLoading || tasksLoading || hasImportedArtifact) return;
+    
     const content = artifact?.content as ArtifactContent | null;
     const rawColumns = content?.columns || [];
-    const columns: Record<string, KanbanCard[]> = {};
-    COLUMN_CONFIG.forEach(config => {
-      columns[config.id] = [];
-    });
-    rawColumns.forEach(oldCol => {
-      const oldId = oldCol.id.toLowerCase();
-      const columnIdMapping = columnMapping[oldId];
-      oldCol.cards.forEach((card, index) => {
-        let targetColumnId: string;
-        if (card.tag && tagToColumnMapping[card.tag]) {
-          targetColumnId = tagToColumnMapping[card.tag];
-        } else if (columnIdMapping) {
-          targetColumnId = columnIdMapping;
-        } else {
-          targetColumnId = 'backlog';
-        }
-        if (columns[targetColumnId]) {
-          columns[targetColumnId].push({
-            id: `${oldCol.id}-${index}`,
-            tag: card.tag,
+    
+    // Only import if we have artifact data and no existing tasks
+    if (rawColumns.length > 0 && tasks.length === 0) {
+      const tasksToImport: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>[] = [];
+      
+      rawColumns.forEach(oldCol => {
+        const oldId = oldCol.id.toLowerCase();
+        const columnIdMapping = columnMapping[oldId];
+        
+        oldCol.cards.forEach((card) => {
+          let targetColumnId: TaskStatus;
+          if (card.tag && tagToColumnMapping[card.tag]) {
+            targetColumnId = tagToColumnMapping[card.tag];
+          } else if (columnIdMapping) {
+            targetColumnId = columnIdMapping;
+          } else {
+            targetColumnId = 'backlog';
+          }
+          
+          tasksToImport.push({
             title: card.title,
             description: card.description,
-            priority: undefined,
-            coverColor: undefined,
-            plannedDate: undefined,
-            checklist: []
+            status: targetColumnId,
+            category: (card.tag || 'MVP') as 'MVP' | 'V1' | 'Stretch Goals',
+            priority: 'medium' as const,
+            color: 'yellow' as const,
+            subtasks: [],
+            checklist: [],
           });
-        }
+        });
       });
+      
+      if (tasksToImport.length > 0) {
+        importTasks(tasksToImport);
+        setHasImportedArtifact(true);
+      }
+    } else if (tasks.length > 0) {
+      setHasImportedArtifact(true);
+    }
+  }, [artifact, artifactLoading, tasksLoading, tasks.length, hasImportedArtifact, importTasks]);
+
+  // Build columns from database tasks
+  const columns = useMemo(() => {
+    const cols: Record<TaskStatus, KanbanCard[]> = {
+      backlog: [],
+      selected: [],
+      in_progress: [],
+      qa: [],
+      done: [],
+    };
+    
+    COLUMN_CONFIG.forEach(config => {
+      cols[config.id] = getTasksByStatus(config.id).map(taskToCard);
     });
-    return columns;
-  }, [artifact]);
-  const [columns, setColumns] = useState<Record<string, KanbanCard[]>>(initialColumns);
+    
+    return cols;
+  }, [getTasksByStatus, tasks]);
+
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+  const [activeColumnId, setActiveColumnId] = useState<TaskStatus | null>(null);
   const [editingCard, setEditingCard] = useState<KanbanCard | null>(null);
-  const [editingCardColumnId, setEditingCardColumnId] = useState<string | null>(null);
+  const [editingCardColumnId, setEditingCardColumnId] = useState<TaskStatus | null>(null);
   const [newCardTitle, setNewCardTitle] = useState('');
 
   // Acceptance Criteria state
-  const [showAcceptanceCriteria, setShowAcceptanceCriteria] = useState(false);
   const [newCriteriaText, setNewCriteriaText] = useState('');
 
   // Tasks state
-  const [showTasks, setShowTasks] = useState(false);
   const [newTaskText, setNewTaskText] = useState('');
 
   // Deadline picker state
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 
-  // Update columns when artifact changes
-  useMemo(() => {
-    if (Object.values(initialColumns).some(col => col.length > 0)) {
-      setColumns(initialColumns);
-    }
-  }, [initialColumns]);
   const totalCards = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
+  
   const findCard = useCallback((id: string): KanbanCard | undefined => {
     for (const columnCards of Object.values(columns)) {
       const card = columnCards.find(c => c.id === id);
@@ -348,92 +398,82 @@ export default function ProjectBoardPage() {
     }
     return undefined;
   }, [columns]);
-  const handleOpenAddDialog = useCallback((columnId: string) => {
+  
+  const handleOpenAddDialog = useCallback((columnId: TaskStatus) => {
     setActiveColumnId(columnId);
     setNewCardTitle('');
     setIsAddDialogOpen(true);
   }, []);
+  
   const handleAddCard = useCallback(() => {
     if (!newCardTitle.trim() || !activeColumnId) return;
-    const card: KanbanCard = {
-      id: `card-${Date.now()}`,
+    
+    addTask({
       title: newCardTitle.trim(),
       description: '',
-      tag: 'MVP',
-      priority: undefined,
-      plannedDate: undefined,
-      checklist: []
-    };
-    setColumns(prev => ({
-      ...prev,
-      [activeColumnId]: [...(prev[activeColumnId] || []), card]
-    }));
+      status: activeColumnId,
+      category: 'MVP' as const,
+      priority: 'medium' as const,
+      color: 'yellow' as const,
+      subtasks: [],
+      checklist: [],
+    });
+    
+    toast.success('Card added');
     setIsAddDialogOpen(false);
     setActiveColumnId(null);
     setNewCardTitle('');
-  }, [newCardTitle, activeColumnId]);
-  const handleEditCard = useCallback((card: KanbanCard, columnId: string) => {
+  }, [newCardTitle, activeColumnId, addTask]);
+  
+  const handleEditCard = useCallback((card: KanbanCard, columnId: TaskStatus) => {
     setEditingCard({
       ...card,
-      checklist: card.checklist || []
+      checklist: card.checklist || [],
+      tasks: card.tasks || [],
     });
     setEditingCardColumnId(columnId);
-    setShowAcceptanceCriteria(false);
     setNewCriteriaText('');
+    setNewTaskText('');
     setIsEditDialogOpen(true);
   }, []);
+  
   const handleSaveEdit = useCallback(() => {
     if (!editingCard) return;
-    setColumns(prev => {
-      const updated = {
-        ...prev
-      };
-      for (const columnId of Object.keys(updated)) {
-        const cardIndex = updated[columnId].findIndex(c => c.id === editingCard.id);
-        if (cardIndex !== -1) {
-          updated[columnId] = [...updated[columnId].slice(0, cardIndex), editingCard, ...updated[columnId].slice(cardIndex + 1)];
-          break;
-        }
-      }
-      return updated;
+    
+    // Persist to database via useTasks hook
+    updateTask(editingCard.id, {
+      title: editingCard.title,
+      description: editingCard.description,
+      plannedDate: editingCard.plannedDate,
+      category: editingCard.tag as 'MVP' | 'V1' | 'Stretch Goals',
+      priority: editingCard.priority,
+      status: editingCard.status,
+      subtasks: editingCard.tasks || [],      // UI "Tasks" -> DB subtasks
+      checklist: editingCard.checklist || [], // UI "Acceptance Criteria" -> DB checklist
     });
+    
+    toast.success('Changes saved');
     setIsEditDialogOpen(false);
     setEditingCard(null);
     setEditingCardColumnId(null);
-    setShowAcceptanceCriteria(false);
-    setShowTasks(false);
-  }, [editingCard]);
+  }, [editingCard, updateTask]);
+  
   const handleDeleteCard = useCallback(() => {
     if (!editingCard) return;
-    setColumns(prev => {
-      const updated = {
-        ...prev
-      };
-      for (const columnId of Object.keys(updated)) {
-        updated[columnId] = updated[columnId].filter(c => c.id !== editingCard.id);
-      }
-      return updated;
-    });
+    
+    deleteTask(editingCard.id);
+    toast.success('Card deleted');
+    
     setIsEditDialogOpen(false);
     setEditingCard(null);
     setEditingCardColumnId(null);
-    setShowAcceptanceCriteria(false);
-    setShowTasks(false);
-  }, [editingCard]);
+  }, [editingCard, deleteTask]);
 
   // Move card to different column
-  const handleMoveCard = useCallback((targetColumnId: string) => {
+  const handleMoveCard = useCallback((targetColumnId: TaskStatus) => {
     if (!editingCard || !editingCardColumnId || targetColumnId === editingCardColumnId) return;
     
-    setColumns(prev => {
-      const updated = { ...prev };
-      // Remove from current column
-      updated[editingCardColumnId] = updated[editingCardColumnId].filter(c => c.id !== editingCard.id);
-      // Add to target column
-      updated[targetColumnId] = [...(updated[targetColumnId] || []), editingCard];
-      return updated;
-    });
-    
+    setEditingCard(prev => prev ? { ...prev, status: targetColumnId } : null);
     setEditingCardColumnId(targetColumnId);
   }, [editingCard, editingCardColumnId]);
 
@@ -451,6 +491,7 @@ export default function ProjectBoardPage() {
     });
     setNewCriteriaText('');
   }, [newCriteriaText, editingCard]);
+  
   const handleToggleCriteria = useCallback((criteriaId: string) => {
     if (!editingCard) return;
     setEditingCard({
@@ -461,6 +502,7 @@ export default function ProjectBoardPage() {
       } : item)
     });
   }, [editingCard]);
+  
   const handleDeleteCriteria = useCallback((criteriaId: string) => {
     if (!editingCard) return;
     setEditingCard({
@@ -512,6 +554,27 @@ export default function ProjectBoardPage() {
     });
     setIsDeadlineOpen(false);
   }, [editingCard]);
+
+  // Handle drag and drop column changes
+  const handleColumnsChange = useCallback((newColumns: Record<string, KanbanCard[]>) => {
+    // Find cards that moved columns and update their status in the database
+    Object.entries(newColumns).forEach(([columnId, cards]) => {
+      cards.forEach((card, index) => {
+        const previousColumn = Object.entries(columns).find(([, colCards]) => 
+          colCards.some(c => c.id === card.id)
+        );
+        
+        if (previousColumn && previousColumn[0] !== columnId) {
+          // Card moved to a different column - update in database
+          updateTask(card.id, { 
+            status: columnId as TaskStatus,
+            position: index 
+          });
+        }
+      });
+    });
+  }, [columns, updateTask]);
+
   const activeColumn = COLUMN_CONFIG.find(col => col.id === activeColumnId);
   const editingCardColumn = COLUMN_CONFIG.find(col => col.id === editingCardColumnId);
 
@@ -520,14 +583,18 @@ export default function ProjectBoardPage() {
   const completedCount = checklist.filter(item => item.done).length;
   const totalCount = checklist.length;
   const progressPercent = totalCount > 0 ? completedCount / totalCount * 100 : 0;
+  
+  const loading = artifactLoading || tasksLoading;
+  
   if (loading) {
     return <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-white/50" />
       </div>;
   }
+  
   return <div className="h-full flex flex-col">
       {/* Kanban Board */}
-      {totalCards > 0 ? <Kanban<KanbanCard> value={columns} onValueChange={setColumns} getItemValue={item => item.id}>
+      {totalCards > 0 ? <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id}>
           <KanbanBoard className="flex-1 gap-3">
             {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
           </KanbanBoard>
