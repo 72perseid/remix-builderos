@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
@@ -54,6 +55,7 @@ export function ArtifactsGrid() {
   const {
     openChat
   } = useChatContext();
+  const navigate = useNavigate();
 
   // Check if user has any artifacts
   const hasAnyData = artifacts.length > 0;
@@ -96,7 +98,7 @@ export function ArtifactsGrid() {
                 title={card.title} 
                 description={card.description} 
                 status={getCardStatus(card.type)} 
-                onClick={() => window.open(card.route, '_blank')} 
+                onClick={() => navigate(card.route)} 
               />
             ))}
           </div>
@@ -119,7 +121,7 @@ export function ArtifactsGrid() {
                 title={card.title} 
                 description={card.description} 
                 status={getCardStatus(card.type)} 
-                onClick={() => window.open(card.route, '_blank')} 
+                onClick={() => navigate(card.route)} 
               />
             ))}
           </div>
