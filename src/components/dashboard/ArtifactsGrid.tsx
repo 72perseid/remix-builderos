@@ -37,6 +37,16 @@ const artifactCards: ArtifactCardConfig[] = [{
   route: '/database-design',
   category: 'building'
 }];
+
+// Explicit type-to-section mapping for filtering artifacts by phase
+const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launching'> = {
+  business_model: 'planning',
+  validation: 'planning',
+  product_brief: 'planning',
+  db_design: 'building',
+  kanban: 'building', // Not displayed but included for type completeness
+};
+
 export function ArtifactsGrid() {
   const navigate = useNavigate();
   const {
@@ -49,6 +59,7 @@ export function ArtifactsGrid() {
 
   // Check if user has any artifacts
   const hasAnyData = artifacts.length > 0;
+  
   const getCardStatus = (type: ArtifactType): ArtifactStatus => {
     if (loading) return 'loading';
     const artifact = artifacts.find(a => a.type === type);
@@ -59,8 +70,10 @@ export function ArtifactsGrid() {
     if (artifact.status === 'generating') return 'loading';
     return 'available';
   };
-  const planningCards = artifactCards.filter(c => c.category === 'planning');
-  const buildingCards = artifactCards.filter(c => c.category === 'building');
+
+  // Filter cards by section using the explicit type mapping
+  const planningCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'planning');
+  const buildingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'building');
   
   return <div className="space-y-8">
       {/* Architect Banner */}
