@@ -160,29 +160,24 @@ export default function OnboardingPage() {
   };
 
   const handleSkip = async () => {
-    if (isSkipping) return; // Prevent double-clicks
-    
+    if (isSkipping) return;
     setIsSkipping(true);
-    
+
     try {
-      // Mark as onboarded even if skipping (only if not in new app mode)
+      // Attempt to update 'onboarded' status
       if (user?.id && !isNewAppMode) {
-        const { error } = await supabase.from('profiles').update({
-          onboarded: true
-        }).eq('id', user.id);
-        
-        if (error) {
-          console.error('Failed to update profile:', error);
-          // Still navigate even if update fails - don't leave user stuck
-        }
+        const { error } = await supabase
+          .from('profiles')
+          .update({ onboarded: true })
+          .eq('id', user.id);
+
+        if (error) console.error("Update failed, skipping anyway:", error);
       }
-      
-      navigate('/dashboard', { replace: true });
     } catch (err) {
-      console.error('Skip failed:', err);
-      // Navigate anyway to prevent user from being stuck
-      navigate('/dashboard', { replace: true });
+      console.error("Skip error:", err);
     } finally {
+      // CRITICAL: This MUST run to unblock the user
+      navigate('/dashboard', { replace: true });
       setIsSkipping(false);
     }
   };
