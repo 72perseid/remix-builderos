@@ -173,6 +173,10 @@ export default function OnboardingPage() {
 
         if (error) console.error("Update failed, skipping anyway:", error);
       }
+      
+      // Mark that user explicitly skipped (prevents redirect loop)
+      sessionStorage.setItem('onboarding_skipped', 'true');
+      
     } catch (err) {
       console.error("Skip error:", err);
     } finally {
