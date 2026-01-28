@@ -13,7 +13,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isAuthenticated, loading } = useAuth();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const isNewAppMode = searchParams.get('mode') === 'new';
+  const mode = searchParams.get('mode');
+  const isAllowedMode = mode === 'new' || mode === 'setup';
 
   // Auto-sync Xano data when user is authenticated
   useXanoSync(user);
@@ -61,7 +62,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // If user is on onboarding page but already onboarded, redirect to dashboard
   // Unless they're in "new app" mode (creating a second app)
-  if (profile && profile.onboarded === true && isOnOnboardingPage && !isNewAppMode) {
+  if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
     return <Navigate to="/dashboard" replace />;
   }
 
