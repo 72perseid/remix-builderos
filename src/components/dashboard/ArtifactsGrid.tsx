@@ -10,7 +10,7 @@ interface ArtifactCardConfig {
   title: string;
   description: string;
   route: string;
-  category: 'planning' | 'launching';
+  category: 'planning' | 'building' | 'launching';
 }
 const artifactCards: ArtifactCardConfig[] = [{
   type: 'business_model',
@@ -35,13 +35,7 @@ const artifactCards: ArtifactCardConfig[] = [{
   title: 'Database Design',
   description: 'ERD diagram and table schema for your application data.',
   route: '/database-design',
-  category: 'launching'
-}, {
-  type: 'kanban',
-  title: 'Roadmap & Features',
-  description: 'Feature roadmap organized by MVP, V1, and stretch goals.',
-  route: '/project-board',
-  category: 'launching'
+  category: 'building'
 }];
 export function ArtifactsGrid() {
   const navigate = useNavigate();
@@ -66,25 +60,49 @@ export function ArtifactsGrid() {
     return 'available';
   };
   const planningCards = artifactCards.filter(c => c.category === 'planning');
-  const launchingCards = artifactCards.filter(c => c.category === 'launching');
-  return <div className="space-y-6">
+  const buildingCards = artifactCards.filter(c => c.category === 'building');
+  
+  return <div className="space-y-8">
       {/* Architect Banner */}
       <ArchitectBanner onStartBuilding={openChat} hasData={hasAnyData} />
 
-      {/* Two-column layout with Feature Planning and Launching sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Three-column layout with Feature Planning, Building, and Launching sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Feature Planning Section */}
         <div className="space-y-4">
           <div className="mb-2">
-            <h3 className="text-lg font-semibold text-white mb-1">
+            <h2 className="text-lg font-semibold text-white mb-1">
               Feature Planning
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground">
               Define your value proposition, validate your ideas, and create comprehensive product requirements.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {planningCards.map(card => (
+              <ArtifactCard 
+                key={card.type} 
+                title={card.title} 
+                description={card.description} 
+                status={getCardStatus(card.type)} 
+                onClick={() => navigate(card.route)} 
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Building Section */}
+        <div className="space-y-4">
+          <div className="mb-2">
+            <h2 className="text-lg font-semibold text-white mb-1">
+              Building
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Design your database schema and technical architecture.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            {buildingCards.map(card => (
               <ArtifactCard 
                 key={card.type} 
                 title={card.title} 
@@ -99,23 +117,22 @@ export function ArtifactsGrid() {
         {/* Launching Section */}
         <div className="space-y-4">
           <div className="mb-2">
-            <h3 className="text-lg font-semibold text-white mb-1">
+            <h2 className="text-lg font-semibold text-white mb-1">
               Launching
-            </h3>
+            </h2>
             <p className="text-sm text-muted-foreground">
-              Design your database schema and organize your feature roadmap to prepare for development.
+              Prepare for deployment and go-to-market.
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {launchingCards.map(card => (
-              <ArtifactCard 
-                key={card.type} 
-                title={card.title} 
-                description={card.description} 
-                status={getCardStatus(card.type)} 
-                onClick={() => navigate(card.route)} 
-              />
-            ))}
+          <div className="grid grid-cols-1 gap-4">
+            {/* Coming Soon Placeholder */}
+            <div className="rounded-2xl border border-dashed border-border/50 bg-muted/20 p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-muted/30 flex items-center justify-center mb-3">
+                <span className="text-2xl text-muted-foreground/50">🚀</span>
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">Coming Soon</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Launch artifacts will appear here</p>
+            </div>
           </div>
         </div>
       </div>
