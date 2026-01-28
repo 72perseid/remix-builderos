@@ -1,90 +1,62 @@
 
-# Fix Skip Button on Onboarding Page
+
+# Fix Skip Button with Fail-Safe Navigation
 
 ## Problem
 
-The Skip button appears to do nothing because:
-1. No visual loading feedback when clicked
-2. No error handling if the database update fails
-3. Button remains clickable during the async operation
+The current `handleSkip` function has navigation calls in both `try` and `catch` blocks, but if an unexpected error occurs or the function gets stuck during the Supabase call, the user may never get redirected. Moving navigation to `finally` guarantees it always executes.
 
 ## Solution
 
 ### File: `src/pages/OnboardingPage.tsx`
 
-**Change 1: Add a loading state for skip action**
+**Update handleSkip function (lines 162-188)**
 
-Add a new state variable after line 36:
-```typescript
-const [isSkipping, setIsSkipping] = useState(false);
-```
+Move the `navigate('/dashboard', { replace: true })` call from both `try` and `catch` blocks into the `finally` block:
 
-**Change 2: Rewrite handleSkip with proper loading state and error handling**
-
-Replace the current `handleSkip` function (lines 161-169) with:
 ```typescript
 const handleSkip = async () => {
-  if (isSkipping) return; // Prevent double-clicks
-  
+  if (isSkipping) return;
   setIsSkipping(true);
-  
+
   try {
-    // Mark as onboarded even if skipping (only if not in new app mode)
+    // Attempt to update 'onboarded' status
     if (user?.id && !isNewAppMode) {
-      const { error } = await supabase.from('profiles').update({
-        onboarded: true
-      }).eq('id', user.id);
-      
-      if (error) {
-        console.error('Failed to update profile:', error);
-        // Still navigate even if update fails - don't leave user stuck
-      }
+      const { error } = await supabase
+        .from('profiles')
+        .update({ onboarded: true })
+        .eq('id', user.id);
+
+      if (error) console.error("Update failed, skipping anyway:", error);
     }
-    
-    navigate('/dashboard', { replace: true });
   } catch (err) {
-    console.error('Skip failed:', err);
-    // Navigate anyway to prevent user from being stuck
-    navigate('/dashboard', { replace: true });
+    console.error("Skip error:", err);
   } finally {
+    // CRITICAL: This MUST run to unblock the user
+    navigate('/dashboard', { replace: true });
     setIsSkipping(false);
   }
 };
 ```
 
-**Change 3: Update the Skip button with loading state**
+---
 
-Update the Button component (lines 187-189) to show loading and be disabled during skip:
-```typescript
-<Button 
-  variant="ghost" 
-  onClick={handleSkip} 
-  disabled={isSkipping}
-  className="text-muted-foreground hover:text-foreground"
->
-  {isSkipping ? (
-    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-  ) : null}
-  {isNewAppMode ? 'Cancel' : 'Skip'}
-</Button>
-```
+## What Changed
+
+| Before | After |
+|--------|-------|
+| `navigate()` in `try` block | Removed |
+| `navigate()` in `catch` block | Removed |
+| `finally` only resets `isSkipping` | `finally` now handles BOTH navigation AND state reset |
 
 ---
 
-## Changes Summary
+## Why This Works
 
-| Location | Change |
-|----------|--------|
-| Line 36 | Add `isSkipping` state |
-| Lines 161-169 | Rewrite `handleSkip` with loading state, error handling, and `{ replace: true }` |
-| Lines 187-189 | Update Button with `disabled={isSkipping}` and loading spinner |
+The `finally` block in JavaScript **always executes**, regardless of:
+- Success in `try` block
+- Error thrown and caught in `catch` block
+- Network timeouts or unexpected issues
 
----
+This guarantees the user is redirected to `/dashboard` no matter what happens with the database update.
 
-## Result
-
-- Button shows spinner when clicked
-- Button is disabled during the operation (prevents double-clicks)
-- Database update errors are logged but don't block navigation
-- User always gets redirected to dashboard (no stuck states)
-- Navigation uses `replace: true` for clean browser history
