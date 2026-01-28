@@ -141,7 +141,7 @@ export function ArtifactsGrid() {
               Launching
             </h2>
             <p className="text-sm text-muted-foreground">
-              Prepare for deployment and go-to-market.
+              Prepare for deployment, optimize performance, and execute your go-to-market strategy.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4">
