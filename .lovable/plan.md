@@ -1,132 +1,95 @@
 
+# Fix ProtectedRoute to Allow `/onboarding?mode=new`
 
-# Redirect "New App" Flow to Onboarding Page
+## Problem
 
-## Overview
+The current `ProtectedRoute.tsx` redirects already-onboarded users away from `/onboarding` unconditionally:
 
-Change the "New App" button behavior to navigate to the full-screen Onboarding AI interface (`/onboarding?mode=new`) instead of opening the sidebar chat.
-
----
-
-## Current State
-
-### DashboardHeader.tsx (lines 19-23)
 ```typescript
-const handleNewApp = () => {
-  clearSelection();              // Step 1: Clear selectedAppId (creation mode)
-  setShouldClearOnOpen(true);    // Step 2: Signal to clear chat
-  openChat();                    // Step 3: Open chat UI
-};
+// Lines 58-61 - Current problematic logic
+if (profile && profile.onboarded === true && isOnOnboardingPage) {
+  return <Navigate to="/dashboard" replace />;
+}
 ```
 
-### OnboardingPage.tsx already supports `?mode=new`
-- **Line 20**: Parses `isNewAppMode` from URL params
-- **Lines 48-53**: Clears messages when `isNewAppMode` is true
-- **Lines 56-61**: Auto-starts session with `isNewApp` flag
-- **Lines 84-88**: Skips updating `profile.onboarded` when in new app mode
+This blocks the "New App" flow which navigates to `/onboarding?mode=new`.
 
 ---
 
-## Required Changes
+## Solution
 
-### File 1: `src/components/dashboard/DashboardHeader.tsx`
+Add a check for the `mode=new` query parameter and only redirect if it's NOT present.
+
+---
+
+## Implementation
+
+### File: `src/components/ProtectedRoute.tsx`
 
 **Changes:**
-1. Import `useNavigate` from react-router-dom
-2. Remove unused `useChatContext` import (no longer needed)
-3. Update `handleNewApp` to navigate instead of opening sidebar chat
+
+1. Import `useSearchParams` from `react-router-dom`
+2. Parse the `mode` query parameter
+3. Update the redirect condition to allow `mode=new`
 
 ```typescript
-// Add import
-import { useNavigate } from 'react-router-dom';
+// Line 1 - Update import
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 
-// Update function
-const handleNewApp = () => {
-  clearSelection();
-  navigate('/onboarding?mode=new');
-};
-```
+// Line 14 - Add after useLocation()
+const [searchParams] = useSearchParams();
+const isNewAppMode = searchParams.get('mode') === 'new';
 
-### File 2: `src/pages/OnboardingPage.tsx`
-
-**Minor fix needed:** The existing `useEffect` for clearing messages has a dependency issue. When `clearMessages` is in the dependency array and messages change, it could cause unexpected behavior. We need to ensure it only runs once when `isNewAppMode` becomes true.
-
-**Change:** Reset `sessionStarted` flag to trigger a fresh session start.
-
-```typescript
-// Lines 48-53 - Already correct but let's ensure proper behavior
-useEffect(() => {
-  if (isNewAppMode) {
-    clearMessages();
-    setSessionStarted(false);  // Already present - ensures fresh session
-  }
-}, [isNewAppMode]);  // Remove clearMessages from deps to avoid re-runs
+// Lines 58-61 - Update redirect logic
+// Only redirect if user is onboarded AND on onboarding page AND NOT in new app mode
+if (profile && profile.onboarded === true && isOnOnboardingPage && !isNewAppMode) {
+  return <Navigate to="/dashboard" replace />;
+}
 ```
 
 ---
 
-## Data Flow
+## Logic Flow After Fix
 
 ```text
-User clicks "New App"
-        │
-        ▼
-┌──────────────────────────┐
-│ clearSelection()         │  ← Clears localStorage selection
-│ navigate('/onboarding    │
-│   ?mode=new')            │
-└──────────────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ OnboardingPage loads     │
-│ isNewAppMode = true      │
-└──────────────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ useEffect triggers:      │
-│  • clearMessages()       │  ← Clears chat + new session ID
-│  • setSessionStarted(    │
-│      false)              │
-└──────────────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ Auto-start effect runs:  │
-│  startSession(true)      │  ← Sends START_NEW_APP_SESSION
-└──────────────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ User chats with AI...    │
-│ JSON_GENERATION_COMPLETE │
-└──────────────────────────┘
-        │
-        ▼
-┌──────────────────────────┐
-│ performFinalTransition() │
-│  • Skip profile update   │  ← isNewAppMode check
-│  • Wait 25s for backend  │
-│  • Refresh & navigate    │
-└──────────────────────────┘
+User navigates to /onboarding
+            │
+            ▼
+    ┌───────────────────┐
+    │ Is authenticated? │
+    └───────────────────┘
+            │
+     No ◄───┴───► Yes
+     │              │
+     ▼              ▼
+  Redirect    ┌────────────────────┐
+  to /auth    │ profile.onboarded? │
+              └────────────────────┘
+                     │
+          false ◄────┴────► true
+            │                  │
+            ▼                  ▼
+         Allow           ┌───────────────┐
+         access          │ mode === new? │
+                         └───────────────┘
+                               │
+                    Yes ◄──────┴──────► No
+                     │                   │
+                     ▼                   ▼
+                  Allow              Redirect
+                  access            to /dashboard
 ```
 
 ---
 
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/components/dashboard/DashboardHeader.tsx` | Replace `openChat()` with `navigate('/onboarding?mode=new')` |
-| `src/pages/OnboardingPage.tsx` | Fix `useEffect` dependency to prevent re-runs |
+| File | Changes |
+|------|---------|
+| `src/components/ProtectedRoute.tsx` | Add `useSearchParams`, check for `mode=new` |
 
 ---
 
-## Edge Cases Handled
+## Summary
 
-1. **Cancel button**: Already shows "Cancel" in new app mode (line 187)
-2. **Skip updating onboarded**: Already implemented (lines 84-88, 162-166)
-3. **Session ID reset**: `clearMessages()` already generates new session ID
-4. **Header title**: Already customized for new app mode (lines 170-173)
-
+This one-line condition change allows onboarded users to access `/onboarding` only when they explicitly request "new app" mode via the query parameter, while maintaining the original behavior of redirecting them to the dashboard if they navigate to `/onboarding` without the parameter.
