@@ -521,71 +521,10 @@ export type Database = {
         }
         Relationships: []
       }
-      project_tags: {
-        Row: {
-          app_idea_id: string
-          color: string | null
-          created_at: string | null
-          id: string
-          label: string
-        }
-        Insert: {
-          app_idea_id: string
-          color?: string | null
-          created_at?: string | null
-          id?: string
-          label: string
-        }
-        Update: {
-          app_idea_id?: string
-          color?: string | null
-          created_at?: string | null
-          id?: string
-          label?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_tags_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_ideas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_tags: {
-        Row: {
-          tag_id: string
-          task_id: string
-        }
-        Insert: {
-          tag_id: string
-          task_id: string
-        }
-        Update: {
-          tag_id?: string
-          task_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "project_tags"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_tags_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       tasks: {
         Row: {
           app_idea_id: string | null
+          category: string | null
           checklist: Json | null
           color: string | null
           completed_date: string | null
@@ -604,6 +543,7 @@ export type Database = {
         }
         Insert: {
           app_idea_id?: string | null
+          category?: string | null
           checklist?: Json | null
           color?: string | null
           completed_date?: string | null
@@ -622,6 +562,7 @@ export type Database = {
         }
         Update: {
           app_idea_id?: string | null
+          category?: string | null
           checklist?: Json | null
           color?: string | null
           completed_date?: string | null

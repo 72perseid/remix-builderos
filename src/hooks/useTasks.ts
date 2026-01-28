@@ -3,16 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
-import { Task, TaskStatus, AcceptanceCriteriaItem, ProjectTag } from '@/types';
-
-interface TaskTagRow {
-  project_tags: {
-    id: string;
-    label: string;
-    color: string;
-    app_idea_id: string;
-  } | null;
-}
+import { Task, TaskStatus, AcceptanceCriteriaItem } from '@/types';
 
 export function useTasks() {
   const { user } = useAuth();
@@ -21,7 +12,7 @@ export function useTasks() {
 
   const queryKey = ['tasks', user?.id, selectedAppId];
 
-  // Fetch tasks from Supabase with tags (single query with join)
+  // Fetch tasks from Supabase
   const { data: tasks = [], isLoading } = useQuery({
     queryKey,
     queryFn: async () => {
@@ -29,17 +20,7 @@ export function useTasks() {
 
       const { data, error } = await supabase
         .from('tasks')
-        .select(`
-          *,
-          task_tags (
-            project_tags (
-              id,
-              label,
-              color,
-              app_idea_id
-            )
-          )
-        `)
+        .select('*')
         .eq('user_id', user.id)
         .eq('app_idea_id', selectedAppId)
         .order('position', { ascending: true });
@@ -55,9 +36,10 @@ export function useTasks() {
         
         // Map old statuses to new column structure
         const statusMap: Record<string, TaskStatus> = {
-          'planning': 'selected',
-          'in-progress': 'in_progress',
-          'review': 'qa',
+          'planning': 'selected',      // Old "planning" -> "Selected for Development"
+          'in-progress': 'in_progress', // Old "in-progress" -> "In Progress"
+          'review': 'qa',               // Old "review" -> "In QA"
+          // Keep these as-is
           'backlog': 'backlog',
           'selected': 'selected',
           'in_progress': 'in_progress',
@@ -84,14 +66,6 @@ export function useTasks() {
         return [];
       };
 
-      // Flatten tags from nested task_tags structure
-      const flattenTags = (taskTags: TaskTagRow[] | null): ProjectTag[] => {
-        if (!taskTags || !Array.isArray(taskTags)) return [];
-        return taskTags
-          .map(tt => tt.project_tags)
-          .filter((tag): tag is ProjectTag => tag !== null);
-      };
-
       // Map database fields to Task type
       return (data || []).map(task => ({
         id: task.id,
@@ -99,13 +73,13 @@ export function useTasks() {
         description: task.description || '',
         status: mapStatus(task.status),
         priority: task.priority as Task['priority'] || 'medium',
-        color: task.color as Task['color'] || 'yellow',
+        category: task.category || '',
+        color: task.color as Task['color'] || 'gray',
         plannedDate: task.planned_date || undefined,
         completedDate: task.completed_date || undefined,
         estimatedEffort: task.estimated_effort || undefined,
         subtasks: parseChecklist(task.subtasks),
         checklist: parseChecklist(task.checklist),
-        tags: flattenTags(task.task_tags as TaskTagRow[] | null),
         position: task.position || 0,
         createdAt: task.created_at || new Date().toISOString(),
         updatedAt: task.updated_at || new Date().toISOString(),
@@ -131,6 +105,7 @@ export function useTasks() {
           description: task.description || null,
           status: task.status,
           priority: task.priority,
+          category: task.category || null,
           color: task.color || null,
           planned_date: task.plannedDate || null,
           estimated_effort: task.estimatedEffort || null,
@@ -163,6 +138,7 @@ export function useTasks() {
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.status !== undefined) dbUpdates.status = updates.status;
       if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
+      if (updates.category !== undefined) dbUpdates.category = updates.category;
       if (updates.color !== undefined) dbUpdates.color = updates.color;
       if (updates.plannedDate !== undefined) dbUpdates.planned_date = updates.plannedDate;
       if (updates.estimatedEffort !== undefined) dbUpdates.estimated_effort = updates.estimatedEffort;
@@ -234,6 +210,7 @@ export function useTasks() {
       description: task.description || null,
       status: task.status,
       priority: task.priority,
+      category: task.category || null,
       color: task.color || null,
       planned_date: task.plannedDate || null,
       estimated_effort: task.estimatedEffort || null,

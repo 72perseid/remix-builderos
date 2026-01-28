@@ -57,28 +57,18 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
           <p className="text-xs text-slate-400 line-clamp-2 mb-2">{task.description}</p>
         )}
 
-        {/* Tags & Priority Badges */}
+        {/* Badges */}
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {/* Dynamic project tags */}
-          {task.tags?.slice(0, 3).map(tag => (
-            <span
-              key={tag.id}
-              className="text-[10px] px-2 py-0.5 rounded font-medium"
-              style={{
-                backgroundColor: `${tag.color}20`,
-                color: tag.color,
-                border: `1px solid ${tag.color}40`
-              }}
-            >
-              {tag.label}
-            </span>
-          ))}
-          {(task.tags?.length || 0) > 3 && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded text-slate-400 bg-slate-700/50">
-              +{task.tags!.length - 3}
+          {task.category && (
+            <span className={cn(
+              'text-[10px] px-2 py-0.5 rounded font-medium border',
+              task.category === 'MVP' && 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+              task.category === 'V1' && 'bg-teal-500/10 text-teal-400 border-teal-500/30',
+              task.category === 'Stretch Goals' && 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+            )}>
+              {task.category}
             </span>
           )}
-          {/* Priority badge */}
           {task.priority && (
             <span className={cn(
               'text-[10px] px-2 py-0.5 rounded font-medium border capitalize',
