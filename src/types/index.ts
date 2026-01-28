@@ -1,7 +1,14 @@
 export type TaskStatus = 'backlog' | 'selected' | 'in_progress' | 'qa' | 'done';
 export type TaskColor = 'yellow' | 'coral' | 'mint' | 'lavender' | 'sky';
-export type TaskCategory = 'MVP' | 'V1' | 'Stretch Goals';
 export type TaskPriority = 'low' | 'medium' | 'high';
+
+export interface ProjectTag {
+  id: string;
+  label: string;
+  color: string;
+  app_idea_id: string;
+  created_at?: string;
+}
 
 export interface AcceptanceCriteriaItem {
   id: string;
@@ -18,11 +25,11 @@ export interface Task {
   plannedDate?: string;
   completedDate?: string;
   position: number;
-  category?: TaskCategory;
   priority?: TaskPriority;
   estimatedEffort?: string;
   subtasks?: AcceptanceCriteriaItem[];
   checklist?: AcceptanceCriteriaItem[];
+  tags?: ProjectTag[];
   createdAt: string;
   updatedAt: string;
 }
@@ -89,7 +96,7 @@ export interface GeneratedFeature {
   id: string;
   title: string;
   description: string;
-  category: TaskCategory;
+  category: string;
   priority: TaskPriority;
   estimatedEffort: string;
 }
