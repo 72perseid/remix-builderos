@@ -1,84 +1,69 @@
 
-# Fix ProtectedRoute to Allow `/onboarding?mode=new`
 
-## Problem
+# Artifact Pages Focus Mode - Open in New Tab
 
-The current `ProtectedRoute.tsx` redirects already-onboarded users away from `/onboarding` unconditionally:
+## Overview
 
+Transform artifact pages to open in a new browser tab with a "Focus Mode" layout that shows only the Copilot Chat Sidebar and the document content — without the main Dashboard Sidebar, Header, or Tabs.
+
+---
+
+## Current State
+
+### App.tsx Routing (lines 50-78)
+All artifact routes are wrapped in `<DashboardLayout>`:
 ```typescript
-// Lines 58-61 - Current problematic logic
-if (profile && profile.onboarded === true && isOnOnboardingPage) {
-  return <Navigate to="/dashboard" replace />;
-}
+<Route path="/business-model" element={
+  <ProtectedRoute>
+    <DashboardLayout><BusinessModelPage /></DashboardLayout>  // ← Includes Sidebar
+  </ProtectedRoute>
+} />
 ```
 
-This blocks the "New App" flow which navigates to `/onboarding?mode=new`.
+### ArtifactsGrid.tsx (lines 101, 124)
+Uses `navigate()` for same-tab navigation:
+```typescript
+onClick={() => navigate(card.route)}
+```
 
 ---
 
 ## Solution
 
-Add a check for the `mode=new` query parameter and only redirect if it's NOT present.
+### Change 1: Update App.tsx Routing
+
+Move artifact routes outside `DashboardLayout` wrapper so they render as standalone pages:
+
+| Route | Before | After |
+|-------|--------|-------|
+| `/business-model` | `<DashboardLayout><BusinessModelPage /></DashboardLayout>` | `<BusinessModelPage />` |
+| `/validation` | `<DashboardLayout><ValidationPage /></DashboardLayout>` | `<ValidationPage />` |
+| `/product-brief` | `<DashboardLayout><ProductBriefPage /></DashboardLayout>` | `<ProductBriefPage />` |
+| `/database-design` | `<DashboardLayout><DatabaseDesignPage /></DashboardLayout>` | `<DatabaseDesignPage />` |
+
+Each remains wrapped in `<ProtectedRoute>` for authentication.
 
 ---
 
-## Implementation
+### Change 2: Update ArtifactsGrid.tsx Navigation
 
-### File: `src/components/ProtectedRoute.tsx`
-
-**Changes:**
-
-1. Import `useSearchParams` from `react-router-dom`
-2. Parse the `mode` query parameter
-3. Update the redirect condition to allow `mode=new`
+Replace `navigate()` with `window.open()`:
 
 ```typescript
-// Line 1 - Update import
-import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
+// Before
+onClick={() => navigate(card.route)}
 
-// Line 14 - Add after useLocation()
-const [searchParams] = useSearchParams();
-const isNewAppMode = searchParams.get('mode') === 'new';
-
-// Lines 58-61 - Update redirect logic
-// Only redirect if user is onboarded AND on onboarding page AND NOT in new app mode
-if (profile && profile.onboarded === true && isOnOnboardingPage && !isNewAppMode) {
-  return <Navigate to="/dashboard" replace />;
-}
+// After  
+onClick={() => window.open(card.route, '_blank')}
 ```
+
+Also remove the unused `useNavigate` import.
 
 ---
 
-## Logic Flow After Fix
+### Change 3: Update Artifact Pages Background
 
-```text
-User navigates to /onboarding
-            │
-            ▼
-    ┌───────────────────┐
-    │ Is authenticated? │
-    └───────────────────┘
-            │
-     No ◄───┴───► Yes
-     │              │
-     ▼              ▼
-  Redirect    ┌────────────────────┐
-  to /auth    │ profile.onboarded? │
-              └────────────────────┘
-                     │
-          false ◄────┴────► true
-            │                  │
-            ▼                  ▼
-         Allow           ┌───────────────┐
-         access          │ mode === new? │
-                         └───────────────┘
-                               │
-                    Yes ◄──────┴──────► No
-                     │                   │
-                     ▼                   ▼
-                  Allow              Redirect
-                  access            to /dashboard
-```
+Since artifact pages will no longer inherit `DashboardLayout`'s `bg-[#0B0E14]`, each page needs its own background styling. Update the wrapper div in each artifact page to include the dark background.
 
 ---
 
@@ -86,10 +71,47 @@ User navigates to /onboarding
 
 | File | Changes |
 |------|---------|
-| `src/components/ProtectedRoute.tsx` | Add `useSearchParams`, check for `mode=new` |
+| `src/App.tsx` | Remove `<DashboardLayout>` wrapper from 4 artifact routes |
+| `src/components/dashboard/ArtifactsGrid.tsx` | Change `navigate()` to `window.open()`, remove unused import |
+| `src/pages/BusinessModelPage.tsx` | Add `bg-[#0B0E14] min-h-screen` to outer wrapper |
+| `src/pages/ValidationPage.tsx` | Add `bg-[#0B0E14] min-h-screen` to outer wrapper |
+| `src/pages/ProductBriefPage.tsx` | Add `bg-[#0B0E14] min-h-screen` to outer wrapper |
+| `src/pages/DatabaseDesignPage.tsx` | Add `bg-[#0B0E14] min-h-screen` to outer wrapper |
 
 ---
 
-## Summary
+## Result Layout Comparison
 
-This one-line condition change allows onboarded users to access `/onboarding` only when they explicitly request "new app" mode via the query parameter, while maintaining the original behavior of redirecting them to the dashboard if they navigate to `/onboarding` without the parameter.
+```text
+BEFORE (with DashboardLayout):
+┌─────────────────────────────────────────────────┐
+│ Dashboard Header                                │
+├──────────┬──────────────────────────────────────┤
+│ Sidebar  │ Tabs: Artifacts | Project Board     │
+│          ├──────────────────────────────────────┤
+│          │ ┌────────────┬───────────────────┐  │
+│          │ │ Copilot    │ Document Content  │  │
+│          │ │ Sidebar    │                   │  │
+│          │ └────────────┴───────────────────┘  │
+└──────────┴──────────────────────────────────────┘
+
+AFTER (Focus Mode in new tab):
+┌─────────────────────────────────────────────────┐
+│ ┌────────────┬──────────────────────────────┐   │
+│ │ Copilot    │ Document Content             │   │
+│ │ Sidebar    │ (Back to Artifacts button)   │   │
+│ │            │                              │   │
+│ └────────────┴──────────────────────────────┘   │
+└─────────────────────────────────────────────────┘
+```
+
+---
+
+## Technical Notes
+
+1. **ArtifactBackButton**: Already navigates to `/dashboard` — this will close the current tab if user clicks it, taking them back. May need to update to `window.close()` or keep as-is (standard browser behavior).
+
+2. **Context Providers**: `ProjectProvider` and `ChatProvider` are in `App.tsx` at the root level, so artifact pages will still have access to project context.
+
+3. **ArtifactCopilot**: Already has `order-first` CSS to position on the left side — no changes needed.
+
