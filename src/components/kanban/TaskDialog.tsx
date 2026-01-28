@@ -283,7 +283,7 @@ export function TaskDialog({
                           borderRight: 'none'
                         }}
                       >
-                        <Pencil className="h-3 w-3" />
+                        <Pencil className="h-3 w-3 text-white" />
                         <span>{tag.label}</span>
                       </button>
                     </PopoverTrigger>
