@@ -1,60 +1,73 @@
 
-# Fix Tag Edit Popover Visibility in TaskDialog
+
+# Fix Tag Popover Visibility with Portal Mode
 
 ## Problem Identified
-After examining the code, I found that:
-1. **The Pencil icon IS present** in the `linkedTags.map` loop (line 286)
-2. **The issue is z-index conflict**: Both Dialog and Popover use `z-50`, causing the popover to render behind or at the same level as the dialog overlay
-
-When a Popover is rendered inside a Dialog, Radix UI portals both to the document body. Since they have the same z-index, the dialog overlay can obscure the popover content.
+The Kanban board uses `framer-motion` for card animations, which creates a strict stacking context that traps the Popover content. Even with high z-index values, the popover cannot escape this container because stacking contexts isolate their children from the rest of the document.
 
 ## Solution
-Add a higher z-index to the PopoverContent specifically for the tag edit popover so it appears above the dialog.
+Configure the Radix UI Popover component to use modal mode, which forces it to render in a Portal at the document `<body>` level, completely escaping the framer-motion stacking context.
 
 ## Implementation
 
 ### File: `src/components/kanban/TaskDialog.tsx`
 
-**Change 1**: Update the edit tag PopoverContent (around line 290) to have a higher z-index:
+**Change 1**: Edit Tag Popover (lines 265-274 and 290)
+
+Add `modal={true}` to the Popover root and update PopoverContent:
 
 ```tsx
-// Before (line 290)
-<PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600" align="start">
+// Line 265-274: Add modal={true}
+<Popover 
+  modal={true}
+  open={editingTagId === tag.id} 
+  onOpenChange={(open) => {
+    if (open) {
+      handleOpenEditTag(tag);
+    } else {
+      setEditingTagId(null);
+    }
+  }}
+>
 
-// After
-<PopoverContent className="w-64 p-3 bg-[#1a2744] border-slate-600 z-[100]" align="start">
+// Line 290: Add z-[9999] and onOpenAutoFocus handler
+<PopoverContent 
+  className="w-64 p-3 bg-[#1a2744] border-slate-600 z-[9999]" 
+  align="start"
+  onOpenAutoFocus={(e) => e.preventDefault()}
+>
 ```
 
-**Change 2**: Also update the "Add Tag" PopoverContent (around line 389) for consistency:
+**Change 2**: Add Tag Popover (line 377 and 389)
 
 ```tsx
-// Before (line 389)
-<PopoverContent className="w-56 p-2 bg-[#1a2744] border-slate-600" align="start">
+// Line 377: Add modal={true}
+<Popover modal={true} open={tagPopoverOpen} onOpenChange={setTagPopoverOpen}>
 
-// After
-<PopoverContent className="w-56 p-2 bg-[#1a2744] border-slate-600 z-[100]" align="start">
+// Line 389: Add z-[9999] and onOpenAutoFocus handler
+<PopoverContent 
+  className="w-56 p-2 bg-[#1a2744] border-slate-600 z-[9999]" 
+  align="start"
+  onOpenAutoFocus={(e) => e.preventDefault()}
+>
 ```
 
 ## Summary of Changes
 
-| Location | Change |
-|----------|--------|
-| Line 290 (Edit Tag Popover) | Add `z-[100]` class to ensure it appears above dialog |
-| Line 389 (Add Tag Popover) | Add `z-[100]` class for consistency |
+| Location | Property | Purpose |
+|----------|----------|---------|
+| Line 265 (Edit Tag Popover) | `modal={true}` | Renders popover in Portal at document body, escaping framer-motion |
+| Line 290 (Edit Tag PopoverContent) | `z-[9999]` | Ensures popover sits above Dialog (increased from z-[100]) |
+| Line 290 (Edit Tag PopoverContent) | `onOpenAutoFocus={(e) => e.preventDefault()}` | Prevents focus conflicts with Dialog |
+| Line 377 (Add Tag Popover) | `modal={true}` | Same portal behavior for consistency |
+| Line 389 (Add Tag PopoverContent) | `z-[9999]` | Same z-index for consistency |
+| Line 389 (Add Tag PopoverContent) | `onOpenAutoFocus={(e) => e.preventDefault()}` | Same focus prevention |
 
 ## Why This Works
 
-- Dialog overlay uses `z-50` 
-- Dialog content uses `z-50`
-- By setting the PopoverContent to `z-[100]`, it will always render above the dialog elements
-- This is the standard pattern for nested overlays in Radix UI
+1. **`modal={true}`**: Tells Radix UI to render the PopoverContent in a React Portal attached to the document `<body>`, completely bypassing any parent stacking contexts created by framer-motion
 
-## Visual Confirmation
+2. **`z-[9999]`**: Ensures the popover appears above the Dialog overlay (which uses z-50)
 
-The Pencil icon is already in the code at line 286:
-```tsx
-<Pencil className="h-3 w-3" />
-<span>{tag.label}</span>
-```
+3. **`onOpenAutoFocus={(e) => e.preventDefault()}`**: Prevents the Popover from stealing focus from the Dialog, avoiding keyboard navigation conflicts
 
-The tag pills with the pencil icon should be visible. If they aren't showing, there may be no `linkedTags` data. But the z-index fix will ensure the edit popover appears correctly when clicking the tag.
