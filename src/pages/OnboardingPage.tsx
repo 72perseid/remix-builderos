@@ -34,6 +34,7 @@ export default function OnboardingPage() {
   const [showCompletion, setShowCompletion] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
+  const [isSkipping, setIsSkipping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -159,13 +160,31 @@ export default function OnboardingPage() {
   };
 
   const handleSkip = async () => {
-    // Mark as onboarded even if skipping (only if not in new app mode)
-    if (user?.id && !isNewAppMode) {
-      await supabase.from('profiles').update({
-        onboarded: true
-      }).eq('id', user.id);
+    if (isSkipping) return; // Prevent double-clicks
+    
+    setIsSkipping(true);
+    
+    try {
+      // Mark as onboarded even if skipping (only if not in new app mode)
+      if (user?.id && !isNewAppMode) {
+        const { error } = await supabase.from('profiles').update({
+          onboarded: true
+        }).eq('id', user.id);
+        
+        if (error) {
+          console.error('Failed to update profile:', error);
+          // Still navigate even if update fails - don't leave user stuck
+        }
+      }
+      
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      console.error('Skip failed:', err);
+      // Navigate anyway to prevent user from being stuck
+      navigate('/dashboard', { replace: true });
+    } finally {
+      setIsSkipping(false);
     }
-    navigate('/dashboard');
   };
 
   const pageTitle = isNewAppMode ? "Create a New App" : "Let's build your app";
@@ -184,7 +203,15 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
         <img src={logoHorizontal} alt="Logo" className="h-8" />
-        <Button variant="ghost" onClick={handleSkip} className="text-muted-foreground hover:text-foreground">
+        <Button 
+          variant="ghost" 
+          onClick={handleSkip} 
+          disabled={isSkipping}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          {isSkipping ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : null}
           {isNewAppMode ? 'Cancel' : 'Skip'}
         </Button>
       </header>
