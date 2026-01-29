@@ -1,97 +1,48 @@
 
-# Add "Start Building" CTA to Project Board
 
-## Overview
+# Fix Sidebar Button Color Consistency
 
-Add a consistent "Start Building" call-to-action banner to both the Artifacts tab and Project Board tab, with both redirecting users to the onboarding chat at `/onboarding?mode=setup`.
+## Problem
 
-## Changes Required
+The Dashboard sidebar menu button color is inconsistent because the `SidebarMenuButton` component has built-in styles that use the `--sidebar-accent` CSS variable, which overrides your custom `bg-[#0b0e15]` class due to data-attribute selector specificity.
 
-### File 1: `src/components/ProtectedRoute.tsx`
+## Root Cause
 
-**Update the mode check logic** to allow `mode=setup`:
-
-```tsx
-// Current:
-const isNewAppMode = searchParams.get('mode') === 'new';
-
-// Updated:
-const mode = searchParams.get('mode');
-const isAllowedMode = mode === 'new' || mode === 'setup';
+In `src/index.css`, the dark mode sidebar accent color is:
+```css
+--sidebar-accent: 240 3.7% 15.9%;  /* This is NOT #0b0e15 */
 ```
 
-Update the redirect condition:
-```tsx
-// Change from:
-if (profile && profile.onboarded === true && isOnOnboardingPage && !isNewAppMode) {
+The `SidebarMenuButton` component uses these built-in styles:
+- `data-[active=true]:bg-sidebar-accent` for active state
+- `hover:bg-sidebar-accent` for hover state
 
-// To:
-if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
-```
+These data-attribute selectors have higher specificity than your custom `bg-[#0b0e15]` class.
+
+## Solution
+
+Update the `--sidebar-accent` CSS variable in dark mode to use `#0b0e15`.
+
+The hex color `#0b0e15` converts to HSL approximately: `220 33% 6%`
 
 ---
 
-### File 2: `src/components/dashboard/ArtifactsGrid.tsx`
+## File Change
 
-**Change the banner's onClick** from opening the sidebar chat to navigating to onboarding:
+**File:** `src/index.css`  
+**Line:** 96
 
-```tsx
-// Current:
-<ArchitectBanner onStartBuilding={openChat} hasData={hasAnyData} />
-
-// Updated:
-<ArchitectBanner 
-  onStartBuilding={() => navigate('/onboarding?mode=setup')} 
-  hasData={hasAnyData} 
-/>
-```
-
-Remove the unused `useChatContext` import since `openChat` is no longer needed.
+| Before | After |
+|--------|-------|
+| `--sidebar-accent: 240 3.7% 15.9%;` | `--sidebar-accent: 220 33% 6%;` |
 
 ---
 
-### File 3: `src/pages/ProjectBoardPage.tsx`
+## Why This Works
 
-**Add the ArchitectBanner** above the Kanban board:
+By changing the CSS variable that the sidebar component uses for active/hover states, all sidebar buttons will automatically use your desired `#0b0e15` color consistently, without needing to fight CSS specificity with custom classes.
 
-Add imports:
-```tsx
-import { useNavigate } from 'react-router-dom';
-import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
-```
+## Bonus Cleanup
 
-Add navigation hook and data check:
-```tsx
-const navigate = useNavigate();
-const hasAnyData = totalCards > 0;
-```
+After this change, the custom classes in `DashboardSidebar.tsx` can be simplified since the default component styles will now use the correct color automatically.
 
-Add banner above the Kanban component:
-```tsx
-return <div className="h-full flex flex-col">
-  {/* Architect Banner */}
-  <ArchitectBanner 
-    onStartBuilding={() => navigate('/onboarding?mode=setup')} 
-    hasData={hasAnyData} 
-  />
-  
-  {/* Kanban Board */}
-  <Kanban<KanbanCard> ...>
-```
-
----
-
-## Summary
-
-| File | Change |
-|------|--------|
-| `ProtectedRoute.tsx` | Allow `mode=setup` to access onboarding |
-| `ArtifactsGrid.tsx` | Navigate to `/onboarding?mode=setup` instead of opening chat |
-| `ProjectBoardPage.tsx` | Add ArchitectBanner with same navigation |
-
-## Result
-
-After these changes:
-- Users see "Start Building" on both Artifacts and Project Board tabs
-- Clicking either button navigates to `/onboarding?mode=setup`
-- Users who previously skipped can re-enter onboarding to generate content
