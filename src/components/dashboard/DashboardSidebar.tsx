@@ -51,13 +51,13 @@ export function DashboardSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map(item => <SidebarMenuItem key={item.title}>
+            {mainNavItems.map(item => <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)} className={`
                       transition-all duration-200
-                      ${isActive(item.url) ? "bg-blue-500/20 text-blue-400 border-l-2 border-blue-500" : "text-slate-400 hover:text-white hover:bg-slate-800/50"}
+                      ${isActive(item.url) ? "bg-primary/20 text-primary border-l-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted/50"}
                     `}>
                     <Link to={item.url}>
-                      <item.icon className={`h-5 w-5 ${isActive(item.url) ? "text-blue-400" : "text-slate-400"}`} />
+                      <item.icon className={`h-5 w-5 ${isActive(item.url) ? "text-primary" : "text-muted-foreground"}`} />
                       <span className="text-base">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
