@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
-import { extractJsonFromText } from '@/lib/jsonExtractor';
 
 const REQUEST_TIMEOUT_MS = 60000;
 
@@ -12,12 +11,11 @@ export interface CopilotMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  extractedJson?: Record<string, unknown> | null;
 }
 
 interface UseCopilotChatOptions {
   context: string;
-  onJsonExtracted?: (json: Record<string, unknown>) => void;
+  onArtifactRefresh?: () => void;
 }
 
 async function fetchWithTimeout(url: string, options: RequestInit, timeout: number): Promise<Response> {
@@ -40,7 +38,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeout: numb
   }
 }
 
-export function useCopilotChat({ context, onJsonExtracted }: UseCopilotChatOptions) {
+export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOptions) {
   const { user } = useAuth();
   const { selectedAppId } = useProjectContext();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
@@ -90,25 +88,24 @@ export function useCopilotChat({ context, onJsonExtracted }: UseCopilotChatOptio
         responseData?.content ||
         (typeof responseData === 'string' ? responseData : 'I received your request. How can I help further?');
 
-      // Extract JSON from the response if present
-      const { json: extractedJson, fullText } = extractJsonFromText(aiResponse);
-
-      // If JSON was found, call the callback to update the artifact
-      if (extractedJson && onJsonExtracted) {
-        onJsonExtracted(extractedJson);
-      }
-
-      // Add assistant message to local state (always show full text)
+      // Add assistant message to local state (display full text)
       const assistantMessage: CopilotMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: fullText,
+        content: aiResponse,
         timestamp: new Date(),
-        extractedJson,
       };
       setMessages(prev => [...prev, assistantMessage]);
 
-      return { response: aiResponse, extractedJson };
+      // Trigger refetch after successful response (n8n updates DB directly)
+      if (onArtifactRefresh) {
+        // Small delay to ensure n8n has finished writing to DB
+        setTimeout(() => {
+          onArtifactRefresh();
+        }, 500);
+      }
+
+      return aiResponse;
     } catch (error) {
       console.error('Copilot error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -132,7 +129,7 @@ export function useCopilotChat({ context, onJsonExtracted }: UseCopilotChatOptio
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, selectedAppId, context, onJsonExtracted]);
+  }, [user?.id, selectedAppId, context, onArtifactRefresh]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

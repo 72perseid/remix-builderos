@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 interface ArtifactCopilotProps {
   context: string;
   heading?: string;
-  onUpdateArtifact?: (json: Record<string, unknown>) => void;
+  onArtifactRefresh?: () => void;
 }
 
 function CopilotMessageBubble({ message }: { message: CopilotMessage }) {
@@ -32,7 +32,7 @@ function CopilotMessageBubble({ message }: { message: CopilotMessage }) {
   );
 }
 
-export function ArtifactCopilot({ context, heading = 'Copilot', onUpdateArtifact }: ArtifactCopilotProps) {
+export function ArtifactCopilot({ context, heading = 'Copilot', onArtifactRefresh }: ArtifactCopilotProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -40,7 +40,7 @@ export function ArtifactCopilot({ context, heading = 'Copilot', onUpdateArtifact
   
   const { messages, isLoading, sendMessage, hasApp } = useCopilotChat({ 
     context,
-    onJsonExtracted: onUpdateArtifact,
+    onArtifactRefresh,
   });
 
   // Auto-scroll to bottom when new messages arrive
