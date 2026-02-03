@@ -15,7 +15,23 @@ interface RevenueStream {
   price: string;
 }
 
+// Flexible interface to handle various data formats from n8n
 interface BusinessModelContent {
+  // New format from n8n (actual data structure)
+  name?: string;
+  revenue?: {
+    source?: string;
+    annualRevenue?: number;
+  };
+  expenses?: {
+    fixedCosts?: number;
+    variableCosts?: number;
+  };
+  customers?: {
+    segment?: string;
+    number?: number;
+  };
+  // Standard format
   value_proposition?: string;
   customer_segments?: string[];
   revenue_streams?: RevenueStream[];
@@ -38,6 +54,11 @@ function parseArtifactContent(rawContent: unknown): BusinessModelContent | null 
   
   // If already an object, return as-is
   if (typeof rawContent === 'object' && rawContent !== null) {
+    const obj = rawContent as Record<string, unknown>;
+    // Handle nested businessModel key
+    if (obj.businessModel && typeof obj.businessModel === 'object') {
+      return obj.businessModel as BusinessModelContent;
+    }
     return rawContent as BusinessModelContent;
   }
   
@@ -97,7 +118,14 @@ export default function BusinessModelPage() {
   // Use artifact content if available, otherwise fall back to local hook
   const content: BusinessModelContent | null = parseArtifactContent(artifact?.content) || businessModel?.generatedModel;
 
-  // Normalize data (handle both snake_case and camelCase)
+  // Normalize data (handle multiple formats)
+  // New n8n format fields
+  const businessName = content?.name;
+  const revenueInfo = content?.revenue;
+  const expensesInfo = content?.expenses;
+  const customersInfo = content?.customers;
+  
+  // Standard/Legacy format fields
   const valueProposition = content?.value_proposition || content?.valueProposition;
   const customerSegments = content?.customer_segments || content?.customerSegments || [];
   const revenueStreams = content?.revenue_streams || [];
@@ -152,6 +180,72 @@ export default function BusinessModelPage() {
               <h2 className="text-lg font-semibold text-white">Business Model Canvas</h2>
               
               <div className="grid md:grid-cols-3 gap-4">
+                {/* Business Name - New n8n format */}
+                {businessName && (
+                  <BusinessCard 
+                    title="Business Name" 
+                    icon={Building} 
+                    iconColor="text-blue-500"
+                  >
+                    <p className="text-lg font-medium">{businessName}</p>
+                  </BusinessCard>
+                )}
+
+                {/* Revenue Info - New n8n format */}
+                {revenueInfo && (
+                  <BusinessCard 
+                    title="Revenue" 
+                    icon={DollarSign} 
+                    iconColor="text-green-500"
+                  >
+                    <div className="space-y-2">
+                      {revenueInfo.source && (
+                        <p><span className="text-muted-foreground">Source:</span> {revenueInfo.source}</p>
+                      )}
+                      {revenueInfo.annualRevenue && (
+                        <p><span className="text-muted-foreground">Annual Revenue:</span> ${revenueInfo.annualRevenue.toLocaleString()}</p>
+                      )}
+                    </div>
+                  </BusinessCard>
+                )}
+
+                {/* Expenses Info - New n8n format */}
+                {expensesInfo && (
+                  <BusinessCard 
+                    title="Expenses" 
+                    icon={DollarSign} 
+                    iconColor="text-red-500"
+                  >
+                    <div className="space-y-2">
+                      {expensesInfo.fixedCosts !== undefined && (
+                        <p><span className="text-muted-foreground">Fixed Costs:</span> ${expensesInfo.fixedCosts.toLocaleString()}</p>
+                      )}
+                      {expensesInfo.variableCosts !== undefined && (
+                        <p><span className="text-muted-foreground">Variable Costs:</span> ${expensesInfo.variableCosts.toLocaleString()}</p>
+                      )}
+                    </div>
+                  </BusinessCard>
+                )}
+
+                {/* Customers Info - New n8n format */}
+                {customersInfo && (
+                  <BusinessCard 
+                    title="Customers" 
+                    icon={Users} 
+                    iconColor="text-purple-500"
+                  >
+                    <div className="space-y-2">
+                      {customersInfo.segment && (
+                        <p><span className="text-muted-foreground">Segment:</span> {customersInfo.segment}</p>
+                      )}
+                      {customersInfo.number !== undefined && (
+                        <p><span className="text-muted-foreground">Customer Count:</span> {customersInfo.number.toLocaleString()}</p>
+                      )}
+                    </div>
+                  </BusinessCard>
+                )}
+
+                {/* Standard format - Value Proposition */}
                 {valueProposition && (
                   <BusinessCard 
                     title="Value Proposition" 
