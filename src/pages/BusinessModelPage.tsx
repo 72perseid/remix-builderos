@@ -35,7 +35,7 @@ interface BusinessModelContent {
 export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel } = useBusinessModel();
-  const { data: artifact, loading: artifactLoading } = useArtifact('business_model');
+  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('business_model');
   
   const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
   const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
@@ -282,7 +282,7 @@ export default function BusinessModelPage() {
       </div>
 
       {/* Copilot Sidebar */}
-      <ArtifactCopilot context="business_model" heading="Business Strategist" />
+      <ArtifactCopilot context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} />
     </div>
   );
 }
