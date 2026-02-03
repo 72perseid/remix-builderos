@@ -39,7 +39,23 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     enabled: !!user?.id,
   });
 
-  if (loading || profileLoading) {
+  // Check if user has any existing apps (indicates returning user)
+  const { data: hasExistingApps, isLoading: appsLoading } = useQuery({
+    queryKey: ['user-has-apps', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return false;
+      const { count, error } = await supabase
+        .from('app_ideas')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      if (error) return false;
+      return (count ?? 0) > 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  if (loading || profileLoading || appsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -56,7 +72,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const isOnOnboardingPage = location.pathname === '/onboarding';
   const hasSkippedOnboarding = sessionStorage.getItem('onboarding_skipped') === 'true';
   
-  if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding) {
+  // Skip onboarding redirect if user has existing apps (returning user)
+  if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding && !hasExistingApps) {
     return <Navigate to="/onboarding" replace />;
   }
 
