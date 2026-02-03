@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 interface ArtifactCopilotProps {
   context: string;
   heading?: string;
+  onUpdateArtifact?: (json: Record<string, unknown>) => void;
 }
 
 function CopilotMessageBubble({ message }: { message: CopilotMessage }) {
@@ -31,13 +32,16 @@ function CopilotMessageBubble({ message }: { message: CopilotMessage }) {
   );
 }
 
-export function ArtifactCopilot({ context, heading = 'Copilot' }: ArtifactCopilotProps) {
+export function ArtifactCopilot({ context, heading = 'Copilot', onUpdateArtifact }: ArtifactCopilotProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  const { messages, isLoading, sendMessage, hasApp } = useCopilotChat({ context });
+  const { messages, isLoading, sendMessage, hasApp } = useCopilotChat({ 
+    context,
+    onJsonExtracted: onUpdateArtifact,
+  });
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
