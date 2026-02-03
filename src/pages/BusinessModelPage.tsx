@@ -32,6 +32,38 @@ interface BusinessModelContent {
   costStructure?: string[];
 }
 
+// Helper to extract JSON from markdown code blocks or raw text
+function parseArtifactContent(rawContent: unknown): BusinessModelContent | null {
+  if (!rawContent) return null;
+  
+  // If already an object, return as-is
+  if (typeof rawContent === 'object' && rawContent !== null) {
+    return rawContent as BusinessModelContent;
+  }
+  
+  // If string, try to extract JSON
+  if (typeof rawContent === 'string') {
+    try {
+      // Try to find JSON in markdown code block
+      const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch && jsonMatch[1]) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        // Handle nested businessModel key
+        return parsed.businessModel || parsed;
+      }
+      
+      // Try direct JSON parse (in case it's raw JSON)
+      const directParse = JSON.parse(rawContent);
+      return directParse.businessModel || directParse;
+    } catch {
+      console.warn('Failed to parse artifact content:', rawContent.substring(0, 100));
+      return null;
+    }
+  }
+  
+  return null;
+}
+
 export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel } = useBusinessModel();
@@ -63,7 +95,7 @@ export default function BusinessModelPage() {
   };
 
   // Use artifact content if available, otherwise fall back to local hook
-  const content: BusinessModelContent | null = artifact?.content as BusinessModelContent || businessModel?.generatedModel;
+  const content: BusinessModelContent | null = parseArtifactContent(artifact?.content) || businessModel?.generatedModel;
 
   // Normalize data (handle both snake_case and camelCase)
   const valueProposition = content?.value_proposition || content?.valueProposition;
