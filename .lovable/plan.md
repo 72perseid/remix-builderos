@@ -1,75 +1,123 @@
 
-# Prevent Onboarding Redirect for Returning Users
 
-## Problem
+# Fix Business Model Canvas Not Updating
 
-When an existing user signs in, they are being redirected to the onboarding chat if their `profile.onboarded` is `false`. This happens because:
+## Problem Identified
 
-1. The `sessionStorage.onboarding_skipped` flag clears when the browser closes
-2. The `ProtectedRoute` then redirects users with `onboarded === false` back to onboarding
+After analyzing the code and database, I found **two issues**:
 
-This creates a frustrating experience where returning users are forced through onboarding repeatedly.
+### Issue 1: Content Stored as Raw String
+The n8n workflow saves the AI's complete text response into the `content` field, including markdown formatting:
+
+```
+"Since the user instructions do not specify...\n\n```json\n{\n  \"businessModel\": {...}\n}\n```"
+```
+
+This is stored as a **string**, not as parsed JSON.
+
+### Issue 2: BusinessModelPage Expects Parsed JSON
+The page assumes `artifact.content` is already a parsed object:
+
+```tsx
+// Line 66 - This fails because content is a string, not an object
+const content: BusinessModelContent | null = artifact?.content as BusinessModelContent;
+```
+
+---
 
 ## Solution
 
-Update the `ProtectedRoute` to check if the user has any existing app ideas. If they do, they're clearly a returning user who has already used the platform, so skip the onboarding redirect.
+Add a content parsing layer in `BusinessModelPage.tsx` that extracts and parses JSON from the raw text content.
 
 ---
 
 ## Technical Changes
 
-### File: `src/components/ProtectedRoute.tsx`
+### File: `src/pages/BusinessModelPage.tsx`
 
-**Add a query to check for existing app ideas:**
+**Add a helper function to extract JSON from markdown content:**
 
 ```tsx
-// Check if user has any existing apps (indicates returning user)
-const { data: hasExistingApps, isLoading: appsLoading } = useQuery({
-  queryKey: ['user-has-apps', user?.id],
-  queryFn: async () => {
-    if (!user?.id) return false;
-    const { count, error } = await supabase
-      .from('app_ideas')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', user.id);
-    
-    if (error) return false;
-    return (count ?? 0) > 0;
-  },
-  enabled: !!user?.id,
-});
-```
-
-**Update loading check:**
-```tsx
-if (loading || profileLoading || appsLoading) {
-  // show loader
+// Helper to extract JSON from markdown code blocks or raw text
+function parseArtifactContent(rawContent: unknown): BusinessModelContent | null {
+  if (!rawContent) return null;
+  
+  // If already an object, return as-is
+  if (typeof rawContent === 'object' && rawContent !== null) {
+    return rawContent as BusinessModelContent;
+  }
+  
+  // If string, try to extract JSON
+  if (typeof rawContent === 'string') {
+    try {
+      // Try to find JSON in markdown code block
+      const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch && jsonMatch[1]) {
+        const parsed = JSON.parse(jsonMatch[1]);
+        // Handle nested businessModel key
+        return parsed.businessModel || parsed;
+      }
+      
+      // Try direct JSON parse (in case it's raw JSON)
+      const directParse = JSON.parse(rawContent);
+      return directParse.businessModel || directParse;
+    } catch {
+      console.warn('Failed to parse artifact content:', rawContent.substring(0, 100));
+      return null;
+    }
+  }
+  
+  return null;
 }
 ```
 
-**Update redirect condition:**
-```tsx
-// If user hasn't completed onboarding, redirect to onboarding
-// SKIP redirect if:
-// - Already on onboarding page
-// - User explicitly skipped (sessionStorage)
-// - User has existing apps (returning user)
-if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding && !hasExistingApps) {
-  return <Navigate to="/onboarding" replace />;
-}
-```
+**Update the content extraction (around line 66):**
+
+| Before | After |
+|--------|-------|
+| `const content: BusinessModelContent \| null = artifact?.content as BusinessModelContent \|\| businessModel?.generatedModel;` | `const content: BusinessModelContent \| null = parseArtifactContent(artifact?.content) \|\| businessModel?.generatedModel;` |
 
 ---
 
-## Summary
+## Why This Works
 
-| Scenario | Before | After |
-|----------|--------|-------|
-| New user (no apps, onboarded=false) | → Onboarding | → Onboarding |
-| Returning user (has apps, onboarded=false) | → Onboarding ❌ | → Dashboard ✅ |
-| Returning user (onboarded=true) | → Dashboard | → Dashboard |
-| User who just skipped (sessionStorage set) | → Dashboard | → Dashboard |
+```text
++-------------------+     +------------------+     +-------------------+
+| n8n Workflow      |     | Supabase         |     | BusinessModelPage |
+| (AI Response)     | --> | artifacts table  | --> | parseContent()    |
+|                   |     | (raw string)     |     | (extracts JSON)   |
++-------------------+     +------------------+     +-------------------+
+        |                         |                         |
+        v                         v                         v
+   "Here is your           content: "...           { businessModel: {
+    updated model:         ```json                    name: "...",
+    ```json {...}```"      {...}```"                  revenue: {...}
+                                                   }}
+```
 
-## Result
+The parsing function handles:
+1. Content that's already a parsed object (passthrough)
+2. Content wrapped in markdown ` ```json ``` ` blocks
+3. Nested `businessModel` key (common AI output format)
+4. Direct JSON strings
 
-Returning users who have previously created apps will go directly to the dashboard, even if they skipped onboarding before. Only truly new users with no apps will be directed to onboarding.
+---
+
+## Files to Modify
+
+| File | Change |
+|------|--------|
+| `src/pages/BusinessModelPage.tsx` | Add `parseArtifactContent()` helper and update content extraction |
+
+---
+
+## Expected Result
+
+After this fix:
+1. User asks Copilot to update the business model
+2. n8n workflow updates the `artifacts` table
+3. `refetchArtifact()` is called after 500ms delay
+4. Page receives new data from Supabase
+5. `parseArtifactContent()` extracts JSON from the markdown text
+6. Business Model Canvas renders the updated data
+
