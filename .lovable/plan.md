@@ -1,48 +1,75 @@
 
-
-# Fix Sidebar Button Color Consistency
+# Prevent Onboarding Redirect for Returning Users
 
 ## Problem
 
-The Dashboard sidebar menu button color is inconsistent because the `SidebarMenuButton` component has built-in styles that use the `--sidebar-accent` CSS variable, which overrides your custom `bg-[#0b0e15]` class due to data-attribute selector specificity.
+When an existing user signs in, they are being redirected to the onboarding chat if their `profile.onboarded` is `false`. This happens because:
 
-## Root Cause
+1. The `sessionStorage.onboarding_skipped` flag clears when the browser closes
+2. The `ProtectedRoute` then redirects users with `onboarded === false` back to onboarding
 
-In `src/index.css`, the dark mode sidebar accent color is:
-```css
---sidebar-accent: 240 3.7% 15.9%;  /* This is NOT #0b0e15 */
-```
-
-The `SidebarMenuButton` component uses these built-in styles:
-- `data-[active=true]:bg-sidebar-accent` for active state
-- `hover:bg-sidebar-accent` for hover state
-
-These data-attribute selectors have higher specificity than your custom `bg-[#0b0e15]` class.
+This creates a frustrating experience where returning users are forced through onboarding repeatedly.
 
 ## Solution
 
-Update the `--sidebar-accent` CSS variable in dark mode to use `#0b0e15`.
-
-The hex color `#0b0e15` converts to HSL approximately: `220 33% 6%`
+Update the `ProtectedRoute` to check if the user has any existing app ideas. If they do, they're clearly a returning user who has already used the platform, so skip the onboarding redirect.
 
 ---
 
-## File Change
+## Technical Changes
 
-**File:** `src/index.css`  
-**Line:** 96
+### File: `src/components/ProtectedRoute.tsx`
 
-| Before | After |
-|--------|-------|
-| `--sidebar-accent: 240 3.7% 15.9%;` | `--sidebar-accent: 220 33% 6%;` |
+**Add a query to check for existing app ideas:**
+
+```tsx
+// Check if user has any existing apps (indicates returning user)
+const { data: hasExistingApps, isLoading: appsLoading } = useQuery({
+  queryKey: ['user-has-apps', user?.id],
+  queryFn: async () => {
+    if (!user?.id) return false;
+    const { count, error } = await supabase
+      .from('app_ideas')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+    
+    if (error) return false;
+    return (count ?? 0) > 0;
+  },
+  enabled: !!user?.id,
+});
+```
+
+**Update loading check:**
+```tsx
+if (loading || profileLoading || appsLoading) {
+  // show loader
+}
+```
+
+**Update redirect condition:**
+```tsx
+// If user hasn't completed onboarding, redirect to onboarding
+// SKIP redirect if:
+// - Already on onboarding page
+// - User explicitly skipped (sessionStorage)
+// - User has existing apps (returning user)
+if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding && !hasExistingApps) {
+  return <Navigate to="/onboarding" replace />;
+}
+```
 
 ---
 
-## Why This Works
+## Summary
 
-By changing the CSS variable that the sidebar component uses for active/hover states, all sidebar buttons will automatically use your desired `#0b0e15` color consistently, without needing to fight CSS specificity with custom classes.
+| Scenario | Before | After |
+|----------|--------|-------|
+| New user (no apps, onboarded=false) | → Onboarding | → Onboarding |
+| Returning user (has apps, onboarded=false) | → Onboarding ❌ | → Dashboard ✅ |
+| Returning user (onboarded=true) | → Dashboard | → Dashboard |
+| User who just skipped (sessionStorage set) | → Dashboard | → Dashboard |
 
-## Bonus Cleanup
+## Result
 
-After this change, the custom classes in `DashboardSidebar.tsx` can be simplified since the default component styles will now use the correct color automatically.
-
+Returning users who have previously created apps will go directly to the dashboard, even if they skipped onboarding before. Only truly new users with no apps will be directed to onboarding.
