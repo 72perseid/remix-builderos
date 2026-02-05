@@ -17,6 +17,7 @@ import AIKanbanAssistantPage from "./pages/AIKanbanAssistantPage";
 import ProjectBoardPage from "./pages/ProjectBoardPage";
 import ValidationPage from "./pages/ValidationPage";
 import ProductBriefPage from "./pages/ProductBriefPage";
+import MasterPromptPage from "./pages/MasterPromptPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,11 @@ const App = () => (
             <Route path="/product-brief" element={
               <ProtectedRoute>
                 <ProductBriefPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/master-prompt" element={
+              <ProtectedRoute>
+                <MasterPromptPage />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

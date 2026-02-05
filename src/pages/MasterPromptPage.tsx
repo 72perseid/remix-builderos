@@ -1,0 +1,190 @@
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useArtifact } from '@/hooks/useArtifact';
+import { toast } from 'sonner';
+import { FileCode, Loader2, Copy, Check, Sparkles } from 'lucide-react';
+import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+// Helper to extract the prompt text from various formats
+function parsePromptContent(rawContent: unknown): string | null {
+  if (!rawContent) return null;
+  
+  // If already a string, return as-is
+  if (typeof rawContent === 'string') {
+    // Try to extract from markdown code block
+    const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+    if (jsonMatch && jsonMatch[1]) {
+      try {
+        const parsed = JSON.parse(jsonMatch[1]);
+        return parsed.prompt || parsed.masterPrompt || parsed.content || JSON.stringify(parsed, null, 2);
+      } catch {
+        // Not JSON, return the raw string
+        return rawContent;
+      }
+    }
+    
+    // Try direct JSON parse
+    try {
+      const parsed = JSON.parse(rawContent);
+      return parsed.prompt || parsed.masterPrompt || parsed.content || JSON.stringify(parsed, null, 2);
+    } catch {
+      // Not JSON, return raw string
+      return rawContent;
+    }
+  }
+  
+  // If object, extract prompt field or stringify
+  if (typeof rawContent === 'object' && rawContent !== null) {
+    const obj = rawContent as Record<string, unknown>;
+    if (typeof obj.prompt === 'string') return obj.prompt;
+    if (typeof obj.masterPrompt === 'string') return obj.masterPrompt;
+    if (typeof obj.content === 'string') return obj.content;
+    return JSON.stringify(rawContent, null, 2);
+  }
+  
+  return null;
+}
+
+export default function MasterPromptPage() {
+  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('master_prompt');
+  const [copied, setCopied] = useState(false);
+
+  const promptContent = parsePromptContent(artifact?.content);
+
+  const handleCopy = async () => {
+    if (!promptContent) return;
+    
+    try {
+      await navigator.clipboard.writeText(promptContent);
+      setCopied(true);
+      toast.success('Copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Failed to copy to clipboard');
+    }
+  };
+
+  if (artifactLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full bg-[#0B0E14] min-h-screen">
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-5xl mx-auto space-y-6 p-6">
+          <ArtifactBackButton />
+          <div>
+            <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
+            <p className="text-muted-foreground mt-1">
+              This prompt aggregates your Business Model, Roadmap, and Database Design into a single context for AI coding tools.
+            </p>
+          </div>
+
+          {/* Empty State */}
+          {!promptContent && (
+            <Card className="bg-card/50 border-border">
+              <CardContent className="p-12 text-center">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <FileCode className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">No Master Prompt Yet</h3>
+                <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+                  Generate a comprehensive prompt that combines all your project context (Business Model, Database Design, Features) into one document you can paste into any AI coding tool.
+                </p>
+                <Button 
+                  variant="default" 
+                  size="lg"
+                  className="gap-2"
+                  onClick={() => toast.info('Use the AI Assistant on the right to generate your Master Prompt')}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Generate Master Prompt
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Content State */}
+          {promptContent && (
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-white">Generated Prompt</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopy}
+                  className={cn(
+                    "gap-2 transition-colors",
+                    copied && "bg-green-500/20 border-green-500/50 text-green-400"
+                  )}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy to Clipboard
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Code Block with floating copy button */}
+              <div className="relative group">
+                <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={handleCopy}
+                    className={cn(
+                      "h-8 w-8 bg-slate-700 hover:bg-slate-600 border-slate-600",
+                      copied && "bg-green-500/20 border-green-500/50"
+                    )}
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+                
+                <pre className="bg-slate-900 border border-slate-800 rounded-xl p-6 overflow-auto max-h-[60vh] text-sm text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">
+                  {promptContent}
+                </pre>
+              </div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
+              </p>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Copilot Sidebar */}
+      <ArtifactCopilot 
+        context="master_prompt" 
+        heading="Prompt Generator" 
+        onArtifactRefresh={refetchArtifact} 
+      />
+    </div>
+  );
+}
