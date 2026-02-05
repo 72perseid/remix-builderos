@@ -155,36 +155,68 @@ export default function MasterPromptPage() {
 
           {/* Ready State - Unlocked but Empty */}
           {isUnlocked && !promptContent && (
-            <Card className="bg-card/50 border-border">
-              <CardContent className="p-12 text-center">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <FileCode className="w-8 h-8 text-primary" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            >
+              <Card className="relative overflow-hidden border-0 bg-transparent">
+                {/* Background layers */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+                <div className="absolute inset-[1px] rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
+                
+                {/* Animated border gradient */}
+                <div className="absolute inset-0 rounded-2xl">
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/30 via-blue-500/30 to-primary/30 blur-sm" />
+                  <div className="absolute inset-[1px] rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">Ready to Generate</h3>
-                <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-                  All prerequisites complete! Generate a comprehensive prompt that combines all your project context (Business Model, Database Design, Features) into one document you can paste into any AI coding tool.
-                </p>
-                <Button 
-                  variant="default" 
-                  size="lg"
-                  className="gap-2"
-                  onClick={handleGeneratePrompt}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      Generate Master Prompt
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+
+                <CardContent className="relative p-12 text-center">
+                  {/* Icon with glow effect */}
+                  <div className="mb-6">
+                    <div className="relative inline-flex">
+                      <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl" />
+                      <div className="relative flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+                        <Sparkles className="w-10 h-10 text-white" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold text-white mb-3">Ready to Generate</h3>
+                  <p className="text-white font-normal text-base mb-8 max-w-lg mx-auto leading-relaxed">
+                    All prerequisites complete! Generate a comprehensive prompt that combines all your project context (Business Model, Database Design, Features) into one document you can paste into any AI coding tool.
+                  </p>
+                  
+                  <Button 
+                    variant="default" 
+                    size="lg"
+                    className="gap-2 px-8"
+                    onClick={handleGeneratePrompt}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Generate Master Prompt
+                      </>
+                    )}
+                  </Button>
+
+                  {/* Decorative lines */}
+                  <div className="absolute bottom-4 right-4 flex gap-1">
+                    <div className="w-8 h-0.5 rounded-full bg-primary/20" />
+                    <div className="w-4 h-0.5 rounded-full bg-primary/10" />
+                    <div className="w-2 h-0.5 rounded-full bg-primary/5" />
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           )}
 
           {/* Content State - Prompt Generated */}
