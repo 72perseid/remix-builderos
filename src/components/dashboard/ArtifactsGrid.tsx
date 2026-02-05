@@ -67,7 +67,24 @@ export function ArtifactsGrid() {
     if (loading) return 'loading';
     const artifact = artifacts.find(a => a.type === type);
 
-    // No artifact = locked (waiting for AI generation)
+    // Special handling for master_prompt
+    if (type === 'master_prompt') {
+      if (artifact?.status === 'completed') return 'completed';
+      if (artifact?.status === 'generating') return 'loading';
+      
+      // Check if all prerequisites are met
+      const prerequisites = ['business_model', 'db_design', 'validation', 'product_brief'];
+      const allPrerequisitesMet = prerequisites.every(
+        prereq => artifacts.some(a => a.type === prereq)
+      );
+      
+      // If prerequisites met but no master_prompt yet, show "ready"
+      if (allPrerequisitesMet) return 'ready';
+      
+      return 'locked';
+    }
+
+    // Default behavior for other artifacts
     if (!artifact) return 'locked';
     if (artifact.status === 'completed') return 'completed';
     if (artifact.status === 'generating') return 'loading';

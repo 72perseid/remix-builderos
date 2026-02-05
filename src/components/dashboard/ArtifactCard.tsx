@@ -1,9 +1,9 @@
-import { Lock, Loader2, CheckCircle2, Briefcase, Users, FileText, Database, Kanban, FileCode } from "lucide-react";
+import { Lock, Loader2, CheckCircle2, Briefcase, Users, FileText, Database, Kanban, FileCode, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { ReactNode } from "react";
 
-export type ArtifactStatus = "loading" | "locked" | "completed" | "available";
+export type ArtifactStatus = "loading" | "locked" | "completed" | "available" | "ready";
 
 interface ArtifactCardProps {
   title: string;
@@ -34,6 +34,11 @@ const statusConfig = {
     label: "Available",
     color: "text-primary",
   },
+  ready: {
+    icon: <Sparkles className="h-3.5 w-3.5" />,
+    label: "Ready to Generate",
+    color: "text-green-400",
+  },
 };
 
 // Get icon based on card title
@@ -59,7 +64,7 @@ const getCardIcon = (title: string): ReactNode => {
 };
 
 export function ArtifactCard({ title, description, status, onClick, className }: ArtifactCardProps) {
-  const isClickable = status === "available" || status === "completed";
+  const isClickable = status === "available" || status === "completed" || status === "ready";
   const config = statusConfig[status];
 
   return (
