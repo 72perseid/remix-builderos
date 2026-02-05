@@ -1,13 +1,25 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useArtifact } from '@/hooks/useArtifact';
+import { useArtifacts } from '@/hooks/useArtifacts';
 import { toast } from 'sonner';
-import { FileCode, Loader2, Copy, Check, Sparkles } from 'lucide-react';
+import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
 import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
+// Prerequisites configuration
+const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'kanban', 'validation'] as const;
+
+const ARTIFACT_LABELS: Record<string, { label: string; route: string }> = {
+  business_model: { label: 'Business Model', route: '/business-model' },
+  db_design: { label: 'Database Design', route: '/database-design' },
+  kanban: { label: 'Roadmap / Kanban', route: '/project-board' },
+  validation: { label: 'Validation Strategy', route: '/validation' },
+};
 
 // Helper to extract the prompt text from various formats
 function parsePromptContent(rawContent: unknown): string | null {
@@ -50,9 +62,16 @@ function parsePromptContent(rawContent: unknown): string | null {
 }
 
 export default function MasterPromptPage() {
+  const navigate = useNavigate();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('master_prompt');
+  const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
   const [copied, setCopied] = useState(false);
 
+  // Calculate missing prerequisites
+  const missingArtifacts = REQUIRED_ARTIFACTS.filter(
+    (type) => !allArtifacts.some((a) => a.type === type)
+  );
+  const isUnlocked = missingArtifacts.length === 0;
   const promptContent = parsePromptContent(artifact?.content);
 
   const handleCopy = async () => {
@@ -68,7 +87,12 @@ export default function MasterPromptPage() {
     }
   };
 
-  if (artifactLoading) {
+  const handleGeneratePrompt = () => {
+    toast.info('Use the AI Assistant on the right to generate your Master Prompt');
+  };
+
+  // Combined loading state
+  if (artifactLoading || artifactsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -89,22 +113,57 @@ export default function MasterPromptPage() {
             </p>
           </div>
 
-          {/* Empty State */}
-          {!promptContent && (
+          {/* Locked State - Prerequisites Missing */}
+          {!isUnlocked && (
+            <Card className="bg-amber-500/10 border-amber-500/30">
+              <CardContent className="p-8">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-amber-400 mb-2">
+                      Prerequisites Missing
+                    </h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Complete the following artifacts before generating your Master Prompt:
+                    </p>
+                    <ul className="space-y-2">
+                      {missingArtifacts.map((type) => (
+                        <li key={type}>
+                          <Button
+                            variant="link"
+                            className="text-primary p-0 h-auto"
+                            onClick={() => navigate(ARTIFACT_LABELS[type].route)}
+                          >
+                            <Link2 className="w-4 h-4 mr-2" />
+                            {ARTIFACT_LABELS[type].label}
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Ready State - Unlocked but Empty */}
+          {isUnlocked && !promptContent && (
             <Card className="bg-card/50 border-border">
               <CardContent className="p-12 text-center">
                 <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
                   <FileCode className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 text-foreground">No Master Prompt Yet</h3>
+                <h3 className="text-lg font-semibold mb-2 text-foreground">Ready to Generate</h3>
                 <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-                  Generate a comprehensive prompt that combines all your project context (Business Model, Database Design, Features) into one document you can paste into any AI coding tool.
+                  All prerequisites complete! Generate a comprehensive prompt that combines all your project context (Business Model, Database Design, Features) into one document you can paste into any AI coding tool.
                 </p>
                 <Button 
                   variant="default" 
                   size="lg"
                   className="gap-2"
-                  onClick={() => toast.info('Use the AI Assistant on the right to generate your Master Prompt')}
+                  onClick={handleGeneratePrompt}
                 >
                   <Sparkles className="w-4 h-4" />
                   Generate Master Prompt
@@ -113,8 +172,8 @@ export default function MasterPromptPage() {
             </Card>
           )}
 
-          {/* Content State */}
-          {promptContent && (
+          {/* Content State - Prompt Generated */}
+          {isUnlocked && promptContent && (
             <motion.div 
               className="space-y-4"
               initial={{ opacity: 0 }}
