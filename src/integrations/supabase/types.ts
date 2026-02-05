@@ -684,6 +684,7 @@ export type Database = {
         | "product_brief"
         | "db_design"
         | "kanban"
+        | "master_prompt"
       build_feature:
         | "ai_tools"
         | "templates"
@@ -845,6 +846,7 @@ export const Constants = {
         "product_brief",
         "db_design",
         "kanban",
+        "master_prompt",
       ],
       build_feature: [
         "ai_tools",
