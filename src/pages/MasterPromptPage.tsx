@@ -12,13 +12,13 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 // Prerequisites configuration
-const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'kanban', 'validation'] as const;
+const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'validation', 'product_brief'] as const;
 
 const ARTIFACT_LABELS: Record<string, { label: string; route: string }> = {
   business_model: { label: 'Business Model', route: '/business-model' },
   db_design: { label: 'Database Design', route: '/database-design' },
-  kanban: { label: 'Roadmap / Kanban', route: '/project-board' },
   validation: { label: 'Validation Strategy', route: '/validation' },
+  product_brief: { label: 'Product Brief', route: '/product-brief' },
 };
 
 // Helper to extract the prompt text from various formats
