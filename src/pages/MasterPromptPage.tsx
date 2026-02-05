@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useArtifacts } from '@/hooks/useArtifacts';
+import { useCopilotChat } from '@/hooks/useCopilotChat';
 import { toast } from 'sonner';
 import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
@@ -65,6 +66,10 @@ export default function MasterPromptPage() {
   const navigate = useNavigate();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('master_prompt');
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
+  const { sendMessage, isLoading: isGenerating } = useCopilotChat({
+    context: 'master_prompt',
+    onArtifactRefresh: refetchArtifact,
+  });
   const [copied, setCopied] = useState(false);
 
   // Calculate missing prerequisites
@@ -87,8 +92,8 @@ export default function MasterPromptPage() {
     }
   };
 
-  const handleGeneratePrompt = () => {
-    toast.info('Use the AI Assistant on the right to generate your Master Prompt');
+  const handleGeneratePrompt = async () => {
+    await sendMessage('Generate my master prompt by combining all my project artifacts');
   };
 
   // Combined loading state
@@ -164,9 +169,19 @@ export default function MasterPromptPage() {
                   size="lg"
                   className="gap-2"
                   onClick={handleGeneratePrompt}
+                  disabled={isGenerating}
                 >
-                  <Sparkles className="w-4 h-4" />
-                  Generate Master Prompt
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate Master Prompt
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
