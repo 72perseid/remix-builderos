@@ -35,6 +35,12 @@ const artifactCards: ArtifactCardConfig[] = [{
   description: 'ERD diagram and table schema for your application data.',
   route: '/database-design',
   category: 'building'
+}, {
+  type: 'master_prompt',
+  title: 'Master Prompt / PRD',
+  description: 'Generate a comprehensive prompt containing your entire project context (DB, Business, Features) to paste into any AI coding tool.',
+  route: '/master-prompt',
+  category: 'launching'
 }];
 
 // Explicit type-to-section mapping for filtering artifacts by phase
@@ -43,7 +49,8 @@ const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launchin
   validation: 'planning',
   product_brief: 'planning',
   db_design: 'building',
-  kanban: 'building', // Not displayed but included for type completeness
+  kanban: 'building',
+  master_prompt: 'launching',
 };
 
 export function ArtifactsGrid() {
@@ -70,6 +77,7 @@ export function ArtifactsGrid() {
   // Filter cards by section using the explicit type mapping
   const planningCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'planning');
   const buildingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'building');
+  const launchingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'launching');
   
   return <div className="space-y-8">
       {/* Architect Banner */}
@@ -141,14 +149,15 @@ export function ArtifactsGrid() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {/* Coming Soon Placeholder */}
-            <div className="rounded-2xl border border-dashed border-border/50 bg-muted/20 p-6 text-center min-h-[180px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-xl bg-muted/30 flex items-center justify-center mb-3">
-                <span className="text-2xl text-muted-foreground/50">🚀</span>
-              </div>
-              <p className="text-sm font-medium text-muted-foreground">Coming Soon</p>
-              <p className="text-xs text-muted-foreground/60 mt-1">Launch artifacts will appear here</p>
-            </div>
+            {launchingCards.map(card => (
+              <ArtifactCard 
+                key={card.type} 
+                title={card.title} 
+                description={card.description} 
+                status={getCardStatus(card.type)} 
+                onClick={() => navigate(card.route)} 
+              />
+            ))}
           </div>
         </div>
       </div>

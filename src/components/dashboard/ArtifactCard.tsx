@@ -1,4 +1,4 @@
-import { Lock, Loader2, CheckCircle2, Briefcase, Users, FileText, Database, Kanban } from "lucide-react";
+import { Lock, Loader2, CheckCircle2, Briefcase, Users, FileText, Database, Kanban, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { ReactNode } from "react";
@@ -51,6 +51,8 @@ const getCardIcon = (title: string): ReactNode => {
       return <Database className={iconClass} />;
     case 'roadmap & features':
       return <Kanban className={iconClass} />;
+    case 'master prompt / prd':
+      return <FileCode className={iconClass} />;
     default:
       return <FileText className={iconClass} />;
   }
