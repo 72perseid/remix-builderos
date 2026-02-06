@@ -113,7 +113,7 @@ export default function MasterPromptPage() {
           <ArtifactBackButton />
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-white/80 mt-1">
               This prompt aggregates your Business Model, Roadmap, and Database Design into a single context for AI coding tools.
             </p>
           </div>
