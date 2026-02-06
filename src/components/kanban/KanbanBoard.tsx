@@ -56,37 +56,24 @@ export function KanbanBoard() {
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    // Check if dropped directly on a column
+    // Find the target column
     const overColumn = columns.find((col) => col.id === overId);
-    
-    // Find the task being dragged
-    const draggedTask = tasks.find((t) => t.id === activeId);
-    if (!draggedTask) return;
+    const targetStatus = overColumn?.id || tasks.find((t) => t.id === overId)?.status;
 
-    let targetStatus: TaskStatus;
-    let newPosition: number;
+    if (!targetStatus) return;
 
-    if (overColumn) {
-      // Dropped directly on a column (usually empty or column header area)
-      targetStatus = overColumn.id;
-      const tasksInColumn = getTasksByStatus(targetStatus);
-      newPosition = tasksInColumn.length; // Add to end
-    } else {
-      // Dropped on a task - find which column that task is in
-      const overTask = tasks.find((t) => t.id === overId);
-      if (!overTask) return;
-      
-      targetStatus = overTask.status;
-      const tasksInColumn = getTasksByStatus(targetStatus);
-      const overTaskIndex = tasksInColumn.findIndex((t) => t.id === overId);
-      newPosition = overTaskIndex >= 0 ? overTaskIndex : tasksInColumn.length;
-    }
+    const activeTask = tasks.find((t) => t.id === activeId);
+    if (!activeTask) return;
 
-    // Only update if something changed
-    if (draggedTask.status !== targetStatus || draggedTask.position !== newPosition) {
+    // Calculate new position
+    const tasksInColumn = getTasksByStatus(targetStatus);
+    const overTaskIndex = tasksInColumn.findIndex((t) => t.id === overId);
+    const newPosition = overTaskIndex >= 0 ? overTaskIndex : tasksInColumn.length;
+
+    if (activeTask.status !== targetStatus || activeTask.position !== newPosition) {
       moveTask(activeId, targetStatus, newPosition);
     }
-  }, [tasks, getTasksByStatus, moveTask, columns]);
+  }, [tasks, getTasksByStatus, moveTask]);
 
   const handleAddTask = useCallback((status: TaskStatus) => {
     setEditingTask(null);
