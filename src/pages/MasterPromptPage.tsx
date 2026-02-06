@@ -105,10 +105,8 @@ export default function MasterPromptPage() {
   }
 
   return (
-    <div className="flex h-full bg-[#0B0E14] min-h-screen">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-5xl mx-auto space-y-6 p-6">
+    <div className="h-full bg-[#0B0E14] min-h-screen overflow-auto">
+      <div className="max-w-5xl mx-auto space-y-6 p-6">
           <ArtifactBackButton />
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
