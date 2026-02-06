@@ -8,7 +8,6 @@ import { useCopilotChat } from '@/hooks/useCopilotChat';
 import { toast } from 'sonner';
 import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
-import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -106,10 +105,8 @@ export default function MasterPromptPage() {
   }
 
   return (
-    <div className="flex h-full bg-[#0B0E14] min-h-screen">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-5xl mx-auto space-y-6 p-6">
+    <div className="h-full bg-[#0B0E14] min-h-screen overflow-auto">
+      <div className="max-w-5xl mx-auto space-y-6 p-6">
           <ArtifactBackButton />
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
@@ -280,17 +277,9 @@ export default function MasterPromptPage() {
               <p className="text-xs text-white/70 text-center">
                 Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
               </p>
-            </motion.div>
+          </motion.div>
           )}
-        </div>
       </div>
-
-      {/* Copilot Sidebar */}
-      <ArtifactCopilot 
-        context="master_prompt" 
-        heading="Prompt Generator" 
-        onArtifactRefresh={refetchArtifact} 
-      />
     </div>
   );
 }
