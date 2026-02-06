@@ -5,7 +5,7 @@ import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
 import { useTasks } from '@/hooks/useTasks';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay } from '@/components/ui/kanban';
+import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay, KanbanMoveEvent } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
@@ -568,25 +568,23 @@ export default function ProjectBoardPage() {
     setIsDeadlineOpen(false);
   }, [editingCard]);
 
-  // Handle drag and drop column changes
-  const handleColumnsChange = useCallback((newColumns: Record<string, KanbanCard[]>) => {
-    // Find cards that moved columns and update their status in the database
-    Object.entries(newColumns).forEach(([columnId, cards]) => {
-      cards.forEach((card, index) => {
-        const previousColumn = Object.entries(columns).find(([, colCards]) => 
-          colCards.some(c => c.id === card.id)
-        );
-        
-        if (previousColumn && previousColumn[0] !== columnId) {
-          // Card moved to a different column - update in database
-          updateTask(card.id, { 
-            status: columnId as TaskStatus,
-            position: index 
-          });
-        }
-      });
+  // Handle drag and drop movements - uses onMove for reliable persistence
+  const handleMove = useCallback((event: KanbanMoveEvent) => {
+    const { activeContainer, overContainer, overIndex } = event;
+    const activeCardId = event.event.active.id as string;
+
+    // Persist the change to Supabase immediately
+    updateTask(activeCardId, {
+      status: overContainer as TaskStatus,
+      position: overIndex,
     });
-  }, [columns, updateTask]);
+  }, [updateTask]);
+
+  // Keep handleColumnsChange for same-column reordering
+  const handleColumnsChange = useCallback((newColumns: Record<string, KanbanCard[]>) => {
+    // This is now only used for same-column reordering (handled by kanban.tsx internally)
+    // Cross-column moves are handled by handleMove via onMove prop
+  }, []);
 
   const activeColumn = COLUMN_CONFIG.find(col => col.id === activeColumnId);
   const editingCardColumn = COLUMN_CONFIG.find(col => col.id === editingCardColumnId);
@@ -613,7 +611,7 @@ export default function ProjectBoardPage() {
       />
       
       {/* Kanban Board */}
-      <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id}>
+      <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id} onMove={handleMove}>
         <KanbanBoard className="flex-1 gap-3">
           {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
         </KanbanBoard>
