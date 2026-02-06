@@ -277,7 +277,7 @@ export default function MasterPromptPage() {
                 </pre>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-xs text-white/70 text-center">
                 Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
               </p>
             </motion.div>
