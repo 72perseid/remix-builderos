@@ -85,7 +85,7 @@ export function ArtifactCopilot({
           {/* Messages */}
           <ScrollArea className="flex-1 p-4" ref={scrollRef}>
             {messages.length === 0 ? <div className="text-center py-8">
-                <MessageSquare className="h-8 w-8 text-slate-600 mx-auto mb-2" />
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 text-primary" />
                 <p className="text-sm text-primary-foreground">
                   Ask me anything about your {context.replace('_', ' ')}
                 </p>
