@@ -130,7 +130,7 @@ export default function MasterPromptPage() {
                     <h3 className="text-lg font-semibold text-amber-400 mb-2">
                       Prerequisites Missing
                     </h3>
-                    <p className="text-muted-foreground text-sm mb-4">
+                    <p className="text-white/80 text-sm mb-4">
                       Complete the following artifacts before generating your Master Prompt:
                     </p>
                     <ul className="space-y-2">
