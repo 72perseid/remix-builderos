@@ -113,7 +113,7 @@ export default function MasterPromptPage() {
           <ArtifactBackButton />
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-white/80 mt-1">
               This prompt aggregates your Business Model, Roadmap, and Database Design into a single context for AI coding tools.
             </p>
           </div>
@@ -130,7 +130,7 @@ export default function MasterPromptPage() {
                     <h3 className="text-lg font-semibold text-amber-400 mb-2">
                       Prerequisites Missing
                     </h3>
-                    <p className="text-muted-foreground text-sm mb-4">
+                    <p className="text-white/80 text-sm mb-4">
                       Complete the following artifacts before generating your Master Prompt:
                     </p>
                     <ul className="space-y-2">
@@ -277,7 +277,7 @@ export default function MasterPromptPage() {
                 </pre>
               </div>
 
-              <p className="text-xs text-muted-foreground text-center">
+              <p className="text-xs text-white/70 text-center">
                 Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
               </p>
             </motion.div>
