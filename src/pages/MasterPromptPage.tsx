@@ -277,17 +277,9 @@ export default function MasterPromptPage() {
               <p className="text-xs text-white/70 text-center">
                 Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
               </p>
-            </motion.div>
+          </motion.div>
           )}
-        </div>
       </div>
-
-      {/* Copilot Sidebar */}
-      <ArtifactCopilot 
-        context="master_prompt" 
-        heading="Prompt Generator" 
-        onArtifactRefresh={refetchArtifact} 
-      />
     </div>
   );
 }
