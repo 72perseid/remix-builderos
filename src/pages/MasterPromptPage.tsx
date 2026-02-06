@@ -8,7 +8,6 @@ import { useCopilotChat } from '@/hooks/useCopilotChat';
 import { toast } from 'sonner';
 import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
-import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
