@@ -898,7 +898,7 @@ export default function ProjectBoardPage() {
                   <div className="w-40 space-y-4 flex-shrink-0">
                     {/* Category & Priority section */}
                     <div>
-                      <p className="text-[10px] font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
+                      <p className="text-[10px] font-semibold text-white mb-1.5 uppercase tracking-wider">
                         Labels
                       </p>
                       <div className="space-y-1">
