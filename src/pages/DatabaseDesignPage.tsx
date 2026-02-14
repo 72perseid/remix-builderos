@@ -6,7 +6,7 @@ import { useDatabaseDesign } from '@/hooks/useDatabaseDesign';
 import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Database, Table2, Link2, Loader2, Columns } from 'lucide-react';
-import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+
 import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 import {
@@ -104,11 +104,10 @@ export default function DatabaseDesignPage() {
   }
 
   return (
-    <div className="flex h-full bg-[#0B0E14] min-h-screen">
+    <div className="flex h-full">
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto space-y-6 p-6">
-          <ArtifactBackButton />
+        <div className="max-w-6xl mx-auto space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Database Design</h1>
             <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>

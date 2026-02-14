@@ -11,8 +11,8 @@ import { toast } from "sonner";
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
 
 const mainNavItems = [{
-  title: "Dashboard",
-  url: "/dashboard",
+  title: "Build",
+  url: "/project-board",
   icon: LayoutDashboard
 }];
 
@@ -35,7 +35,8 @@ export function DashboardSidebar() {
     }
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const buildRoutes = ['/project-board', '/dashboard', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief'];
+  const isActive = (path: string) => buildRoutes.includes(location.pathname);
 
   return (
     <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
