@@ -40,7 +40,7 @@ const artifactCards: ArtifactCardConfig[] = [{
   title: 'Master Prompt / PRD',
   description: 'Generate a comprehensive prompt containing your entire project context (DB, Business, Features) to paste into any AI coding tool.',
   route: '/master-prompt',
-  category: 'launching'
+  category: 'building'
 }];
 
 // Explicit type-to-section mapping for filtering artifacts by phase
@@ -50,7 +50,7 @@ const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launchin
   product_brief: 'planning',
   db_design: 'building',
   kanban: 'building',
-  master_prompt: 'launching',
+  master_prompt: 'building',
 };
 
 export function ArtifactsGrid() {
