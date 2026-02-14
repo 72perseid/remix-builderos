@@ -73,7 +73,7 @@ export default function ProductBriefPage() {
           )}
 
           {!artifact ? (
-            <Card className="bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729] border-white/10">
+            <Card className="bg-[#161e2a] border-slate-700/50">
               <CardContent className="p-8 text-center">
                 <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2 text-foreground">No Product Brief Yet</h3>

@@ -35,18 +35,15 @@ const BusinessCard = React.forwardRef<HTMLDivElement, BusinessCardProps>(
         whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
         className={cn(
           "group relative overflow-hidden rounded-2xl",
-          "bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]",
-          "border border-white/10 backdrop-blur-sm",
+          "bg-[#161e2a]",
+          "border border-slate-700/50",
           "shadow-lg shadow-black/20",
           "transition-all duration-300",
-          "hover:border-white/20 hover:shadow-xl hover:shadow-primary/5",
+          "hover:border-slate-600/70",
           colSpan === 2 && "md:col-span-2",
           className
         )}
       >
-        {/* Gradient overlay on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
         {/* Content */}
         <div className="relative p-5">
           {/* Header */}
