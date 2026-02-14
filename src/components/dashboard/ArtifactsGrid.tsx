@@ -112,23 +112,16 @@ export function ArtifactsGrid() {
               Define your value proposition, validate your ideas, and create comprehensive product requirements.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            {planningCards.map((card, index) => {
-              const isLastCard = index === planningCards.length - 1;
-              const isOddCount = planningCards.length % 2 !== 0;
-              const shouldSpan = isLastCard && isOddCount;
-              
-              return (
-                <ArtifactCard 
-                  key={card.type} 
-                  title={card.title} 
-                  description={card.description} 
-                  status={getCardStatus(card.type)} 
-                  onClick={() => navigate(card.route)}
-                  className={shouldSpan ? 'col-span-2' : ''}
-                />
-              );
-            })}
+          <div className="grid grid-cols-1 gap-4">
+            {planningCards.map(card => (
+              <ArtifactCard 
+                key={card.type} 
+                title={card.title} 
+                description={card.description} 
+                status={getCardStatus(card.type)} 
+                onClick={() => navigate(card.route)}
+              />
+            ))}
           </div>
         </div>
 
