@@ -12,26 +12,26 @@
     --card-foreground: 240 10% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 10%;
-    --primary: 262 83% 58%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 5% 96%;
     --secondary-foreground: 240 10% 10%;
     --muted: 240 5% 96%;
     --muted-foreground: 240 4% 46%;
-    --accent: 172 66% 50%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 240 6% 90%;
     --input: 240 6% 90%;
-    --ring: 262 83% 58%;
+    --ring: 217 91% 60%;
     --radius: 0.75rem;
     
     /* Custom tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(280, 80%, 65%));
-    --gradient-accent: linear-gradient(135deg, hsl(172, 66%, 50%), hsl(190, 70%, 55%));
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(199, 89%, 48%));
+    --gradient-accent: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(210, 80%, 55%));
     --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(240, 5%, 98%));
-    --shadow-glow: 0 0 40px hsl(262 83% 58% / 0.15);
+    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.15);
     --shadow-card: 0 4px 24px -4px hsl(240 10% 10% / 0.08);
     
     /* Kanban colors */
@@ -69,24 +69,24 @@
     --card-foreground: 0 0% 100%;
     --popover: 240 10% 9%;
     --popover-foreground: 0 0% 100%;
-    --primary: 262 83% 65%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 240 6% 15%;
     --secondary-foreground: 0 0% 100%;
     --muted: 240 6% 15%;
     --muted-foreground: 0 0% 85%;
-    --accent: 172 66% 55%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     --border: 240 6% 20%;
     --input: 240 6% 20%;
-    --ring: 262 83% 65%;
+    --ring: 217 91% 60%;
     
-    --gradient-primary: linear-gradient(135deg, hsl(262, 83%, 65%), hsl(280, 80%, 70%));
-    --gradient-accent: linear-gradient(135deg, hsl(172, 66%, 55%), hsl(190, 70%, 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(199, 89%, 48%));
+    --gradient-accent: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(210, 80%, 55%));
     --gradient-surface: linear-gradient(180deg, hsl(240, 10%, 9%), hsl(240, 10%, 6%));
-    --shadow-glow: 0 0 60px hsl(262 83% 65% / 0.2);
+    --shadow-glow: 0 0 60px hsl(217 91% 60% / 0.2);
     --shadow-card: 0 4px 24px -4px hsl(0 0% 0% / 0.4);
     
     --sidebar-background: 240 5.9% 10%;

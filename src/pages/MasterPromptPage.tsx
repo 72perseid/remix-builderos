@@ -157,17 +157,7 @@ export default function MasterPromptPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <Card className="relative overflow-hidden border-0 bg-transparent">
-                {/* Background layers */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
-                <div className="absolute inset-[1px] rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
-                
-                {/* Animated border gradient */}
-                <div className="absolute inset-0 rounded-2xl">
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/30 via-blue-500/30 to-primary/30 blur-sm" />
-                  <div className="absolute inset-[1px] rounded-2xl bg-gradient-to-br from-[#1a2235] via-[#161e2a] to-[#0f1729]" />
-                </div>
+              <Card className="relative overflow-hidden rounded-2xl bg-[#161e2a] border border-slate-700/50">
 
                 <CardContent className="relative p-12 text-center">
                   {/* Icon with glow effect */}
