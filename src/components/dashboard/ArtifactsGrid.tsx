@@ -159,7 +159,7 @@ export function ArtifactsGrid() {
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4">
-            {launchingCards.map(card => (
+            {launchingCards.length > 0 ? launchingCards.map(card => (
               <ArtifactCard 
                 key={card.type} 
                 title={card.title} 
@@ -167,7 +167,12 @@ export function ArtifactsGrid() {
                 status={getCardStatus(card.type)} 
                 onClick={() => navigate(card.route)} 
               />
-            ))}
+            )) : (
+              <div className="bg-[#161e2a] border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[140px]">
+                <span className="text-lg font-semibold text-muted-foreground">Coming Soon!</span>
+                <p className="text-sm text-muted-foreground/60 mt-1">Stay tuned for launching tools.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
