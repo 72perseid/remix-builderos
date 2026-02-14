@@ -58,16 +58,10 @@ export function DashboardSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive(item.url)}
-                      className={`
-                        rounded-xl h-11 transition-all duration-200
-                        ${isActive(item.url)
-                          ? "bg-primary/20 text-primary font-medium"
-                          : "text-slate-400 hover:text-white hover:bg-white/5"
-                        }
-                      `}
+                      className="rounded-xl h-11 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
                     >
                       <Link to={item.url}>
-                        <item.icon className={`h-5 w-5 ${isActive(item.url) ? "text-primary" : "text-slate-400"}`} />
+                        <item.icon className="h-5 w-5" />
                         <span className="text-sm">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
