@@ -1,47 +1,30 @@
 
-# Change App Font Color to Bright White
+
+# Change Global Font to Inter
 
 ## Overview
 
-Update the global CSS variables in `src/index.css` to make all text content bright white throughout the app in dark mode.
-
-## Current State
-
-The dark mode theme currently uses:
-- `--foreground: 0 0% 95%` (light gray, not pure white)
-- `--card-foreground: 0 0% 95%` (light gray)
-- `--popover-foreground: 0 0% 95%` (light gray)
-- `--secondary-foreground: 0 0% 95%` (light gray)
-- `--muted-foreground: 240 5% 55%` (muted gray - used for secondary text)
-- `--sidebar-foreground: 240 4.8% 95.9%` (light gray)
+Replace the current "Space Grotesk" font with "Inter" across the entire application, ensuring all text uses a single font variable.
 
 ## Changes
 
-### File: `src/index.css`
+### 1. `src/index.css`
 
-Update the `.dark` section (lines 65-100) to use bright white (`0 0% 100%`) for all foreground colors:
+- Update the Google Fonts import from `Space+Grotesk` to `Inter` (weights 300-700)
+- Keep `JetBrains Mono` for code blocks (monospace is a separate concern)
+- Update the body font-family to `'Inter', sans-serif`
 
-| CSS Variable | Current Value | New Value |
-|--------------|---------------|-----------|
-| `--foreground` | `0 0% 95%` | `0 0% 100%` |
-| `--card-foreground` | `0 0% 95%` | `0 0% 100%` |
-| `--popover-foreground` | `0 0% 95%` | `0 0% 100%` |
-| `--secondary-foreground` | `0 0% 95%` | `0 0% 100%` |
-| `--muted-foreground` | `240 5% 55%` | `0 0% 85%` |
-| `--sidebar-foreground` | `240 4.8% 95.9%` | `0 0% 100%` |
-| `--sidebar-accent-foreground` | `240 4.8% 95.9%` | `0 0% 100%` |
+### 2. `tailwind.config.ts`
 
-The `--muted-foreground` is changed to `0 0% 85%` instead of pure white to maintain some visual hierarchy for secondary/helper text while still being much brighter than before.
+- Update `fontFamily.sans` from `['Space Grotesk', 'sans-serif']` to `['Inter', 'sans-serif']`
 
-## Impact
+These two files are the only places the font is defined. All components inherit from the Tailwind `font-sans` class or the body style, so no individual component changes are needed.
 
-This change affects all text throughout the app that uses:
-- `text-foreground` (main text)
-- `text-card-foreground` (card content)
-- `text-muted-foreground` (secondary text, descriptions)
-- `text-popover-foreground` (dropdown/popover text)
-- Sidebar text colors
+## Technical Details
 
-## Result
+| File | Line | Current | New |
+|------|------|---------|-----|
+| `src/index.css` | 1 | `Space+Grotesk:wght@300;400;500;600;700` | `Inter:wght@300;400;500;600;700` |
+| `src/index.css` | ~108 | `font-family: 'Space Grotesk', sans-serif` | `font-family: 'Inter', sans-serif` |
+| `tailwind.config.ts` | ~30 | `sans: ['Space Grotesk', 'sans-serif']` | `sans: ['Inter', 'sans-serif']` |
 
-All content text will appear as bright white, improving readability and creating a cleaner, more consistent dark theme appearance across the entire application.
