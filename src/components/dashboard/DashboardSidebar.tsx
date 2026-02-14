@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, ChevronLeft, ChevronRight, LogOut } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { LayoutDashboard, LogOut } from "lucide-react";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,6 +15,7 @@ const mainNavItems = [{
   url: "/dashboard",
   icon: LayoutDashboard
 }];
+
 export function DashboardSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -33,49 +34,61 @@ export function DashboardSidebar() {
       navigate("/auth");
     }
   };
+
   const isActive = (path: string) => location.pathname === path;
-  return <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-slate-800 bg-[#0e172a] text-secondary">
-        <div className="flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center">
-            {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
-            {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
-          </Link>
-          <SidebarTrigger className="text-slate-400 hover:text-white">
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </SidebarTrigger>
-        </div>
+
+  return (
+    <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
+      {/* Logo */}
+      <SidebarHeader className="px-5 pt-5 pb-4 bg-[#0B0E14]">
+        <Link to="/dashboard" className="flex items-center">
+          {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
+          {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
+        </Link>
       </SidebarHeader>
 
-      <SidebarContent className="bg-[#0B0E14]">
+      {/* Nav items inside a rounded container */}
+      <SidebarContent className="bg-[#0B0E14] px-3">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
-            {mainNavItems.map(item => <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} className={`
-                      transition-all duration-200
-                      ${isActive(item.url) ? "bg-[#0b0e15] text-primary border-l-2 border-primary" : "text-muted-foreground hover:text-foreground hover:bg-[#0b0e15]"}
-                    `}>
-                    <Link to={item.url}>
-                      <item.icon className={`h-5 w-5 ${isActive(item.url) ? "text-primary" : "text-muted-foreground"}`} />
-                      <span className="text-base">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>)}
-            </SidebarMenu>
+            <div className="bg-[#111827] rounded-2xl p-2">
+              <SidebarMenu className="gap-1">
+                {mainNavItems.map(item => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      className={`
+                        rounded-xl h-11 transition-all duration-200
+                        ${isActive(item.url)
+                          ? "bg-primary/20 text-primary font-medium"
+                          : "text-slate-400 hover:text-white hover:bg-white/5"
+                        }
+                      `}
+                    >
+                      <Link to={item.url}>
+                        <item.icon className={`h-5 w-5 ${isActive(item.url) ? "text-primary" : "text-slate-400"}`} />
+                        <span className="text-sm">{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-slate-800 p-4 bg-[#0B0E14]">
+      {/* User profile footer */}
+      <SidebarFooter className="border-t border-slate-800/50 p-4 bg-[#0B0E14]">
         <div className="flex items-center justify-between gap-3">
-          <div 
+          <div
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => setIsProfileOpen(true)}
           >
-            <Avatar className="h-10 w-10 border-2 border-slate-700">
+            <Avatar className="h-9 w-9 border-2 border-slate-700">
               <AvatarImage src={profile?.profile_image || ""} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
+              <AvatarFallback className="bg-primary/30 text-primary text-sm">
                 {profile?.first_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
@@ -101,5 +114,6 @@ export function DashboardSidebar() {
       </SidebarFooter>
 
       <ProfileSheet open={isProfileOpen} onOpenChange={setIsProfileOpen} />
-    </Sidebar>;
+    </Sidebar>
+  );
 }
