@@ -7,7 +7,7 @@ import { useArtifacts } from '@/hooks/useArtifacts';
 import { useCopilotChat } from '@/hooks/useCopilotChat';
 import { toast } from 'sonner';
 import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
-import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -105,9 +105,8 @@ export default function MasterPromptPage() {
   }
 
   return (
-    <div className="h-full bg-[#0B0E14] min-h-screen overflow-auto">
-      <div className="max-w-5xl mx-auto space-y-6 p-6">
-          <ArtifactBackButton />
+    <div className="h-full overflow-auto">
+      <div className="max-w-5xl mx-auto space-y-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
             <p className="text-white/80 mt-1">

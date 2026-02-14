@@ -18,6 +18,7 @@ import ProjectBoardPage from "./pages/ProjectBoardPage";
 import ValidationPage from "./pages/ValidationPage";
 import ProductBriefPage from "./pages/ProductBriefPage";
 import MasterPromptPage from "./pages/MasterPromptPage";
+import AppDetailsPage from "./pages/AppDetailsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,7 +38,7 @@ const App = () => (
                 <OnboardingPage />
               </ProtectedRoute>
             } />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<Navigate to="/project-board" replace />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardLayout><Dashboard /></DashboardLayout>
@@ -55,27 +56,32 @@ const App = () => (
             } />
             <Route path="/business-model" element={
               <ProtectedRoute>
-                <BusinessModelPage />
+                <DashboardLayout><BusinessModelPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/database-design" element={
               <ProtectedRoute>
-                <DatabaseDesignPage />
+                <DashboardLayout><DatabaseDesignPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/validation" element={
               <ProtectedRoute>
-                <ValidationPage />
+                <DashboardLayout><ValidationPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/product-brief" element={
               <ProtectedRoute>
-                <ProductBriefPage />
+                <DashboardLayout><ProductBriefPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/master-prompt" element={
               <ProtectedRoute>
-                <MasterPromptPage />
+                <DashboardLayout><MasterPromptPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/app-details" element={
+              <ProtectedRoute>
+                <DashboardLayout><AppDetailsPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
