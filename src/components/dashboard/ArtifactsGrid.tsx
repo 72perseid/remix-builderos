@@ -100,8 +100,8 @@ export function ArtifactsGrid() {
       {/* Architect Banner */}
       <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
 
-      {/* Three-column layout with Feature Planning, Building, and Launching sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Single column layout with Feature Planning and Launching */}
+      <div className="grid grid-cols-1 gap-6 max-w-xl">
         {/* Feature Planning Section */}
         <div className="space-y-4">
           <div className="mb-2">
@@ -120,29 +120,6 @@ export function ArtifactsGrid() {
                 description={card.description} 
                 status={getCardStatus(card.type)} 
                 onClick={() => navigate(card.route)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Building Section */}
-        <div className="space-y-4">
-          <div className="mb-2">
-            <h2 className="text-lg font-semibold text-white mb-1">
-              Building
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Design your database schema, define relationships, and plan your technical architecture.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-4">
-            {buildingCards.map(card => (
-              <ArtifactCard 
-                key={card.type} 
-                title={card.title} 
-                description={card.description} 
-                status={getCardStatus(card.type)} 
-                onClick={() => navigate(card.route)} 
               />
             ))}
           </div>
