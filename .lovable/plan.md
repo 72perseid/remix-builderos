@@ -1,29 +1,66 @@
 
 
-# Fix Sidebar Active State Color
+# Restructure Navigation: Build Tab, App Details, and Route Renaming
 
-## Problem
-The Dashboard button in the sidebar appears with a white/light background instead of blue. This happens because:
-1. The `SidebarMenuButton` component has a built-in CVA style `data-[active=true]:bg-sidebar-accent` 
-2. The DashboardSidebar also applies `bg-primary/20` (very transparent blue) as an inline class
-3. These two styles conflict, and depending on CSS specificity order, one wins over the other unpredictably
+## Overview
 
-## Solution
+Three changes requested:
+1. The ProfileSheet sidebar content (app details, editing) should become the **App Details** tab/page
+2. The **Artifacts** page route should change from `/dashboard` to `/artifacts` (or at minimum, the tab label stays "Artifacts" and the route is updated)
+3. The sidebar item becomes **"Build"** and the tab bar expands to 5 tabs
 
-### File: `src/components/dashboard/DashboardSidebar.tsx`
+## Changes
 
-Replace the conflicting inline active styles with proper `data-[active=true]:` prefixed classes that work with the CVA system:
+### 1. Sidebar: Rename "Dashboard" to "Build" (`src/components/dashboard/DashboardSidebar.tsx`)
+- Change `mainNavItems` title from "Dashboard" to "Build"
+- Keep the URL pointing to `/dashboard` (or update to `/artifacts` -- see below)
+- Optionally swap icon from `LayoutDashboard` to `Hammer` or keep it
 
-- **Active state**: Change from `bg-primary/20 text-primary` to using Tailwind's `data-[active=true]:bg-[hsl(217,91%,25%)] data-[active=true]:text-blue-300` to ensure the blue background wins
-- **Hover state for inactive items**: Keep `hover:text-white hover:bg-white/5`
-- Remove the separate icon color conditional since the text color will cascade
+### 2. Tab Bar: Expand to 5 tabs (`src/components/dashboard/DashboardTabs.tsx`)
+Update the tabs array to:
 
-This ensures the active Dashboard button gets a solid dark-blue background (matching the reference) instead of a white or transparent one.
+```text
+Project Board  |  Artifacts  |  Database Design  |  Master Prompt  |  App Details
+```
 
-### Technical Details
+- **Project Board** -> `/project-board`
+- **Artifacts** -> `/dashboard` (keep existing route to avoid breaking things)
+- **Database Design** -> `/database-design`
+- **Master Prompt** -> `/master-prompt`
+- **App Details** -> `/app-details`
 
-The key change in the className for `SidebarMenuButton`:
-- Remove the ternary that applies `bg-primary/20 text-primary` for active state
-- Instead use: `data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300` with the `!` important modifier to ensure it overrides the CVA defaults
-- For inactive: keep `text-slate-400 hover:text-white hover:bg-white/5`
+Update `routeToTab` mapping for all these routes.
+
+### 3. New App Details Page (`src/pages/AppDetailsPage.tsx`)
+- Move the "Your Apps" section from `ProfileSheet` into a full page
+- Show the selected app's details (name, description, one-liner, category, type, logo)
+- Include edit and delete functionality (reuse the edit/delete dialog logic from ProfileSheet)
+- List all apps with ability to switch between them
+
+### 4. Simplify ProfileSheet (`src/components/dashboard/ProfileSheet.tsx`)
+- Remove the "Your Apps" section and the edit/delete app dialogs
+- Keep only user profile information (avatar, name, email, bio, location)
+- This makes the ProfileSheet focused on user profile only
+
+### 5. Routes (`src/App.tsx`)
+- Add `/app-details` route wrapped in `ProtectedRoute` + `DashboardLayout`
+- Wrap `/database-design` in `DashboardLayout` (currently missing it)
+- Wrap `/master-prompt` in `DashboardLayout` (currently missing it)
+
+### 6. Remove ArtifactBackButton from promoted pages
+- `DatabaseDesignPage.tsx`: Remove `ArtifactBackButton` since it is now a top-level tab
+- `MasterPromptPage.tsx`: Remove `ArtifactBackButton` since it is now a top-level tab
+
+## Technical Details
+
+### Files to create:
+- `src/pages/AppDetailsPage.tsx` -- new page with app details/edit/delete, adapted from ProfileSheet's "Your Apps" section
+
+### Files to modify:
+- `src/components/dashboard/DashboardSidebar.tsx` -- rename "Dashboard" to "Build"
+- `src/components/dashboard/DashboardTabs.tsx` -- 5 tabs with updated routes and mappings
+- `src/components/dashboard/ProfileSheet.tsx` -- remove app-related sections, keep user profile only
+- `src/App.tsx` -- add `/app-details` route; wrap `/database-design` and `/master-prompt` in `DashboardLayout`
+- `src/pages/DatabaseDesignPage.tsx` -- remove `ArtifactBackButton`, remove outer padding/min-h-screen (DashboardLayout handles it)
+- `src/pages/MasterPromptPage.tsx` -- remove `ArtifactBackButton`, remove outer padding/min-h-screen
 
