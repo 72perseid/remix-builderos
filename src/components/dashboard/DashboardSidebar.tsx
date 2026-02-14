@@ -51,24 +51,22 @@ export function DashboardSidebar() {
       <SidebarContent className="bg-[#0B0E14] px-3">
         <SidebarGroup>
           <SidebarGroupContent>
-            <div className="bg-[#111827] rounded-2xl p-2">
-              <SidebarMenu className="gap-1">
-                {mainNavItems.map(item => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(item.url)}
-                      className="rounded-xl h-11 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
-                    >
-                      <Link to={item.url}>
-                        <item.icon className="h-5 w-5" />
-                        <span className="text-sm">{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </div>
+            <SidebarMenu className="gap-1">
+              {mainNavItems.map(item => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.url)}
+                    className="rounded-full h-10 px-4 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="h-5 w-5" />
+                      <span className="text-sm">{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
