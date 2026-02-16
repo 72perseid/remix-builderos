@@ -147,7 +147,7 @@ export default function BusinessModelPage() {
   }
 
   return (
-    <div className="h-full min-h-screen flex flex-col">
+    <div className="h-full min-h-screen flex flex-col bg-[#0B0E14]">
       <div className="p-4 shrink-0">
         <ArtifactBackButton />
       </div>
