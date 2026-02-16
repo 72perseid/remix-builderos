@@ -1,10 +1,11 @@
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Camera, Trash2, Upload, Mail, User, Briefcase, Loader2 } from 'lucide-react';
+import { Camera, Trash2, Upload, Mail, User, Briefcase, Loader2, LogOut } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -15,7 +16,8 @@ interface ProfileSheetProps {
 }
 
 export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const { profile, uploading, uploadProfileImage, deleteProfileImage } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -120,6 +122,25 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                 )}
               </div>
             </div>
+
+            <Separator className="bg-slate-800" />
+
+            <Button
+              variant="outline"
+              className="w-full border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+              onClick={async () => {
+                const { error } = await signOut();
+                if (error) {
+                  toast.error("Failed to sign out");
+                } else {
+                  toast.success("Signed out successfully");
+                  navigate("/auth");
+                }
+              }}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
         </ScrollArea>
       </SheetContent>
