@@ -1,39 +1,37 @@
 
 
-## Remove Light/Dark Mode Distinction and Fix Text Colors
+## Consolidate Card Design System
 
-### Problem
-1. The app maintains two separate themes (light and dark) in CSS plus a theme toggle, but only the dark theme is actually used.
-2. Some components use `text-muted-foreground` where they should use a secondary text color with better contrast.
+### What Changes
 
-### Changes
+Based on the reference screenshot, the card design should use:
+- A consistent dark navy background (currently hardcoded as `#161e2a` in 12+ files)
+- White for primary/title text
+- A blue-gray tone for secondary/description text (not pure white, not pure gray)
 
-#### 1. Merge dark theme values into `:root` (src/index.css)
-- Replace all `:root` variable values with the current `.dark` values (background, foreground, card, border, sidebar, gradients, shadows, etc.)
-- Remove the `.dark { ... }` block entirely since `:root` now IS the dark theme
-- Keep `--radius` and kanban/category/priority colors which are identical in both themes
+### Design Tokens (src/index.css)
 
-#### 2. Remove theme toggling infrastructure
-- **Delete** `src/hooks/useTheme.ts` (no longer needed)
-- **Delete** `src/components/ThemeToggle.tsx` (no longer needed)
-- **Update** `src/components/layout/Header.tsx` -- remove `ThemeToggle` import and usage from the right section
-- **Update** `src/components/ui/sonner.tsx` -- remove `useTheme` from `next-themes`, hardcode theme as `"dark"`
+1. **Update `--card`** variable to match the actual card background `#161e2a` (HSL ~215 28% 13%) instead of the current `240 10% 9%`. This lets us use `bg-card` everywhere instead of the hardcoded hex.
 
-#### 3. Remove `dark:` class prefixes
-- **Update** `src/components/ui/badge-2.tsx` -- simplify compound variant classes by removing `dark:` prefixed duplicates and keeping only the dark values as defaults
-- **Update** `src/components/ui/alert.tsx` -- remove `dark:border-destructive` (keep the base class)
-- **Update** `src/components/ui/chart.tsx` -- simplify `THEMES` constant to only use the root selector
+2. **Update `--secondary-foreground`** from pure white (`0 0% 100%`) to a blue-tinted gray (`215 20% 65%`, roughly `#94a0b8`). This creates the subtle blue-gray description text visible in the reference design, maintaining clear hierarchy below the white titles.
 
-#### 4. Remove darkMode config from Tailwind
-- **Update** `tailwind.config.ts` -- remove `darkMode: ["class"]` since there is only one theme
+### Component Updates
 
-#### 5. Ensure `dark` class is always set on HTML root
-- **Update** `src/main.tsx` or `index.html` -- add `class="dark"` to the `<html>` tag so existing Tailwind `dark:` classes still work during any transition period (safety net)
+3. **Replace all `bg-[#161e2a]`** with `bg-card` across ~12 files:
+   - ArtifactCard, ArtifactsGrid, ArchitectBanner
+   - highlight-card, business-card
+   - ProjectBoardPage, AIKanbanAssistantPage
+   - MasterPromptPage, DatabaseDesignPage, ValidationPage
+   - kanban-board
 
-#### 6. Fix text color hierarchy in cards
-- **Update** `src/components/dashboard/ArtifactCard.tsx` -- change description text from `text-muted-foreground` to `text-slate-400` (the secondary text color used across the design system)
-- **Update** `src/components/dashboard/ArtifactsGrid.tsx` -- change section descriptions from `text-muted-foreground` to `text-slate-400`
-- **Update** `src/components/ui/highlight-card.tsx` -- change description text from `text-muted-foreground` to `text-slate-400`
+4. **Normalize secondary text color** in card components -- replace scattered `text-muted-foreground` body text in cards with `text-secondary-foreground` so they pick up the new blue-gray token:
+   - business-card.tsx (line 66)
+   - ArtifactCard.tsx description
+   - highlight-card.tsx description
+   - RoadmapCard.tsx description
+   - DynamicKanbanColumn.tsx counts/empty text
 
-This ensures all cards use a consistent, readable secondary text color that provides good contrast against the dark `#161e2a` card backgrounds.
+### Technical Details
+
+Files modified: `src/index.css` plus approximately 12 component files. No new files or dependencies. All changes are class name swaps and two CSS variable value updates.
 
