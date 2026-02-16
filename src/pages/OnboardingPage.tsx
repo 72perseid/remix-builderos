@@ -137,7 +137,7 @@ export default function OnboardingPage() {
 
     // Step 3: ALWAYS navigate, regardless of data fetch success
     console.log('Navigating to dashboard...');
-    navigate('/dashboard', { replace: true });
+    navigate('/artifacts', { replace: true });
   };
 
   // Backup navigation effect - guarantees redirect even if primary method fails
@@ -145,7 +145,7 @@ export default function OnboardingPage() {
     if (showCompletion) {
       const backupTimer = setTimeout(() => {
         console.log('Backup navigation triggered after 30s');
-        navigate('/dashboard', { replace: true });
+        navigate('/artifacts', { replace: true });
       }, 30000);
       
       return () => clearTimeout(backupTimer);
@@ -181,7 +181,7 @@ export default function OnboardingPage() {
       console.error("Skip error:", err);
     } finally {
       // CRITICAL: This MUST run to unblock the user
-      navigate('/dashboard', { replace: true });
+      navigate('/artifacts', { replace: true });
       setIsSkipping(false);
     }
   };
@@ -343,7 +343,7 @@ export default function OnboardingPage() {
 
           {/* Manual redirect button */}
           <Button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/artifacts')}
             className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
           >
             Go to Dashboard

@@ -39,7 +39,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/" element={<Navigate to="/project-board" replace />} />
-            <Route path="/dashboard" element={
+            <Route path="/artifacts" element={
               <ProtectedRoute>
                 <DashboardLayout><Dashboard /></DashboardLayout>
               </ProtectedRoute>

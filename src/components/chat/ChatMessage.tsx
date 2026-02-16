@@ -30,7 +30,7 @@ export function ChatMessage({ role, content, timestamp, userAvatar, onDashboardC
 
   const handleDashboardClick = () => {
     onDashboardClick?.();
-    navigate('/dashboard');
+    navigate('/artifacts');
   };
 
   return (

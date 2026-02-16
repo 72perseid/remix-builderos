@@ -35,14 +35,14 @@ export function DashboardSidebar() {
     }
   };
 
-  const buildRoutes = ['/project-board', '/dashboard', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief'];
+  const buildRoutes = ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief'];
   const isActive = (path: string) => buildRoutes.includes(location.pathname);
 
   return (
     <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
       {/* Logo */}
       <SidebarHeader className="px-5 pt-5 pb-4 bg-[#0B0E14]">
-        <Link to="/dashboard" className="flex items-center">
+        <Link to="/artifacts" className="flex items-center">
           {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
           {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
         </Link>
