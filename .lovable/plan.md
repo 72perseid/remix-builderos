@@ -1,38 +1,17 @@
 
 
-## Make Artifact Pages Fullscreen (No Sidebar/Header)
+## Increase Muted Text Contrast
 
 ### Problem
-The Business Model, Validation Strategy, and Product Brief pages are currently wrapped in `DashboardLayout` in `App.tsx`, which adds the sidebar and header around them. The pages themselves already have the correct split-screen layout, but the dashboard chrome prevents them from being fullscreen.
+The `muted-foreground` color used for secondary text throughout the app lacks sufficient contrast against the dark backgrounds, making it hard to read.
 
 ### Solution
-Remove the `DashboardLayout` wrapper from these three routes in `App.tsx` so they render fullscreen -- just like the Onboarding page does.
+Bump the lightness of `--muted-foreground` in both themes in `src/index.css`:
 
-### Changes
+**Dark mode** (line 77): Change from `0 0% 85%` to `0 0% 92%` -- noticeably brighter without being pure white, maintaining hierarchy below the 100% white primary text.
 
-**File: `src/App.tsx`**
-- Remove `<DashboardLayout>` wrapper from the `/business-model` route
-- Remove `<DashboardLayout>` wrapper from the `/validation` route
-- Remove `<DashboardLayout>` wrapper from the `/product-brief` route
+**Light mode** (line 25): Change from `240 4% 46%` to `240 4% 38%` -- darker against the light background for better contrast.
 
-The routes will change from:
-```tsx
-<Route path="/business-model" element={
-  <ProtectedRoute>
-    <DashboardLayout><BusinessModelPage /></DashboardLayout>
-  </ProtectedRoute>
-} />
-```
-To:
-```tsx
-<Route path="/business-model" element={
-  <ProtectedRoute>
-    <BusinessModelPage />
-  </ProtectedRoute>
-} />
-```
-
-Same pattern for `/validation` and `/product-brief`.
-
-No other files need changes -- the pages already have their own back button, CopilotPanel, and full-height layout built in.
+### File
+`src/index.css` -- two single-line changes, no other files affected. Every component using `text-muted-foreground` (labels, descriptions, timestamps, list items across all pages) will automatically pick up the new values.
 
