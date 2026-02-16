@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useLocation, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogOut, PanelLeftClose, PanelLeft } from "lucide-react";
+import { useLocation, Link } from "react-router-dom";
+import { LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { ProfileSheet } from "./ProfileSheet";
-import { toast } from "sonner";
+
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
 
 const mainNavItems = [{
@@ -18,22 +18,11 @@ const mainNavItems = [{
 
 export function DashboardSidebar() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { profile } = useProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
-
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast.error("Failed to sign out");
-    } else {
-      toast.success("Signed out successfully");
-      navigate("/auth");
-    }
-  };
 
   const buildRoutes = ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief'];
   const isActive = (path: string) => buildRoutes.includes(location.pathname);
@@ -105,28 +94,6 @@ export function DashboardSidebar() {
               </div>
             )}
           </div>
-          {!isCollapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              className="text-slate-400 hover:text-white hover:bg-slate-800/50"
-              title="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          )}
-          {isCollapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleSignOut}
-              className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-800/50"
-              title="Sign out"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </SidebarFooter>
 
