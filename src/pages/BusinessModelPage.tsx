@@ -151,7 +151,7 @@ export default function BusinessModelPage() {
       <div className="overflow-auto h-full">
         <div className="max-w-full space-y-6 p-6">
           <ArtifactBackButton />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Business Model</h1>
               <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>

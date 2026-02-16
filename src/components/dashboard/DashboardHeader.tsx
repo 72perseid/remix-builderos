@@ -121,7 +121,7 @@ export function DashboardHeader() {
         {/* New App Button */}
         <Button 
           onClick={handleNewApp}
-          className="bg-white text-black hover:bg-slate-200 rounded-full px-4 h-9 font-medium"
+          className="bg-primary text-white hover:bg-primary/90 rounded-full px-4 h-9 font-medium"
         >
           <Plus className="h-4 w-4 mr-1" />
           New App
