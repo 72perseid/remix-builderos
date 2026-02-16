@@ -96,7 +96,7 @@ export function ArtifactsGrid() {
   const buildingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'building');
   const launchingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'launching');
   
-  return <div className="space-y-8">
+  return <div className="space-y-8 p-6">
       {/* Architect Banner */}
       <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
 
