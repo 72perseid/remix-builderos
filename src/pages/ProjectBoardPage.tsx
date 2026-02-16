@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useArtifact } from '@/hooks/useArtifact';
 import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
 import { useTasks } from '@/hooks/useTasks';
+import { useProfile } from '@/hooks/useProfile';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay, KanbanMoveEvent } from '@/components/ui/kanban';
@@ -308,6 +309,8 @@ export default function ProjectBoardPage() {
     data: artifact,
     loading: artifactLoading
   } = useArtifact('kanban');
+  const { profile } = useProfile();
+  const isOnboarded = profile?.onboarded === true;
 
   const { 
     tasks, 
@@ -604,11 +607,13 @@ export default function ProjectBoardPage() {
   }
   
   return <div className="h-full flex flex-col p-6">
-      {/* Architect Banner */}
-      <ArchitectBanner 
-        onStartBuilding={() => navigate('/onboarding?mode=setup')} 
-        hasData={totalCards > 0} 
-      />
+      {/* Architect Banner - hidden after onboarding */}
+      {!isOnboarded && (
+        <ArchitectBanner 
+          onStartBuilding={() => navigate('/onboarding?mode=setup')} 
+          hasData={totalCards > 0} 
+        />
+      )}
       
       {/* Kanban Board */}
       <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id} onMove={handleMove}>
