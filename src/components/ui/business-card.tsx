@@ -35,7 +35,7 @@ const BusinessCard = React.forwardRef<HTMLDivElement, BusinessCardProps>(
         whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
         className={cn(
           "group relative overflow-hidden rounded-2xl",
-          "bg-[#161e2a]",
+          "bg-card",
           "border border-slate-700/50",
           "shadow-lg shadow-black/20",
           "transition-all duration-300",
@@ -63,7 +63,7 @@ const BusinessCard = React.forwardRef<HTMLDivElement, BusinessCardProps>(
           </div>
           
           {/* Body */}
-          <div className="text-base text-muted-foreground leading-relaxed">
+          <div className="text-base text-secondary-foreground leading-relaxed">
             {children}
           </div>
         </div>

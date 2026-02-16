@@ -23,7 +23,7 @@ export function DynamicKanbanColumn({ column }: DynamicKanbanColumnProps) {
       </div>
       <div className="space-y-2">
         {column.cards.length === 0 ? (
-          <p className="text-xs text-slate-500 text-center py-4">No items yet</p>
+          <p className="text-xs text-secondary-foreground text-center py-4">No items yet</p>
         ) : (
           column.cards.map((card, idx) => (
             <RoadmapCard key={idx} card={card} />

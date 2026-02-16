@@ -156,7 +156,7 @@ export default function MasterPromptPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <Card className="relative overflow-hidden rounded-2xl bg-[#161e2a] border border-slate-700/50">
+              <Card className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50">
 
                 <CardContent className="relative p-12 text-center">
                   {/* Icon with glow effect */}

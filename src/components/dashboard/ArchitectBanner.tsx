@@ -8,7 +8,7 @@ interface ArchitectBannerProps {
 
 export function ArchitectBanner({ onStartBuilding, hasData }: ArchitectBannerProps) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-slate-700/50 bg-[#161e2a] p-6 mb-6">
+    <div className="relative overflow-hidden rounded-xl border border-slate-700/50 bg-card p-6 mb-6">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-blue-400/5 to-cyan-500/5" />
       <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />

@@ -20,7 +20,7 @@ const HighlightCard: FC<HighlightCardProps> = ({ title, description, icon, onCli
     <Card
       onClick={disabled ? undefined : onClick}
       className={cn(
-        "group relative overflow-hidden rounded-2xl bg-[#161e2a] border border-slate-700/50",
+        "group relative overflow-hidden rounded-2xl bg-card border border-slate-700/50",
         !disabled && onClick && "cursor-pointer hover:border-slate-600/70",
         disabled && "opacity-60",
         className

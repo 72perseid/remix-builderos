@@ -48,7 +48,7 @@ export default function ValidationPage() {
           <div className="max-w-full space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-white">Validation Strategy</h1>
-              <p className="mt-1 text-muted-foreground">User personas and validation insights for your app</p>
+              <p className="mt-1 text-secondary-foreground">User personas and validation insights for your app</p>
             </div>
 
             {error && (
@@ -60,11 +60,11 @@ export default function ValidationPage() {
             )}
 
             {!artifact ? (
-              <Card className="bg-[#161e2a] border-slate-700/50">
+              <Card className="bg-card border-slate-700/50">
                 <CardContent className="p-8 text-center">
-                  <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <Users className="w-12 h-12 mx-auto text-secondary-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2 text-white">No Validation Data Yet</h3>
-                  <p className="text-muted-foreground text-base">
+                  <p className="text-secondary-foreground text-base">
                     Generate user personas using the AI assistant to see them here.
                   </p>
                 </CardContent>
@@ -85,11 +85,11 @@ export default function ValidationPage() {
                     {personas.map((persona, index) => (
                       <BusinessCard key={index} title={persona.name} icon={User} iconColor="text-blue-500">
                         <div className="space-y-4">
-                          {persona.role && <p className="text-muted-foreground">{persona.role}</p>}
+                          {persona.role && <p className="text-secondary-foreground">{persona.role}</p>}
                           {(persona.age || persona.demographics) && (
                             <div className="flex flex-wrap gap-2">
-                              {persona.age && <Badge variant="secondary" className="text-sm bg-white/5 border border-white/10 text-muted-foreground">{persona.age}</Badge>}
-                              {persona.demographics && <Badge variant="secondary" className="text-sm bg-white/5 border border-white/10 text-muted-foreground">{persona.demographics}</Badge>}
+                              {persona.age && <Badge variant="secondary" className="text-sm bg-white/5 border border-white/10 text-secondary-foreground">{persona.age}</Badge>}
+                              {persona.demographics && <Badge variant="secondary" className="text-sm bg-white/5 border border-white/10 text-secondary-foreground">{persona.demographics}</Badge>}
                             </div>
                           )}
                           {persona.bio && <p>{persona.bio}</p>}

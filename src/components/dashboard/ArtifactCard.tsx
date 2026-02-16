@@ -71,7 +71,7 @@ export function ArtifactCard({ title, description, status, onClick, className }:
     <Card
       onClick={isClickable ? onClick : undefined}
       className={cn(
-        "group relative overflow-hidden rounded-2xl bg-[#161e2a] border border-slate-700/50",
+        "group relative overflow-hidden rounded-2xl bg-card border border-slate-700/50",
         isClickable && "cursor-pointer hover:border-slate-600/70",
         status === "locked" && "opacity-60",
         status === "loading" && "animate-pulse",

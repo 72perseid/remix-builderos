@@ -131,7 +131,7 @@ export default function AIKanbanAssistantPage() {
             <KanbanBoard columns={kanbanColumns} />
           ) : (
             /* Empty State */
-            <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-[#161e2a]/80">
+            <div className="flex flex-col items-center justify-center py-16 px-4 rounded-xl border border-slate-700/50 bg-card/80">
               <LayoutGrid className="w-12 h-12 text-slate-500 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">No Roadmap Yet</h3>
               <p className="text-slate-400 text-sm text-center max-w-md">
