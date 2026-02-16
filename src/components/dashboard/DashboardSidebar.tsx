@@ -28,7 +28,7 @@ export function DashboardSidebar() {
   const isActive = (path: string) => buildRoutes.includes(location.pathname);
 
   return (
-    <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14]" collapsible="icon">
+    <Sidebar className="border-r border-sidebar-border bg-[#0B0E14]" collapsible="icon">
       {/* Logo */}
       <SidebarHeader className={isCollapsed ? "px-2 pt-3 pb-2 bg-[#0B0E14]" : "px-5 pt-5 pb-4 bg-[#0B0E14]"}>
         <div className={isCollapsed ? "flex flex-col items-center gap-2" : "flex items-center justify-between"}>
@@ -73,7 +73,7 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       {/* User profile footer */}
-      <SidebarFooter className={isCollapsed ? "border-t border-slate-800/50 p-2 bg-[#0B0E14]" : "border-t border-slate-800/50 p-4 bg-[#0B0E14]"}>
+      <SidebarFooter className={isCollapsed ? "border-t border-sidebar-border p-2 bg-[#0B0E14]" : "border-t border-sidebar-border p-4 bg-[#0B0E14]"}>
         <div className={isCollapsed ? "flex flex-col items-center gap-2" : "flex items-center justify-between gap-3"}>
           <div
             className={isCollapsed ? "cursor-pointer hover:opacity-80 transition-opacity" : "flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"}
