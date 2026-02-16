@@ -38,7 +38,7 @@ export default function ValidationPage() {
   const personas = content?.personas || content?.user_personas || [];
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-dvh flex flex-col overflow-hidden">
       <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
         <ArtifactBreadcrumb currentPage="Validation Strategy" />
       </div>
