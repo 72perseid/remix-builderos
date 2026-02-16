@@ -49,7 +49,7 @@ export default function ProductBriefPage() {
 
   return (
     <div className="h-full min-h-screen flex flex-col">
-      <div className="px-6 pt-4 pb-2 shrink-0">
+      <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
         <ArtifactBreadcrumb currentPage="Product Brief" />
       </div>
       <div className="flex flex-1 overflow-hidden">

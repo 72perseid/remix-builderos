@@ -176,7 +176,7 @@ export default function BusinessModelPage() {
 
   return (
     <div className="h-full min-h-screen flex flex-col bg-[#0B0E14]">
-      <div className="px-6 pt-4 pb-2 shrink-0">
+      <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
         <ArtifactBreadcrumb currentPage="Business Model" />
       </div>
       <div className="flex flex-1 overflow-hidden">
