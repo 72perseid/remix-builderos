@@ -204,7 +204,7 @@ export default function BusinessModelPage() {
             {/* Generated Business Model Canvas */}
             {content && (
               <motion.div 
-                className="space-y-6"
+                className="grid md:grid-cols-2 gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
@@ -215,21 +215,19 @@ export default function BusinessModelPage() {
                   </BusinessCard>
                 )}
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {businessName && (
-                    <BusinessCard title="Business Name" icon={Building} iconColor="text-blue-500">
-                      <p>{businessName}</p>
-                    </BusinessCard>
-                  )}
-                  {monetization && (
-                    <BusinessCard title="Monetization Strategy" icon={DollarSign} iconColor="text-green-500">
-                      <p>{monetization}</p>
-                    </BusinessCard>
-                  )}
-                </div>
+                {businessName && (
+                  <BusinessCard title="Business Name" icon={Building} iconColor="text-blue-500">
+                    <p>{businessName}</p>
+                  </BusinessCard>
+                )}
+                {monetization && (
+                  <BusinessCard title="Monetization Strategy" icon={DollarSign} iconColor="text-green-500">
+                    <p>{monetization}</p>
+                  </BusinessCard>
+                )}
 
                 {customerSegments.length > 0 && (
-                  <BusinessCard title="Customer Segments" icon={Users} iconColor="text-purple-500">
+                  <BusinessCard title="Customer Segments" icon={Users} iconColor="text-purple-500" colSpan={2}>
                     <ul className="space-y-1.5">
                       {customerSegments.map((s, i) => <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{s}</li>)}
                     </ul>
@@ -237,7 +235,7 @@ export default function BusinessModelPage() {
                 )}
 
                 {customersInfo && (
-                  <BusinessCard title="Customers" icon={Users} iconColor="text-purple-500">
+                  <BusinessCard title="Customers" icon={Users} iconColor="text-purple-500" colSpan={2}>
                     <div className="space-y-1">
                       {customersInfo.segment && <p>{customersInfo.segment}</p>}
                       {customersInfo.number !== undefined && <p>Count: {customersInfo.number.toLocaleString()}</p>}
@@ -245,27 +243,25 @@ export default function BusinessModelPage() {
                   </BusinessCard>
                 )}
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {revenueInfo && (
-                    <BusinessCard title="Revenue" icon={DollarSign} iconColor="text-green-500">
-                      <div className="space-y-1">
-                        {revenueInfo.source && <p>{revenueInfo.source}</p>}
-                        {revenueInfo.annualRevenue && <p>Annual: ${revenueInfo.annualRevenue.toLocaleString()}</p>}
-                      </div>
-                    </BusinessCard>
-                  )}
-                  {expensesInfo && (
-                    <BusinessCard title="Expenses" icon={DollarSign} iconColor="text-red-500">
-                      <div className="space-y-1">
-                        {expensesInfo.fixedCosts !== undefined && <p>Fixed: ${expensesInfo.fixedCosts.toLocaleString()}</p>}
-                        {expensesInfo.variableCosts !== undefined && <p>Variable: ${expensesInfo.variableCosts.toLocaleString()}</p>}
-                      </div>
-                    </BusinessCard>
-                  )}
-                </div>
+                {revenueInfo && (
+                  <BusinessCard title="Revenue" icon={DollarSign} iconColor="text-green-500">
+                    <div className="space-y-1">
+                      {revenueInfo.source && <p>{revenueInfo.source}</p>}
+                      {revenueInfo.annualRevenue && <p>Annual: ${revenueInfo.annualRevenue.toLocaleString()}</p>}
+                    </div>
+                  </BusinessCard>
+                )}
+                {expensesInfo && (
+                  <BusinessCard title="Expenses" icon={DollarSign} iconColor="text-red-500">
+                    <div className="space-y-1">
+                      {expensesInfo.fixedCosts !== undefined && <p>Fixed: ${expensesInfo.fixedCosts.toLocaleString()}</p>}
+                      {expensesInfo.variableCosts !== undefined && <p>Variable: ${expensesInfo.variableCosts.toLocaleString()}</p>}
+                    </div>
+                  </BusinessCard>
+                )}
 
                 {revenueStreams.length > 0 && (
-                  <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500">
+                  <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500" colSpan={2}>
                     <ul className="space-y-1.5">
                       {revenueStreams.map((s, i) => <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">•</span>{s.source}{s.price && ` — ${s.price}`}</li>)}
                     </ul>
@@ -273,7 +269,7 @@ export default function BusinessModelPage() {
                 )}
 
                 {legacyRevenueStreams.length > 0 && revenueStreams.length === 0 && (
-                  <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500">
+                  <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500" colSpan={2}>
                     <ul className="space-y-1.5">
                       {legacyRevenueStreams.map((s, i) => <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">•</span>{s}</li>)}
                     </ul>
@@ -281,7 +277,7 @@ export default function BusinessModelPage() {
                 )}
 
                 {marketingChannels.length > 0 && (
-                  <BusinessCard title="Marketing Channels" icon={Megaphone} iconColor="text-orange-500">
+                  <BusinessCard title="Marketing Channels" icon={Megaphone} iconColor="text-orange-500" colSpan={2}>
                     <ul className="space-y-1.5">
                       {marketingChannels.map((c, i) => <li key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>{c}</li>)}
                     </ul>
@@ -289,30 +285,28 @@ export default function BusinessModelPage() {
                 )}
 
                 {goToMarket && (
-                  <BusinessCard title="Go-to-Market Approach" icon={Rocket} iconColor="text-orange-500">
+                  <BusinessCard title="Go-to-Market Approach" icon={Rocket} iconColor="text-orange-500" colSpan={2}>
                     <p>{goToMarket}</p>
                   </BusinessCard>
                 )}
 
-                <div className="grid md:grid-cols-2 gap-4">
-                  {keyResources.length > 0 && (
-                    <BusinessCard title="Key Resources" icon={Building} iconColor="text-blue-500">
-                      <ul className="space-y-1.5">
-                        {keyResources.map((r, i) => <li key={i} className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span>{r}</li>)}
-                      </ul>
-                    </BusinessCard>
-                  )}
-                  {keyPartners.length > 0 && (
-                    <BusinessCard title="Key Partners" icon={Users} iconColor="text-purple-500">
-                      <ul className="space-y-1.5">
-                        {keyPartners.map((p, i) => <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{p}</li>)}
-                      </ul>
-                    </BusinessCard>
-                  )}
-                </div>
+                {keyResources.length > 0 && (
+                  <BusinessCard title="Key Resources" icon={Building} iconColor="text-blue-500">
+                    <ul className="space-y-1.5">
+                      {keyResources.map((r, i) => <li key={i} className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span>{r}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
+                {keyPartners.length > 0 && (
+                  <BusinessCard title="Key Partners" icon={Users} iconColor="text-purple-500">
+                    <ul className="space-y-1.5">
+                      {keyPartners.map((p, i) => <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{p}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
 
                 {costStructure.length > 0 && (
-                  <BusinessCard title="Cost Structure" icon={DollarSign} iconColor="text-secondary-foreground">
+                  <BusinessCard title="Cost Structure" icon={DollarSign} iconColor="text-secondary-foreground" colSpan={2}>
                     <ul className="space-y-1.5">
                       {costStructure.map((c, i) => <li key={i} className="flex items-start gap-2"><span className="text-secondary-foreground mt-0.5">•</span>{c}</li>)}
                     </ul>

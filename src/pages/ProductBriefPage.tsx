@@ -81,7 +81,7 @@ export default function ProductBriefPage() {
               </Card>
             ) : (
               <motion.div 
-                className="space-y-6"
+                className="grid md:grid-cols-2 gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
@@ -91,20 +91,18 @@ export default function ProductBriefPage() {
                     <p>{elevatorPitch}</p>
                   </BusinessCard>
                 )}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {problemStatement && (
-                    <BusinessCard title="Problem Statement" icon={Target} iconColor="text-red-500">
-                      <p>{problemStatement}</p>
-                    </BusinessCard>
-                  )}
-                  {differentiators && (
-                    <BusinessCard title="Differentiators" icon={Lightbulb} iconColor="text-yellow-500">
-                      <p>{differentiators}</p>
-                    </BusinessCard>
-                  )}
-                </div>
+                {problemStatement && (
+                  <BusinessCard title="Problem Statement" icon={Target} iconColor="text-red-500">
+                    <p>{problemStatement}</p>
+                  </BusinessCard>
+                )}
+                {differentiators && (
+                  <BusinessCard title="Differentiators" icon={Lightbulb} iconColor="text-yellow-500">
+                    <p>{differentiators}</p>
+                  </BusinessCard>
+                )}
                 {targetUsers && (
-                  <BusinessCard title="Target Users" icon={Users} iconColor="text-purple-500">
+                  <BusinessCard title="Target Users" icon={Users} iconColor="text-purple-500" colSpan={2}>
                     {Array.isArray(targetUsers) ? (
                       <div className="flex flex-wrap gap-2">
                         {targetUsers.map((audience, i) => (
@@ -117,7 +115,7 @@ export default function ProductBriefPage() {
                   </BusinessCard>
                 )}
                 {coreFeatures.length > 0 && (
-                  <BusinessCard title="Core Features" icon={CheckCircle2} iconColor="text-primary">
+                  <BusinessCard title="Core Features" icon={CheckCircle2} iconColor="text-primary" colSpan={2}>
                     <ul className="grid md:grid-cols-2 gap-2">
                       {coreFeatures.map((feature, i) => (
                         <li key={i} className="flex items-start gap-2"><span className="text-primary mt-0.5">•</span>{feature}</li>
@@ -126,7 +124,7 @@ export default function ProductBriefPage() {
                   </BusinessCard>
                 )}
                 {mvpScope.length > 0 && (
-                  <BusinessCard title="MVP Scope" icon={Package} iconColor="text-green-500">
+                  <BusinessCard title="MVP Scope" icon={Package} iconColor="text-green-500" colSpan={2}>
                     <ul className="space-y-1.5">
                       {mvpScope.map((item, i) => (
                         <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span>{item}</li>
@@ -135,7 +133,7 @@ export default function ProductBriefPage() {
                   </BusinessCard>
                 )}
                 {successMetrics.length > 0 && (
-                  <BusinessCard title="Success Metrics" icon={TrendingUp} iconColor="text-blue-500">
+                  <BusinessCard title="Success Metrics" icon={TrendingUp} iconColor="text-blue-500" colSpan={2}>
                     <div className="flex flex-wrap gap-2">
                       {successMetrics.map((metric, i) => (
                         <Badge key={i} variant="outline" className="text-sm border-white/10 text-secondary-foreground">{metric}</Badge>
@@ -144,7 +142,7 @@ export default function ProductBriefPage() {
                   </BusinessCard>
                 )}
                 {timeline && (
-                  <BusinessCard title="Timeline" icon={Calendar} iconColor="text-orange-500">
+                  <BusinessCard title="Timeline" icon={Calendar} iconColor="text-orange-500" colSpan={2}>
                     <p>{timeline}</p>
                   </BusinessCard>
                 )}
