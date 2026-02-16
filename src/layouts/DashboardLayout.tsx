@@ -26,7 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DashboardTabs />
               <div className={cn(
                 "flex-1",
-                isProjectBoard ? "p-4" : "p-6"
+                isProjectBoard ? "p-4" : "px-4 py-4"
               )}>
                 {children}
               </div>
