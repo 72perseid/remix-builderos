@@ -24,10 +24,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="overflow-y-auto flex-1 flex flex-col">
               <DashboardHeader />
               <DashboardTabs />
-              <div className={cn(
-                "flex-1",
-                isProjectBoard ? "p-4" : "px-4 py-4"
-              )}>
+              <div className="flex-1">
                 {children}
               </div>
             </div>
