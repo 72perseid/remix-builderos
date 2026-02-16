@@ -1,8 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useCopilotChat, CopilotMessage } from '@/hooks/useCopilotChat';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -51,12 +53,11 @@ export function CopilotToggleButton({
   );
 }
 
-/** Collapsible side-panel chat for split-screen artifact pages */
-export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }: CopilotPanelProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+/** Inner chat content used by both CopilotPanel and the resizable wrapper */
+function CopilotPanelContent({ context, heading = 'Copilot', onArtifactRefresh, onCollapse }: CopilotPanelProps & { onCollapse?: () => void }) {
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { messages, isLoading, sendMessage, hasApp } = useCopilotChat({
     context,
     onArtifactRefresh,
@@ -68,47 +69,52 @@ export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }
     }
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!inputValue.trim() || isLoading) return;
     const message = inputValue.trim();
     setInputValue('');
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     await sendMessage(message);
-  };
+  }, [inputValue, isLoading, sendMessage]);
 
-  if (isCollapsed) {
-    return (
-      <div className="shrink-0 flex flex-col items-center py-3 px-1 border-r border-slate-800/50 bg-slate-950">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCollapsed(false)}
-          className="h-8 w-8 text-secondary-foreground hover:text-white hover:bg-slate-800"
-          title="Open panel"
-        >
-          <PanelLeftOpen className="h-4 w-4" />
-        </Button>
-      </div>
-    );
-  }
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  }, [handleSubmit]);
+
+  // Auto-resize textarea
+  const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  }, []);
 
   return (
-    <div className="w-[380px] shrink-0 flex flex-col bg-slate-950 border-r border-slate-800/50">
+    <div className="flex flex-col h-full bg-slate-950 border-r border-slate-800/50">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/50 shrink-0">
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-primary" />
           <span className="font-medium text-white text-sm">{heading}</span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCollapsed(true)}
-          className="h-7 w-7 text-secondary-foreground hover:text-white hover:bg-slate-800"
-          title="Collapse panel"
-        >
-          <PanelLeftClose className="h-4 w-4" />
-        </Button>
+        {onCollapse && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onCollapse}
+            className="h-7 w-7 text-secondary-foreground hover:text-white hover:bg-slate-800"
+            title="Collapse panel"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Content */}
@@ -146,14 +152,16 @@ export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }
           </ScrollArea>
 
           <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800/50 shrink-0">
-            <div className="flex gap-2">
-              <Input
-                ref={inputRef}
+            <div className="flex gap-2 items-end">
+              <Textarea
+                ref={textareaRef}
                 value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                onChange={handleTextareaChange}
+                onKeyDown={handleKeyDown}
                 placeholder="Ask a question..."
-                className="flex-1 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 text-sm"
+                className="flex-1 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 text-sm min-h-[38px] max-h-[120px] resize-none py-2"
                 disabled={isLoading}
+                rows={1}
               />
               <Button
                 type="submit"
@@ -171,6 +179,57 @@ export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }
   );
 }
 
+/** Collapsible & resizable side-panel chat for split-screen artifact pages */
+export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }: CopilotPanelProps) {
+  const isMobile = useIsMobile();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  if (isCollapsed) {
+    return (
+      <div className="shrink-0 flex flex-col items-center py-3 px-1 border-r border-slate-800/50 bg-slate-950">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(false)}
+          className="h-8 w-8 text-secondary-foreground hover:text-white hover:bg-slate-800"
+          title="Open panel"
+        >
+          <PanelLeftOpen className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  // On mobile, render a fixed-width panel (no resize)
+  if (isMobile) {
+    return (
+      <div className="w-[380px] shrink-0">
+        <CopilotPanelContent
+          context={context}
+          heading={heading}
+          onArtifactRefresh={onArtifactRefresh}
+          onCollapse={() => setIsCollapsed(true)}
+        />
+      </div>
+    );
+  }
+
+  // On desktop, wrap in a resizable panel
+  return (
+    <ResizablePanelGroup direction="horizontal" className="shrink-0" style={{ width: 'auto', flex: 'none' }}>
+      <ResizablePanel defaultSize={100} minSize={60} maxSize={100} style={{ minWidth: 280, maxWidth: 500 }}>
+        <CopilotPanelContent
+          context={context}
+          heading={heading}
+          onArtifactRefresh={onArtifactRefresh}
+          onCollapse={() => setIsCollapsed(true)}
+        />
+      </ResizablePanel>
+      <ResizableHandle className="bg-slate-800/50 hover:bg-primary/50 transition-colors w-[3px]" />
+    </ResizablePanelGroup>
+  );
+}
+
 export function ArtifactCopilot({
   context,
   heading = 'Copilot',
@@ -180,7 +239,7 @@ export function ArtifactCopilot({
 }: ArtifactCopilotProps) {
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { messages, isLoading, sendMessage, hasApp } = useCopilotChat({
     context,
     onArtifactRefresh,
@@ -193,18 +252,35 @@ export function ArtifactCopilot({
   }, [messages]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      inputRef.current.focus();
+    if (isOpen && textareaRef.current) {
+      textareaRef.current.focus();
     }
   }, [isOpen]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!inputValue.trim() || isLoading) return;
     const message = inputValue.trim();
     setInputValue('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     await sendMessage(message);
-  };
+  }, [inputValue, isLoading, sendMessage]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  }, [handleSubmit]);
+
+  const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value);
+    const textarea = e.target;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+  }, []);
 
   return (
     <AnimatePresence>
@@ -267,14 +343,16 @@ export function ArtifactCopilot({
               </ScrollArea>
 
               <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800/50 shrink-0">
-                <div className="flex gap-2">
-                  <Input
-                    ref={inputRef}
+                <div className="flex gap-2 items-end">
+                  <Textarea
+                    ref={textareaRef}
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    onChange={handleTextareaChange}
+                    onKeyDown={handleKeyDown}
                     placeholder="Ask a question..."
-                    className="flex-1 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 text-sm"
+                    className="flex-1 bg-slate-900 border-slate-700 text-white placeholder:text-slate-500 text-sm min-h-[38px] max-h-[120px] resize-none py-2"
                     disabled={isLoading}
+                    rows={1}
                   />
                   <Button
                     type="submit"
