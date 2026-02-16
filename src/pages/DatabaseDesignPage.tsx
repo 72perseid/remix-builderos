@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Database, Table2, Link2, Loader2, Columns } from 'lucide-react';
 
 import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
-import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
+
 import { motion } from 'framer-motion';
 import {
   Table as UITable,
@@ -89,9 +89,6 @@ export default function DatabaseDesignPage() {
     <div className="relative h-full">
       <div className="overflow-auto h-full">
         <div className="max-w-full space-y-6 p-6">
-          <div className="mb-2">
-            <ArtifactBreadcrumb currentPage="Database Design" />
-          </div>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Database Design</h1>
