@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCopilotChat, CopilotMessage } from '@/hooks/useCopilotChat';
-import { MessageSquare, Send, Loader2, X, AlertCircle } from 'lucide-react';
+import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -51,8 +51,9 @@ export function CopilotToggleButton({
   );
 }
 
-/** Static side-panel chat for split-screen artifact pages */
+/** Collapsible side-panel chat for split-screen artifact pages */
 export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }: CopilotPanelProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -75,12 +76,39 @@ export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }
     await sendMessage(message);
   };
 
+  if (isCollapsed) {
+    return (
+      <div className="shrink-0 flex flex-col items-center py-3 px-1 border-r border-slate-800/50 bg-slate-950">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(false)}
+          className="h-8 w-8 text-secondary-foreground hover:text-white hover:bg-slate-800"
+          title="Open panel"
+        >
+          <PanelLeftOpen className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-[380px] shrink-0 flex flex-col bg-slate-950 border-r border-slate-800/50">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-800/50 shrink-0">
-        <MessageSquare className="h-4 w-4 text-primary" />
-        <span className="font-medium text-white text-sm">{heading}</span>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/50 shrink-0">
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          <span className="font-medium text-white text-sm">{heading}</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setIsCollapsed(true)}
+          className="h-7 w-7 text-secondary-foreground hover:text-white hover:bg-slate-800"
+          title="Collapse panel"
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Content */}

@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { BusinessCard } from '@/components/ui/business-card';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles, Calendar, TrendingUp, Package } from 'lucide-react';
-import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
@@ -49,8 +49,8 @@ export default function ProductBriefPage() {
 
   return (
     <div className="h-full min-h-screen flex flex-col">
-      <div className="p-4 shrink-0">
-        <ArtifactBackButton />
+      <div className="px-6 pt-4 pb-2 shrink-0">
+        <ArtifactBreadcrumb currentPage="Product Brief" />
       </div>
       <div className="flex flex-1 overflow-hidden">
         <CopilotPanel context="product_brief" heading="Product Strategist" />

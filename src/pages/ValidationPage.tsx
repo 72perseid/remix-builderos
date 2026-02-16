@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { BusinessCard } from '@/components/ui/business-card';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, Users, Target, AlertTriangle, User } from 'lucide-react';
-import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
@@ -39,8 +39,8 @@ export default function ValidationPage() {
 
   return (
     <div className="h-full min-h-screen flex flex-col">
-      <div className="p-4 shrink-0">
-        <ArtifactBackButton />
+      <div className="px-6 pt-4 pb-2 shrink-0">
+        <ArtifactBreadcrumb currentPage="Validation Strategy" />
       </div>
       <div className="flex flex-1 overflow-hidden">
         <CopilotPanel context="validation" heading="User Researcher" />
