@@ -92,7 +92,7 @@ export default function DatabaseDesignPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Database Design</h1>
-              <p className="text-secondary-foreground mt-1">ERD and table schema for your app</p>
+              <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>
             </div>
             <CopilotToggleButton heading="DB Architect" onClick={() => setCopilotOpen(v => !v)} />
           </div>
