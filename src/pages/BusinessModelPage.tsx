@@ -7,7 +7,7 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Target, Users, DollarSign, Rocket, Building, Loader2, Megaphone } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
-import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
+import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
 interface RevenueStream {
@@ -89,7 +89,7 @@ export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel } = useBusinessModel();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('business_model');
-  const [copilotOpen, setCopilotOpen] = useState(false);
+  // copilotOpen state removed - panel is always visible
   
   const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
   const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
@@ -147,270 +147,162 @@ export default function BusinessModelPage() {
   }
 
   return (
-    <div className="relative h-full min-h-screen">
-      <div className="overflow-auto h-full">
-        <div className="max-w-full space-y-6 p-6">
-          <ArtifactBackButton />
-          <div className="flex items-center justify-between">
+    <div className="h-full min-h-screen flex flex-col">
+      <div className="p-4 shrink-0">
+        <ArtifactBackButton />
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        <CopilotPanel context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} />
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-full space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-white">Business Model</h1>
               <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>
             </div>
-            <CopilotToggleButton heading="Business Strategist" onClick={() => setCopilotOpen(v => !v)} />
+
+            {/* Empty State */}
+            {!content && (
+              <Card className="bg-card/50 border-border">
+                <CardContent className="p-8 text-center">
+                  <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">No Business Model Yet</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Generate a business model using the AI Architect on the Dashboard.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Generated Business Model Canvas */}
+            {content && (
+              <motion.div 
+                className="space-y-5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <h2 className="text-lg font-semibold text-white">Business Model Canvas</h2>
+                
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {businessName && (
+                    <BusinessCard title="Business Name" icon={Building} iconColor="text-blue-500">
+                      <p className="text-lg font-medium">{businessName}</p>
+                    </BusinessCard>
+                  )}
+                  {revenueInfo && (
+                    <BusinessCard title="Revenue" icon={DollarSign} iconColor="text-green-500">
+                      <div className="space-y-2">
+                        {revenueInfo.source && <p><span className="text-muted-foreground">Source:</span> {revenueInfo.source}</p>}
+                        {revenueInfo.annualRevenue && <p><span className="text-muted-foreground">Annual Revenue:</span> ${revenueInfo.annualRevenue.toLocaleString()}</p>}
+                      </div>
+                    </BusinessCard>
+                  )}
+                  {expensesInfo && (
+                    <BusinessCard title="Expenses" icon={DollarSign} iconColor="text-red-500">
+                      <div className="space-y-2">
+                        {expensesInfo.fixedCosts !== undefined && <p><span className="text-muted-foreground">Fixed Costs:</span> ${expensesInfo.fixedCosts.toLocaleString()}</p>}
+                        {expensesInfo.variableCosts !== undefined && <p><span className="text-muted-foreground">Variable Costs:</span> ${expensesInfo.variableCosts.toLocaleString()}</p>}
+                      </div>
+                    </BusinessCard>
+                  )}
+                  {customersInfo && (
+                    <BusinessCard title="Customers" icon={Users} iconColor="text-purple-500">
+                      <div className="space-y-2">
+                        {customersInfo.segment && <p><span className="text-muted-foreground">Segment:</span> {customersInfo.segment}</p>}
+                        {customersInfo.number !== undefined && <p><span className="text-muted-foreground">Customer Count:</span> {customersInfo.number.toLocaleString()}</p>}
+                      </div>
+                    </BusinessCard>
+                  )}
+                  {valueProposition && (
+                    <BusinessCard title="Value Proposition" icon={Target} iconColor="text-blue-500" colSpan={2}>
+                      <p>{valueProposition}</p>
+                    </BusinessCard>
+                  )}
+                  {customerSegments.length > 0 && (
+                    <BusinessCard title="Customer Segments" icon={Users} iconColor="text-purple-500">
+                      <ul className="space-y-1.5">
+                        {customerSegments.map((segment, i) => (
+                          <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{segment}</li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {revenueStreams.length > 0 && (
+                    <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500" colSpan={2}>
+                      <ul className="space-y-2">
+                        {revenueStreams.map((stream, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-green-500 mt-0.5">•</span>
+                            <div>
+                              <span className="font-medium text-white">{stream.source}</span>
+                              {stream.price && <span className="ml-2">— {stream.price}</span>}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {legacyRevenueStreams.length > 0 && revenueStreams.length === 0 && (
+                    <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500">
+                      <ul className="space-y-1.5">
+                        {legacyRevenueStreams.map((stream, i) => (
+                          <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">•</span>{stream}</li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {marketingChannels.length > 0 && (
+                    <BusinessCard title="Marketing Channels" icon={Megaphone} iconColor="text-orange-500">
+                      <ul className="space-y-1.5">
+                        {marketingChannels.map((channel, i) => (
+                          <li key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>{channel}</li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {monetization && (
+                    <BusinessCard title="Monetization Strategy" icon={DollarSign} iconColor="text-green-500">
+                      <p>{monetization}</p>
+                    </BusinessCard>
+                  )}
+                  {goToMarket && (
+                    <BusinessCard title="Go-to-Market Approach" icon={Rocket} iconColor="text-orange-500" colSpan={2}>
+                      <p>{goToMarket}</p>
+                    </BusinessCard>
+                  )}
+                  {keyResources.length > 0 && (
+                    <BusinessCard title="Key Resources" icon={Building} iconColor="text-blue-500">
+                      <ul className="space-y-1.5">
+                        {keyResources.map((resource, i) => (
+                          <li key={i} className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span>{resource}</li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {keyPartners.length > 0 && (
+                    <BusinessCard title="Key Partners" icon={Users} iconColor="text-purple-500">
+                      <ul className="space-y-1.5">
+                        {keyPartners.map((partner, i) => (
+                          <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{partner}</li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {costStructure.length > 0 && (
+                    <BusinessCard title="Cost Structure">
+                      <ul className="space-y-1.5">
+                        {costStructure.map((cost, i) => (
+                          <li key={i} className="flex items-start gap-2"><span className="text-muted-foreground mt-0.5">•</span>{cost}</li>
+                        ))}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                </div>
+              </motion.div>
+            )}
           </div>
-
-          {/* Empty State */}
-          {!content && (
-            <Card className="bg-card/50 border-border">
-              <CardContent className="p-8 text-center">
-                <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2 text-foreground">No Business Model Yet</h3>
-                <p className="text-muted-foreground text-sm">
-                  Generate a business model using the AI Architect on the Dashboard.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Generated Business Model Canvas */}
-          {content && (
-            <motion.div 
-              className="space-y-5"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <h2 className="text-lg font-semibold text-white">Business Model Canvas</h2>
-              
-              <div className="grid md:grid-cols-3 gap-4">
-                {/* Business Name - New n8n format */}
-                {businessName && (
-                  <BusinessCard 
-                    title="Business Name" 
-                    icon={Building} 
-                    iconColor="text-blue-500"
-                  >
-                    <p className="text-lg font-medium">{businessName}</p>
-                  </BusinessCard>
-                )}
-
-                {/* Revenue Info - New n8n format */}
-                {revenueInfo && (
-                  <BusinessCard 
-                    title="Revenue" 
-                    icon={DollarSign} 
-                    iconColor="text-green-500"
-                  >
-                    <div className="space-y-2">
-                      {revenueInfo.source && (
-                        <p><span className="text-muted-foreground">Source:</span> {revenueInfo.source}</p>
-                      )}
-                      {revenueInfo.annualRevenue && (
-                        <p><span className="text-muted-foreground">Annual Revenue:</span> ${revenueInfo.annualRevenue.toLocaleString()}</p>
-                      )}
-                    </div>
-                  </BusinessCard>
-                )}
-
-                {/* Expenses Info - New n8n format */}
-                {expensesInfo && (
-                  <BusinessCard 
-                    title="Expenses" 
-                    icon={DollarSign} 
-                    iconColor="text-red-500"
-                  >
-                    <div className="space-y-2">
-                      {expensesInfo.fixedCosts !== undefined && (
-                        <p><span className="text-muted-foreground">Fixed Costs:</span> ${expensesInfo.fixedCosts.toLocaleString()}</p>
-                      )}
-                      {expensesInfo.variableCosts !== undefined && (
-                        <p><span className="text-muted-foreground">Variable Costs:</span> ${expensesInfo.variableCosts.toLocaleString()}</p>
-                      )}
-                    </div>
-                  </BusinessCard>
-                )}
-
-                {/* Customers Info - New n8n format */}
-                {customersInfo && (
-                  <BusinessCard 
-                    title="Customers" 
-                    icon={Users} 
-                    iconColor="text-purple-500"
-                  >
-                    <div className="space-y-2">
-                      {customersInfo.segment && (
-                        <p><span className="text-muted-foreground">Segment:</span> {customersInfo.segment}</p>
-                      )}
-                      {customersInfo.number !== undefined && (
-                        <p><span className="text-muted-foreground">Customer Count:</span> {customersInfo.number.toLocaleString()}</p>
-                      )}
-                    </div>
-                  </BusinessCard>
-                )}
-
-                {/* Standard format - Value Proposition */}
-                {valueProposition && (
-                  <BusinessCard 
-                    title="Value Proposition" 
-                    icon={Target} 
-                    iconColor="text-blue-500"
-                    colSpan={2}
-                  >
-                    <p>{valueProposition}</p>
-                  </BusinessCard>
-                )}
-
-                {customerSegments.length > 0 && (
-                  <BusinessCard 
-                    title="Customer Segments" 
-                    icon={Users} 
-                    iconColor="text-purple-500"
-                  >
-                    <ul className="space-y-1.5">
-                      {customerSegments.map((segment, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">•</span>
-                          {segment}
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-
-                {/* Revenue Streams - New format with source/price */}
-                {revenueStreams.length > 0 && (
-                  <BusinessCard 
-                    title="Revenue Streams" 
-                    icon={DollarSign} 
-                    iconColor="text-green-500"
-                    colSpan={2}
-                  >
-                    <ul className="space-y-2">
-                      {revenueStreams.map((stream, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-green-500 mt-0.5">•</span>
-                          <div>
-                            <span className="font-medium text-white">{stream.source}</span>
-                            {stream.price && (
-                              <span className="ml-2">— {stream.price}</span>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-
-                {/* Legacy Revenue Streams - string array */}
-                {legacyRevenueStreams.length > 0 && revenueStreams.length === 0 && (
-                  <BusinessCard 
-                    title="Revenue Streams" 
-                    icon={DollarSign} 
-                    iconColor="text-green-500"
-                  >
-                    <ul className="space-y-1.5">
-                      {legacyRevenueStreams.map((stream, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-green-500 mt-0.5">•</span>
-                          {stream}
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-
-                {/* Marketing Channels */}
-                {marketingChannels.length > 0 && (
-                  <BusinessCard 
-                    title="Marketing Channels" 
-                    icon={Megaphone} 
-                    iconColor="text-orange-500"
-                  >
-                    <ul className="space-y-1.5">
-                      {marketingChannels.map((channel, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-orange-500 mt-0.5">•</span>
-                          {channel}
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-
-                {monetization && (
-                  <BusinessCard 
-                    title="Monetization Strategy" 
-                    icon={DollarSign} 
-                    iconColor="text-green-500"
-                  >
-                    <p>{monetization}</p>
-                  </BusinessCard>
-                )}
-
-                {goToMarket && (
-                  <BusinessCard 
-                    title="Go-to-Market Approach" 
-                    icon={Rocket} 
-                    iconColor="text-orange-500"
-                    colSpan={2}
-                  >
-                    <p>{goToMarket}</p>
-                  </BusinessCard>
-                )}
-
-                {keyResources.length > 0 && (
-                  <BusinessCard 
-                    title="Key Resources" 
-                    icon={Building} 
-                    iconColor="text-blue-500"
-                  >
-                    <ul className="space-y-1.5">
-                      {keyResources.map((resource, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-blue-500 mt-0.5">•</span>
-                          {resource}
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-
-                {keyPartners.length > 0 && (
-                  <BusinessCard 
-                    title="Key Partners" 
-                    icon={Users} 
-                    iconColor="text-purple-500"
-                  >
-                    <ul className="space-y-1.5">
-                      {keyPartners.map((partner, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-purple-500 mt-0.5">•</span>
-                          {partner}
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-
-                {costStructure.length > 0 && (
-                  <BusinessCard title="Cost Structure">
-                    <ul className="space-y-1.5">
-                      {costStructure.map((cost, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-muted-foreground mt-0.5">•</span>
-                          {cost}
-                        </li>
-                      ))}
-                    </ul>
-                  </BusinessCard>
-                )}
-              </div>
-            </motion.div>
-          )}
         </div>
       </div>
-
-      <ArtifactCopilot context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} isOpen={copilotOpen} onToggle={() => setCopilotOpen(false)} />
     </div>
   );
 }
