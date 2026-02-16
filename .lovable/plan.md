@@ -1,66 +1,55 @@
 
 
-# Restructure Navigation: Build Tab, App Details, and Route Renaming
+## Redesign ArtifactCopilot: Sidebar to Bottom Panel
 
-## Overview
+### What Changes
 
-Three changes requested:
-1. The ProfileSheet sidebar content (app details, editing) should become the **App Details** tab/page
-2. The **Artifacts** page route should change from `/dashboard` to `/artifacts` (or at minimum, the tab label stays "Artifacts" and the route is updated)
-3. The sidebar item becomes **"Build"** and the tab bar expands to 5 tabs
+The current copilot is a permanent sidebar on the left side of artifact pages (Database Design, Business Model, Product Brief, Validation, AI Kanban). It takes up 320px of horizontal space and is always open by default.
 
-## Changes
+The new design will:
+- **Remove the sidebar** entirely
+- **Add a chat toggle button** next to each page's title/heading
+- **Show the chat as a bottom panel** that slides up and covers the full content area when opened
+- **Start collapsed** (closed) by default
 
-### 1. Sidebar: Rename "Dashboard" to "Build" (`src/components/dashboard/DashboardSidebar.tsx`)
-- Change `mainNavItems` title from "Dashboard" to "Build"
-- Keep the URL pointing to `/dashboard` (or update to `/artifacts` -- see below)
-- Optionally swap icon from `LayoutDashboard` to `Hammer` or keep it
+### Technical Details
 
-### 2. Tab Bar: Expand to 5 tabs (`src/components/dashboard/DashboardTabs.tsx`)
-Update the tabs array to:
+**1. Refactor `ArtifactCopilot` component** (`src/components/artifacts/ArtifactCopilot.tsx`)
+- Change from a sidebar layout to a bottom overlay panel
+- Default `isOpen` to `false` instead of `true`
+- When open, render as an absolutely positioned panel that covers the parent content area, anchored to the bottom and filling the full width/height
+- Keep the existing chat messages, input, and loading states
+- Add a slide-up animation using framer-motion
+
+**2. Add a `CopilotToggleButton` component** (new, inside the same file or exported separately)
+- A small button (e.g., MessageSquare icon + heading text) that can be placed inline next to page titles
+- Clicking it toggles the copilot open/closed
+- Pass the toggle state via props or a shared ref/callback
+
+**3. Update each artifact page** (5 files):
+- `src/pages/DatabaseDesignPage.tsx`
+- `src/pages/BusinessModelPage.tsx`
+- `src/pages/ProductBriefPage.tsx`
+- `src/pages/ValidationPage.tsx`
+- `src/pages/AIKanbanAssistantPage.tsx`
+
+For each page:
+- Remove `ArtifactCopilot` from the bottom of the flex layout
+- Remove the `flex` layout wrapper that split content and sidebar
+- Add a `relative` wrapper around the content area so the copilot can overlay it
+- Place the toggle button next to the page title (e.g., "Database Design [chat icon]")
+- Place the `ArtifactCopilot` inside the relative wrapper so it overlays the content when open
+
+**4. Layout structure (per page)**
 
 ```text
-Project Board  |  Artifacts  |  Database Design  |  Master Prompt  |  App Details
+<div className="relative h-full">        <-- new relative container
+  <div className="overflow-auto h-full">  <-- scrollable content
+    <h1>Page Title <CopilotToggle /></h1>
+    ...page content...
+  </div>
+  <ArtifactCopilot />                     <-- overlays from bottom when open
+</div>
 ```
 
-- **Project Board** -> `/project-board`
-- **Artifacts** -> `/dashboard` (keep existing route to avoid breaking things)
-- **Database Design** -> `/database-design`
-- **Master Prompt** -> `/master-prompt`
-- **App Details** -> `/app-details`
-
-Update `routeToTab` mapping for all these routes.
-
-### 3. New App Details Page (`src/pages/AppDetailsPage.tsx`)
-- Move the "Your Apps" section from `ProfileSheet` into a full page
-- Show the selected app's details (name, description, one-liner, category, type, logo)
-- Include edit and delete functionality (reuse the edit/delete dialog logic from ProfileSheet)
-- List all apps with ability to switch between them
-
-### 4. Simplify ProfileSheet (`src/components/dashboard/ProfileSheet.tsx`)
-- Remove the "Your Apps" section and the edit/delete app dialogs
-- Keep only user profile information (avatar, name, email, bio, location)
-- This makes the ProfileSheet focused on user profile only
-
-### 5. Routes (`src/App.tsx`)
-- Add `/app-details` route wrapped in `ProtectedRoute` + `DashboardLayout`
-- Wrap `/database-design` in `DashboardLayout` (currently missing it)
-- Wrap `/master-prompt` in `DashboardLayout` (currently missing it)
-
-### 6. Remove ArtifactBackButton from promoted pages
-- `DatabaseDesignPage.tsx`: Remove `ArtifactBackButton` since it is now a top-level tab
-- `MasterPromptPage.tsx`: Remove `ArtifactBackButton` since it is now a top-level tab
-
-## Technical Details
-
-### Files to create:
-- `src/pages/AppDetailsPage.tsx` -- new page with app details/edit/delete, adapted from ProfileSheet's "Your Apps" section
-
-### Files to modify:
-- `src/components/dashboard/DashboardSidebar.tsx` -- rename "Dashboard" to "Build"
-- `src/components/dashboard/DashboardTabs.tsx` -- 5 tabs with updated routes and mappings
-- `src/components/dashboard/ProfileSheet.tsx` -- remove app-related sections, keep user profile only
-- `src/App.tsx` -- add `/app-details` route; wrap `/database-design` and `/master-prompt` in `DashboardLayout`
-- `src/pages/DatabaseDesignPage.tsx` -- remove `ArtifactBackButton`, remove outer padding/min-h-screen (DashboardLayout handles it)
-- `src/pages/MasterPromptPage.tsx` -- remove `ArtifactBackButton`, remove outer padding/min-h-screen
-
+When the copilot is open, it will slide up covering the content area with a semi-transparent backdrop, showing the chat interface full-width at the bottom.
