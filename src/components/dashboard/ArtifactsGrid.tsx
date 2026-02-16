@@ -101,7 +101,7 @@ export function ArtifactsGrid() {
       <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
 
       {/* Single column layout with Feature Planning and Launching */}
-      <div className="grid grid-cols-1 gap-6 max-w-xl">
+      <div className="grid grid-cols-1 gap-6 max-w-3xl">
         {/* Feature Planning Section */}
         <div className="space-y-4">
           <div className="mb-2">
@@ -112,7 +112,7 @@ export function ArtifactsGrid() {
               Define your value proposition, validate your ideas, and create comprehensive product requirements.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {planningCards.map(card => (
               <ArtifactCard 
                 key={card.type} 
