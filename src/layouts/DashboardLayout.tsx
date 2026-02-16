@@ -21,13 +21,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="min-h-screen flex w-full bg-[#0B0E14]">
           <DashboardSidebar />
           <main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
-            <DashboardHeader />
-            <DashboardTabs />
-            <div className={cn(
-              "flex-1 overflow-y-auto overflow-x-hidden",
-              isProjectBoard ? "p-4" : "p-6"
-            )}>
-              {children}
+            <div className="overflow-y-auto flex-1 flex flex-col">
+              <DashboardHeader />
+              <DashboardTabs />
+              <div className={cn(
+                "flex-1",
+                isProjectBoard ? "p-4" : "p-6"
+              )}>
+                {children}
+              </div>
             </div>
           </main>
           
