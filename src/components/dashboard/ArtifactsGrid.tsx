@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
+import { useProfile } from '@/hooks/useProfile';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -58,7 +59,9 @@ export function ArtifactsGrid() {
     artifacts,
     loading
   } = useArtifacts();
+  const { profile } = useProfile();
   const navigate = useNavigate();
+  const isOnboarded = profile?.onboarded === true;
 
   // Check if user has any artifacts
   const hasAnyData = artifacts.length > 0;
@@ -97,8 +100,10 @@ export function ArtifactsGrid() {
   const launchingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'launching');
   
   return <div className="space-y-8 p-6">
-      {/* Architect Banner */}
-      <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
+      {/* Architect Banner - hidden after onboarding */}
+      {!isOnboarded && (
+        <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
+      )}
 
       {/* Single column layout with Feature Planning and Launching */}
       <div className="grid grid-cols-1 gap-6 max-w-3xl">
