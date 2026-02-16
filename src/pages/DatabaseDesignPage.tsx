@@ -88,7 +88,7 @@ export default function DatabaseDesignPage() {
     <div className="relative h-full">
       <div className="overflow-auto h-full">
         <div className="max-w-full space-y-6 p-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Database Design</h1>
               <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>

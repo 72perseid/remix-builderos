@@ -44,7 +44,7 @@ export default function ValidationPage() {
       <div className="overflow-auto h-full">
         <div className="max-w-full space-y-6 p-6">
           <ArtifactBackButton />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Validation Strategy</h1>
               <p className="mt-1 text-muted-foreground">User personas and validation insights for your app</p>

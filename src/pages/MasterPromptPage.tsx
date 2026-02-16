@@ -216,12 +216,11 @@ export default function MasterPromptPage() {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white">Generated Prompt</h2>
                 <Button
-                  variant="outline"
                   size="sm"
                   onClick={handleCopy}
                   className={cn(
-                    "gap-2 transition-colors",
-                    copied && "bg-green-500/20 border-green-500/50 text-green-400"
+                    "gap-2 rounded-full transition-colors",
+                    copied ? "bg-green-500/20 border-green-500/50 text-green-400" : "bg-primary hover:bg-primary/90 text-white"
                   )}
                 >
                   {copied ? (

@@ -35,12 +35,11 @@ export function CopilotToggleButton({
 }) {
   return (
     <Button
-      variant="outline"
       size="sm"
       onClick={onClick}
-      className="gap-2 bg-slate-900 border-slate-700 hover:bg-slate-800 text-white"
+      className="gap-2 bg-primary hover:bg-primary/90 text-white rounded-full"
     >
-      <MessageSquare className="h-4 w-4 text-primary" />
+      <MessageSquare className="h-4 w-4" />
       <span className="text-sm">{heading}</span>
     </Button>
   );
