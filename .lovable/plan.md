@@ -1,55 +1,38 @@
 
 
-## Redesign ArtifactCopilot: Sidebar to Bottom Panel
+## Normalize Button Styles and Copilot Button Alignment
 
-### What Changes
+### Problem
+1. **Copilot buttons** are placed inline next to the title text rather than right-aligned in the header row.
+2. **Action buttons** ("New App", "Copy to Clipboard", Copilot toggle buttons) have inconsistent styles -- some are white, some are outline, none have a pill shape with blue background.
 
-The current copilot is a permanent sidebar on the left side of artifact pages (Database Design, Business Model, Product Brief, Validation, AI Kanban). It takes up 320px of horizontal space and is always open by default.
+### Changes
 
-The new design will:
-- **Remove the sidebar** entirely
-- **Add a chat toggle button** next to each page's title/heading
-- **Show the chat as a bottom panel** that slides up and covers the full content area when opened
-- **Start collapsed** (closed) by default
+#### 1. Update CopilotToggleButton style (1 file)
+**File:** `src/components/artifacts/ArtifactCopilot.tsx`
+- Change the `CopilotToggleButton` from `variant="outline"` with dark background to a blue pill button:
+  - `className="gap-2 bg-primary hover:bg-primary/90 text-white rounded-full"`
 
-### Technical Details
+#### 2. Right-align Copilot buttons on every artifact page (6 files)
+Change the header layout from `flex items-center gap-3` to `flex items-center justify-between` so the title sits on the left and the Copilot button sits on the right.
 
-**1. Refactor `ArtifactCopilot` component** (`src/components/artifacts/ArtifactCopilot.tsx`)
-- Change from a sidebar layout to a bottom overlay panel
-- Default `isOpen` to `false` instead of `true`
-- When open, render as an absolutely positioned panel that covers the parent content area, anchored to the bottom and filling the full width/height
-- Keep the existing chat messages, input, and loading states
-- Add a slide-up animation using framer-motion
+Pages to update:
+- `src/pages/BusinessModelPage.tsx` -- wrap title in a div, move `CopilotToggleButton` outside
+- `src/pages/ProductBriefPage.tsx` -- same pattern
+- `src/pages/ValidationPage.tsx` -- same pattern
+- `src/pages/DatabaseDesignPage.tsx` -- same pattern
+- `src/pages/AIKanbanAssistantPage.tsx` -- same pattern
+- `src/pages/MasterPromptPage.tsx` -- add a `CopilotToggleButton` or keep consistent header with right-aligned actions (this page currently has no copilot toggle in header; the "Copy to Clipboard" button should be styled as blue pill)
 
-**2. Add a `CopilotToggleButton` component** (new, inside the same file or exported separately)
-- A small button (e.g., MessageSquare icon + heading text) that can be placed inline next to page titles
-- Clicking it toggles the copilot open/closed
-- Pass the toggle state via props or a shared ref/callback
+#### 3. Style "New App" button as blue pill (1 file)
+**File:** `src/components/dashboard/DashboardHeader.tsx`
+- Change from `bg-white text-black hover:bg-slate-200 rounded-full` to `bg-primary text-white hover:bg-primary/90 rounded-full`
 
-**3. Update each artifact page** (5 files):
-- `src/pages/DatabaseDesignPage.tsx`
-- `src/pages/BusinessModelPage.tsx`
-- `src/pages/ProductBriefPage.tsx`
-- `src/pages/ValidationPage.tsx`
-- `src/pages/AIKanbanAssistantPage.tsx`
+#### 4. Style "Copy to Clipboard" button as blue pill (1 file)
+**File:** `src/pages/MasterPromptPage.tsx`
+- Change from `variant="outline"` to explicit blue pill styling: `bg-primary text-white hover:bg-primary/90 rounded-full`
 
-For each page:
-- Remove `ArtifactCopilot` from the bottom of the flex layout
-- Remove the `flex` layout wrapper that split content and sidebar
-- Add a `relative` wrapper around the content area so the copilot can overlay it
-- Place the toggle button next to the page title (e.g., "Database Design [chat icon]")
-- Place the `ArtifactCopilot` inside the relative wrapper so it overlays the content when open
+### Summary of Visual Result
+- All action buttons across the app will have a consistent **blue background with pill (rounded-full) shape**
+- Copilot toggle buttons will be **right-aligned** with the page title on every artifact page
 
-**4. Layout structure (per page)**
-
-```text
-<div className="relative h-full">        <-- new relative container
-  <div className="overflow-auto h-full">  <-- scrollable content
-    <h1>Page Title <CopilotToggle /></h1>
-    ...page content...
-  </div>
-  <ArtifactCopilot />                     <-- overlays from bottom when open
-</div>
-```
-
-When the copilot is open, it will slide up covering the content area with a semi-transparent backdrop, showing the chat interface full-width at the bottom.
