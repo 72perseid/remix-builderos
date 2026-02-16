@@ -48,7 +48,7 @@ export default function ProductBriefPage() {
   const timeline = content?.timeline;
 
   return (
-    <div className="h-full min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
         <ArtifactBreadcrumb currentPage="Product Brief" />
       </div>
