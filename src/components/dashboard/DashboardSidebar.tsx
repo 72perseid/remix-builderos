@@ -39,7 +39,7 @@ export function DashboardSidebar() {
   const isActive = (path: string) => buildRoutes.includes(location.pathname);
 
   return (
-    <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14] w-[240px]" collapsible="icon">
+    <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14]" collapsible="icon">
       {/* Logo */}
       <SidebarHeader className="px-5 pt-5 pb-4 bg-[#0B0E14]">
         <Link to="/artifacts" className="flex items-center">
