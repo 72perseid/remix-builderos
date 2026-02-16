@@ -41,8 +41,8 @@ export function DashboardSidebar() {
   return (
     <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14]" collapsible="icon">
       {/* Logo */}
-      <SidebarHeader className="px-5 pt-5 pb-4 bg-[#0B0E14]">
-        <div className="flex items-center justify-between">
+      <SidebarHeader className={isCollapsed ? "px-2 pt-3 pb-2 bg-[#0B0E14]" : "px-5 pt-5 pb-4 bg-[#0B0E14]"}>
+        <div className={isCollapsed ? "flex flex-col items-center gap-2" : "flex items-center justify-between"}>
           <Link to="/artifacts" className="flex items-center">
             {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
             {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
@@ -60,7 +60,7 @@ export function DashboardSidebar() {
       </SidebarHeader>
 
       {/* Nav items inside a rounded container */}
-      <SidebarContent className="bg-[#0B0E14] px-3">
+      <SidebarContent className={isCollapsed ? "bg-[#0B0E14] px-1" : "bg-[#0B0E14] px-3"}>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
@@ -84,13 +84,13 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       {/* User profile footer */}
-      <SidebarFooter className="border-t border-slate-800/50 p-4 bg-[#0B0E14]">
-        <div className="flex items-center justify-between gap-3">
+      <SidebarFooter className={isCollapsed ? "border-t border-slate-800/50 p-2 bg-[#0B0E14]" : "border-t border-slate-800/50 p-4 bg-[#0B0E14]"}>
+        <div className={isCollapsed ? "flex flex-col items-center gap-2" : "flex items-center justify-between gap-3"}>
           <div
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            className={isCollapsed ? "cursor-pointer hover:opacity-80 transition-opacity" : "flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"}
             onClick={() => setIsProfileOpen(true)}
           >
-            <Avatar className="h-9 w-9 border-2 border-slate-700">
+            <Avatar className={isCollapsed ? "h-8 w-8 border-2 border-slate-700" : "h-9 w-9 border-2 border-slate-700"}>
               <AvatarImage src={profile?.profile_image || ""} />
               <AvatarFallback className="bg-primary/30 text-primary text-sm">
                 {profile?.first_name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
@@ -105,15 +105,28 @@ export function DashboardSidebar() {
               </div>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleSignOut}
-            className="text-slate-400 hover:text-white hover:bg-slate-800/50"
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {!isCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              className="text-slate-400 hover:text-white hover:bg-slate-800/50"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
+          {isCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleSignOut}
+              className="h-7 w-7 text-slate-400 hover:text-white hover:bg-slate-800/50"
+              title="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </SidebarFooter>
 
