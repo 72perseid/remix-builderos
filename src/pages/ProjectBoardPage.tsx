@@ -603,7 +603,7 @@ export default function ProjectBoardPage() {
       </div>;
   }
   
-  return <div className="h-full flex flex-col">
+  return <div className="h-full flex flex-col p-6">
       {/* Architect Banner */}
       <ArchitectBanner 
         onStartBuilding={() => navigate('/onboarding?mode=setup')} 
