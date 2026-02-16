@@ -6,7 +6,7 @@ import { useBusinessModel } from '@/hooks/useBusinessModel';
 import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Target, Users, DollarSign, Rocket, Building, Loader2, Megaphone } from 'lucide-react';
-import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
+import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
@@ -176,8 +176,8 @@ export default function BusinessModelPage() {
 
   return (
     <div className="h-full min-h-screen flex flex-col bg-[#0B0E14]">
-      <div className="p-4 shrink-0">
-        <ArtifactBackButton />
+      <div className="px-6 pt-4 pb-2 shrink-0">
+        <ArtifactBreadcrumb currentPage="Business Model" />
       </div>
       <div className="flex flex-1 overflow-hidden">
         <CopilotPanel context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} />
