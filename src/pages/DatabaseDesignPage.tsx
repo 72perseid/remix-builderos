@@ -7,7 +7,7 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Database, Table2, Link2, Loader2, Columns } from 'lucide-react';
 
-import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
+import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 import {
   Table as UITable,
@@ -21,10 +21,9 @@ import {
 // New format from DB - columns as string array
 interface TableDefNew {
   name: string;
-  columns: string[]; // e.g. ["id (uuid)", "email (text)"]
+  columns: string[];
 }
 
-// Legacy format - columns as objects
 interface TableField {
   name: string;
   type: string;
@@ -44,12 +43,10 @@ interface DatabaseDesignContent {
   relationships?: string[] | { from: string; to: string; type: string; description?: string }[];
 }
 
-// Helper to check if table uses new format
 function isNewFormat(table: TableDef): table is TableDefNew {
   return 'columns' in table && Array.isArray(table.columns);
 }
 
-// Helper to parse column string like "id (uuid)" into name and type
 function parseColumn(col: string): { name: string; type: string } {
   const match = col.match(/^(.+?)\s*\((.+)\)$/);
   if (match) {
@@ -58,7 +55,6 @@ function parseColumn(col: string): { name: string; type: string } {
   return { name: col, type: 'unknown' };
 }
 
-// Helper to parse relationship string like "users.id -> children.user_id"
 function parseRelationship(rel: string): { from: string; to: string } {
   const parts = rel.split('->').map(s => s.trim());
   return { from: parts[0] || rel, to: parts[1] || '' };
@@ -68,9 +64,9 @@ export default function DatabaseDesignPage() {
   const { appIdea } = useAppIdea();
   const { databaseDesign } = useDatabaseDesign();
   const { data: artifact, loading: artifactLoading } = useArtifact('db_design');
+  const [copilotOpen, setCopilotOpen] = useState(false);
   
   const [roadmapFeatures, setRoadmapFeatures] = useState(databaseDesign?.roadmapFeatures || '');
-  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     if (databaseDesign) {
@@ -78,21 +74,6 @@ export default function DatabaseDesignPage() {
     }
   }, [databaseDesign]);
 
-  const handleGenerate = async () => {
-    if (!appIdea?.appDescription) {
-      toast.error('Please save your app idea first');
-      return;
-    }
-
-    setIsGenerating(true);
-    
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast.info('AI generation not yet configured');
-    }, 1000);
-  };
-
-  // Use artifact content if available, otherwise fall back to local hook
   const content: DatabaseDesignContent | null = artifact?.content as DatabaseDesignContent || databaseDesign?.generatedDesign;
 
   if (artifactLoading) {
@@ -104,13 +85,15 @@ export default function DatabaseDesignPage() {
   }
 
   return (
-    <div className="flex h-full">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+    <div className="relative h-full">
+      <div className="overflow-auto h-full">
         <div className="max-w-6xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Database Design</h1>
-            <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Database Design</h1>
+              <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>
+            </div>
+            <CopilotToggleButton heading="DB Architect" onClick={() => setCopilotOpen(v => !v)} />
           </div>
 
           {/* Empty State */}
@@ -134,7 +117,6 @@ export default function DatabaseDesignPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Tables */}
               {content.tables && content.tables.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
@@ -158,7 +140,6 @@ export default function DatabaseDesignPage() {
                           </TableHeader>
                           <TableBody>
                             {isNewFormat(table) ? (
-                              // New format: columns as string array
                               table.columns.map((col, j) => {
                                 const { name, type } = parseColumn(col);
                                 return (
@@ -169,7 +150,6 @@ export default function DatabaseDesignPage() {
                                 );
                               })
                             ) : (
-                              // Legacy format: fields as objects
                               (table as TableDefLegacy).fields.map((field, j) => (
                                 <TableRow key={j} className="border-white/10 hover:bg-white/5">
                                   <TableCell className="text-sm font-mono text-muted-foreground">{field.name}</TableCell>
@@ -188,7 +168,6 @@ export default function DatabaseDesignPage() {
                 </div>
               )}
 
-              {/* Relationships */}
               {content.relationships && content.relationships.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
@@ -201,7 +180,6 @@ export default function DatabaseDesignPage() {
                     iconColor="text-orange-500"
                   >
                     {typeof content.relationships[0] === 'string' ? (
-                      // New format: relationships as string array
                       <ul className="space-y-3">
                         {(content.relationships as string[]).map((rel, i) => {
                           const { from, to } = parseRelationship(rel);
@@ -215,7 +193,6 @@ export default function DatabaseDesignPage() {
                         })}
                       </ul>
                     ) : (
-                      // Legacy format: relationships as objects
                       <UITable>
                         <TableHeader>
                           <TableRow className="border-white/10 hover:bg-transparent">
@@ -249,8 +226,7 @@ export default function DatabaseDesignPage() {
         </div>
       </div>
 
-      {/* Copilot Sidebar */}
-      <ArtifactCopilot context="database" heading="DB Architect" />
+      <ArtifactCopilot context="database" heading="DB Architect" isOpen={copilotOpen} onToggle={() => setCopilotOpen(false)} />
     </div>
   );
 }

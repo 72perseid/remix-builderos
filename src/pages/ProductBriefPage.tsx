@@ -1,10 +1,11 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BusinessCard } from '@/components/ui/business-card';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles, Calendar, TrendingUp, Package } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
-import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
+import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
 interface ProductBriefContent {
@@ -29,6 +30,7 @@ interface ProductBriefContent {
 
 export default function ProductBriefPage() {
   const { data: artifact, loading, error } = useArtifact('product_brief');
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   if (loading) {
     return (
@@ -52,16 +54,18 @@ export default function ProductBriefPage() {
   const timeline = content?.timeline;
 
   return (
-    <div className="flex h-full bg-[#0B0E14] min-h-screen">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+    <div className="relative h-full min-h-screen">
+      <div className="overflow-auto h-full">
         <div className="max-w-5xl mx-auto space-y-6 p-6">
           <ArtifactBackButton />
-          <div>
-            <h1 className="text-2xl font-bold text-white">Product Brief</h1>
-            <p className="text-muted-foreground mt-1">
-              Your comprehensive product requirements document
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Product Brief</h1>
+              <p className="text-muted-foreground mt-1">
+                Your comprehensive product requirements document
+              </p>
+            </div>
+            <CopilotToggleButton heading="Product Strategist" onClick={() => setCopilotOpen(v => !v)} />
           </div>
 
           {error && (
@@ -213,8 +217,7 @@ export default function ProductBriefPage() {
         </div>
       </div>
 
-      {/* Copilot Sidebar */}
-      <ArtifactCopilot context="product_brief" heading="Product Strategist" />
+      <ArtifactCopilot context="product_brief" heading="Product Strategist" isOpen={copilotOpen} onToggle={() => setCopilotOpen(false)} />
     </div>
   );
 }

@@ -1,11 +1,11 @@
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useTasks } from '@/hooks/useTasks';
-import { KanbanBoard, Column, Task } from '@/components/ui/kanban-board';
+import { KanbanBoard, Column } from '@/components/ui/kanban-board';
 import { toast } from 'sonner';
-import { Download, Loader2, LayoutGrid } from 'lucide-react';
+import { Loader2, LayoutGrid } from 'lucide-react';
 import { AcceptanceCriteriaItem } from '@/types';
-import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
+import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
 
 // Interface matching the exact n8n output format
 interface RoadmapContent {
@@ -47,6 +47,7 @@ const columnColors: Record<string, string> = {
 export default function AIKanbanAssistantPage() {
   const { data: artifact, loading } = useArtifact('kanban');
   const { importTasks } = useTasks();
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   // Parse artifact content with the exact expected structure
   const content = artifact?.content as RoadmapContent | null;
@@ -106,20 +107,22 @@ export default function AIKanbanAssistantPage() {
   }
 
   return (
-    <div className="flex h-full">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+    <div className="relative h-full">
+      <div className="overflow-auto h-full">
         <div className="max-w-full space-y-6 p-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Roadmap & Features</h1>
-              <p className="text-slate-400 mt-1">
-                {kanbanColumns.length > 0 
-                  ? `${totalCards} features across ${kanbanColumns.length} columns • Drag and drop to organize`
-                  : 'Your feature roadmap will appear here once generated'
-                }
-              </p>
+            <div className="flex items-center gap-3">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Roadmap & Features</h1>
+                <p className="text-slate-400 mt-1">
+                  {kanbanColumns.length > 0 
+                    ? `${totalCards} features across ${kanbanColumns.length} columns • Drag and drop to organize`
+                    : 'Your feature roadmap will appear here once generated'
+                  }
+                </p>
+              </div>
+              <CopilotToggleButton heading="Product Manager" onClick={() => setCopilotOpen(v => !v)} />
             </div>
           </div>
 
@@ -140,8 +143,7 @@ export default function AIKanbanAssistantPage() {
         </div>
       </div>
 
-      {/* Copilot Sidebar */}
-      <ArtifactCopilot context="roadmap" heading="Product Manager" />
+      <ArtifactCopilot context="roadmap" heading="Product Manager" isOpen={copilotOpen} onToggle={() => setCopilotOpen(false)} />
     </div>
   );
 }
