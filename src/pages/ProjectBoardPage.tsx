@@ -238,7 +238,7 @@ function TaskColumn({
   onAddCard,
   onEditCard
 }: TaskColumnProps) {
-  return <KanbanColumn value={columnId} className="flex-shrink-0 w-[272px] bg-[#161e2a]/80 backdrop-blur-sm rounded-xl border border-slate-700/50 flex flex-col max-h-[calc(100vh-180px)]" disabled>
+  return <KanbanColumn value={columnId} className="flex-shrink-0 w-[272px] bg-card/80 backdrop-blur-sm rounded-xl border border-slate-700/50 flex flex-col max-h-[calc(100vh-180px)]" disabled>
       {/* Column Header */}
       <div className="p-2 px-3">
         <div className="flex items-center justify-between">
@@ -631,7 +631,7 @@ export default function ProjectBoardPage() {
 
       {/* Add Card Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="bg-[#161e2a] border-slate-700/50 text-white sm:max-w-sm p-0 gap-0">
+        <DialogContent className="bg-card border-slate-700/50 text-white sm:max-w-sm p-0 gap-0">
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-slate-400">
@@ -718,7 +718,7 @@ export default function ProjectBoardPage() {
                       const tasksProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
                       
                       return (
-                        <div className="bg-[#161e2a] rounded-xl p-5 border border-slate-700/30">
+                        <div className="bg-card rounded-xl p-5 border border-slate-700/30">
                           {/* Header with title and progress */}
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1 max-w-[60%]">
@@ -809,7 +809,7 @@ export default function ProjectBoardPage() {
                     })()}
 
                     {/* Acceptance Criteria Section - Always visible */}
-                    <div className="bg-[#161e2a] rounded-xl p-5 border border-slate-700/30">
+                    <div className="bg-card rounded-xl p-5 border border-slate-700/30">
                       {/* Header with title and progress */}
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1 max-w-[60%]">

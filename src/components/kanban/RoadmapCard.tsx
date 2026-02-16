@@ -31,7 +31,7 @@ export function RoadmapCard({ card }: RoadmapCardProps) {
         </span>
       </div>
       {card.description && (
-        <p className="text-xs text-slate-400 line-clamp-2">
+        <p className="text-xs text-secondary-foreground line-clamp-2">
           {card.description}
         </p>
       )}

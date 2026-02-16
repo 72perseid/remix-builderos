@@ -58,7 +58,7 @@ export default function ProductBriefPage() {
           <div className="max-w-full space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-white">Product Brief</h1>
-              <p className="text-muted-foreground mt-1">Your comprehensive product requirements document</p>
+              <p className="text-secondary-foreground mt-1">Your comprehensive product requirements document</p>
             </div>
 
             {error && (
@@ -70,11 +70,11 @@ export default function ProductBriefPage() {
             )}
 
             {!artifact ? (
-              <Card className="bg-[#161e2a] border-slate-700/50">
+              <Card className="bg-card border-slate-700/50">
                 <CardContent className="p-8 text-center">
-                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <FileText className="w-12 h-12 mx-auto text-secondary-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2 text-foreground">No Product Brief Yet</h3>
-                  <p className="text-muted-foreground text-base">
+                  <p className="text-secondary-foreground text-base">
                     Generate a product brief using the AI Architect on the Dashboard.
                   </p>
                 </CardContent>
@@ -108,7 +108,7 @@ export default function ProductBriefPage() {
                     {Array.isArray(targetUsers) ? (
                       <div className="flex flex-wrap gap-2">
                         {targetUsers.map((audience, i) => (
-                          <Badge key={i} variant="secondary" className="text-sm bg-white/5 border border-white/10 text-muted-foreground">{audience}</Badge>
+                          <Badge key={i} variant="secondary" className="text-sm bg-white/5 border border-white/10 text-secondary-foreground">{audience}</Badge>
                         ))}
                       </div>
                     ) : (
@@ -138,7 +138,7 @@ export default function ProductBriefPage() {
                   <BusinessCard title="Success Metrics" icon={TrendingUp} iconColor="text-blue-500">
                     <div className="flex flex-wrap gap-2">
                       {successMetrics.map((metric, i) => (
-                        <Badge key={i} variant="outline" className="text-sm border-white/10 text-muted-foreground">{metric}</Badge>
+                        <Badge key={i} variant="outline" className="text-sm border-white/10 text-secondary-foreground">{metric}</Badge>
                       ))}
                     </div>
                   </BusinessCard>

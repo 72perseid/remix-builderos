@@ -91,18 +91,18 @@ export default function DatabaseDesignPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Database Design</h1>
-              <p className="text-muted-foreground mt-1">ERD and table schema for your app</p>
+              <p className="text-secondary-foreground mt-1">ERD and table schema for your app</p>
             </div>
             <CopilotToggleButton heading="DB Architect" onClick={() => setCopilotOpen(v => !v)} />
           </div>
 
           {/* Empty State */}
           {!content && (
-            <Card className="bg-[#161e2a] border-slate-700/50">
+            <Card className="bg-card border-slate-700/50">
               <CardContent className="p-8 text-center">
-                <Database className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                <Database className="w-12 h-12 mx-auto text-secondary-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2 text-white">No Database Design Yet</h3>
-                <p className="text-muted-foreground text-base">
+                <p className="text-secondary-foreground text-base">
                   Generate a database design using the AI Architect on the Dashboard.
                 </p>
               </CardContent>
@@ -144,16 +144,16 @@ export default function DatabaseDesignPage() {
                                 const { name, type } = parseColumn(col);
                                 return (
                                   <TableRow key={j} className="border-white/10 hover:bg-white/5">
-                                    <TableCell className="text-sm font-mono text-muted-foreground">{name}</TableCell>
-                                    <TableCell className="text-sm font-mono text-muted-foreground">{type}</TableCell>
+                                    <TableCell className="text-sm font-mono text-secondary-foreground">{name}</TableCell>
+                                    <TableCell className="text-sm font-mono text-secondary-foreground">{type}</TableCell>
                                   </TableRow>
                                 );
                               })
                             ) : (
                               (table as TableDefLegacy).fields.map((field, j) => (
                                 <TableRow key={j} className="border-white/10 hover:bg-white/5">
-                                  <TableCell className="text-sm font-mono text-muted-foreground">{field.name}</TableCell>
-                                  <TableCell className="text-sm font-mono text-muted-foreground">
+                                  <TableCell className="text-sm font-mono text-secondary-foreground">{field.name}</TableCell>
+                                  <TableCell className="text-sm font-mono text-secondary-foreground">
                                     {field.type}
                                     {field.constraints && ` (${field.constraints})`}
                                   </TableCell>
@@ -205,14 +205,14 @@ export default function DatabaseDesignPage() {
                         <TableBody>
                           {(content.relationships as { from: string; to: string; type: string; description?: string }[]).map((rel, i) => (
                             <TableRow key={i} className="border-white/10 hover:bg-white/5">
-                              <TableCell className="text-sm font-mono text-muted-foreground">{rel.from}</TableCell>
-                              <TableCell className="text-sm font-mono text-muted-foreground">{rel.to}</TableCell>
+                              <TableCell className="text-sm font-mono text-secondary-foreground">{rel.from}</TableCell>
+                              <TableCell className="text-sm font-mono text-secondary-foreground">{rel.to}</TableCell>
                               <TableCell className="text-sm">
                                 <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-xs">
                                   {rel.type}
                                 </span>
                               </TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{rel.description || '-'}</TableCell>
+                              <TableCell className="text-sm text-secondary-foreground">{rel.description || '-'}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>

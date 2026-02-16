@@ -131,7 +131,7 @@ export function KanbanBoard({ columns: initialColumns, onColumnsChange, classNam
         {columns.map((column) => (
           <div
             key={column.id}
-            className="flex-shrink-0 w-80 bg-[#161e2a]/80 backdrop-blur-sm rounded-xl border border-white/10"
+            className="flex-shrink-0 w-80 bg-card/80 backdrop-blur-sm rounded-xl border border-white/10"
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, column.id)}
           >
@@ -237,7 +237,7 @@ export function KanbanBoard({ columns: initialColumns, onColumnsChange, classNam
 
       {/* Add Task Dialog */}
       <Dialog open={isAddTaskOpen} onOpenChange={setIsAddTaskOpen}>
-        <DialogContent className="bg-[#161e2a] border-white/10 text-white">
+        <DialogContent className="bg-card border-white/10 text-white">
           <DialogHeader>
             <DialogTitle className="text-white">
               Add Task to {activeColumn?.title}

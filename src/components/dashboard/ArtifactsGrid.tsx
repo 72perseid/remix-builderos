@@ -150,9 +150,9 @@ export function ArtifactsGrid() {
                 onClick={() => navigate(card.route)} 
               />
             )) : (
-              <div className="bg-[#161e2a] border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[140px]">
-                <span className="text-lg font-semibold text-muted-foreground">Coming Soon!</span>
-                <p className="text-sm text-muted-foreground/60 mt-1">Stay tuned for launching tools.</p>
+              <div className="bg-card border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[140px]">
+                <span className="text-lg font-semibold text-secondary-foreground">Coming Soon!</span>
+                <p className="text-sm text-secondary-foreground/60 mt-1">Stay tuned for launching tools.</p>
               </div>
             )}
           </div>
