@@ -6,63 +6,6 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 10%;
-    --card: 0 0% 98%;
-    --card-foreground: 240 10% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 10%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 10% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 38%;
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 217 91% 60%;
-    --radius: 0.75rem;
-    
-    /* Custom tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(199, 89%, 48%));
-    --gradient-accent: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(210, 80%, 55%));
-    --gradient-surface: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(240, 5%, 98%));
-    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.15);
-    --shadow-card: 0 4px 24px -4px hsl(240 10% 10% / 0.08);
-    
-    /* Kanban colors */
-    --kanban-yellow: 48 96% 70%;
-    --kanban-coral: 12 90% 72%;
-    --kanban-mint: 158 64% 65%;
-    --kanban-lavender: 262 70% 78%;
-    --kanban-sky: 200 85% 72%;
-    
-    /* Category colors */
-    --category-mvp: 262 83% 58%;
-    --category-v1: 172 66% 50%;
-    --category-stretch: 48 96% 50%;
-    
-    /* Priority colors */
-    --priority-high: 0 84% 60%;
-    --priority-medium: 38 92% 50%;
-    --priority-low: 142 71% 45%;
-    
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
     --background: 240 10% 6%;
     --foreground: 0 0% 100%;
     --card: 240 10% 9%;
@@ -82,13 +25,33 @@
     --border: 240 6% 20%;
     --input: 240 6% 20%;
     --ring: 217 91% 60%;
+    --radius: 0.75rem;
     
+    /* Custom tokens */
     --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 60%), hsl(199, 89%, 48%));
     --gradient-accent: linear-gradient(135deg, hsl(199, 89%, 48%), hsl(210, 80%, 55%));
     --gradient-surface: linear-gradient(180deg, hsl(240, 10%, 9%), hsl(240, 10%, 6%));
     --shadow-glow: 0 0 60px hsl(217 91% 60% / 0.2);
     --shadow-card: 0 4px 24px -4px hsl(0 0% 0% / 0.4);
     
+    /* Kanban colors */
+    --kanban-yellow: 48 96% 70%;
+    --kanban-coral: 12 90% 72%;
+    --kanban-mint: 158 64% 65%;
+    --kanban-lavender: 262 70% 78%;
+    --kanban-sky: 200 85% 72%;
+    
+    /* Category colors */
+    --category-mvp: 262 83% 58%;
+    --category-v1: 172 66% 50%;
+    --category-stretch: 48 96% 50%;
+    
+    /* Priority colors */
+    --priority-high: 0 84% 60%;
+    --priority-medium: 38 92% 50%;
+    --priority-low: 142 71% 45%;
+    
+    /* Sidebar */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 224.3 76.3% 48%;

@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/ThemeToggle';
+
 import { useAuth } from '@/hooks/useAuth';
 import {
   LayoutDashboard,
@@ -78,7 +78,7 @@ export function Header() {
                 {user.email}
               </span>
             )}
-            <ThemeToggle />
+            
             <Button 
               variant="ghost" 
               size="icon" 

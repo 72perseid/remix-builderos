@@ -55,58 +55,58 @@ const badgeVariants = cva(
       {
         variant: 'primary',
         appearance: 'light',
-        className: 'text-blue-700 bg-blue-50 dark:bg-blue-950 dark:text-blue-400',
+        className: 'bg-blue-950 text-blue-400',
       },
       {
         variant: 'secondary',
         appearance: 'light',
-        className: 'bg-secondary dark:bg-secondary/50 text-secondary-foreground',
+        className: 'bg-secondary/50 text-secondary-foreground',
       },
       {
         variant: 'success',
         appearance: 'light',
-        className: 'text-green-700 bg-green-100 dark:bg-green-950 dark:text-green-400',
+        className: 'bg-green-950 text-green-400',
       },
       {
         variant: 'warning',
         appearance: 'light',
-        className: 'text-yellow-700 bg-yellow-100 dark:bg-yellow-950 dark:text-yellow-400',
+        className: 'bg-yellow-950 text-yellow-400',
       },
       {
         variant: 'info',
         appearance: 'light',
-        className: 'text-violet-700 bg-violet-100 dark:bg-violet-950 dark:text-violet-400',
+        className: 'bg-violet-950 text-violet-400',
       },
       {
         variant: 'destructive',
         appearance: 'light',
-        className: 'text-red-700 bg-red-50 dark:bg-red-950 dark:text-red-400',
+        className: 'bg-red-950 text-red-400',
       },
       /* Outline */
       {
         variant: 'primary',
         appearance: 'outline',
-        className: 'text-blue-700 border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-400',
+        className: 'bg-blue-950 border-blue-800 text-blue-400',
       },
       {
         variant: 'success',
         appearance: 'outline',
-        className: 'text-green-700 border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800 dark:text-green-400',
+        className: 'bg-green-950 border-green-800 text-green-400',
       },
       {
         variant: 'warning',
         appearance: 'outline',
-        className: 'text-yellow-700 border-yellow-200 bg-yellow-50 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-400',
+        className: 'bg-yellow-950 border-yellow-800 text-yellow-400',
       },
       {
         variant: 'info',
         appearance: 'outline',
-        className: 'text-violet-700 border-violet-200 bg-violet-50 dark:bg-violet-950 dark:border-violet-800 dark:text-violet-400',
+        className: 'bg-violet-950 border-violet-800 text-violet-400',
       },
       {
         variant: 'destructive',
         appearance: 'outline',
-        className: 'text-red-700 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 dark:text-red-400',
+        className: 'bg-red-950 border-red-800 text-red-400',
       },
       /* Ghost */
       {
