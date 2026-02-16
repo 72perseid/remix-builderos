@@ -56,7 +56,7 @@ const App = () => (
             } />
             <Route path="/business-model" element={
               <ProtectedRoute>
-                <DashboardLayout><BusinessModelPage /></DashboardLayout>
+                <BusinessModelPage />
               </ProtectedRoute>
             } />
             <Route path="/database-design" element={
@@ -66,12 +66,12 @@ const App = () => (
             } />
             <Route path="/validation" element={
               <ProtectedRoute>
-                <DashboardLayout><ValidationPage /></DashboardLayout>
+                <ValidationPage />
               </ProtectedRoute>
             } />
             <Route path="/product-brief" element={
               <ProtectedRoute>
-                <DashboardLayout><ProductBriefPage /></DashboardLayout>
+                <ProductBriefPage />
               </ProtectedRoute>
             } />
             <Route path="/master-prompt" element={
