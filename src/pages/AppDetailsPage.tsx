@@ -100,10 +100,6 @@ export default function AppDetailsPage() {
               <Input value={appName} onChange={(e) => setAppName(e.target.value)} placeholder="Enter app name" />
             </div>
             <div className="space-y-2">
-              <Label className="text-muted-foreground">One Liner</Label>
-              <Input value={oneLiner} onChange={(e) => setOneLiner(e.target.value)} placeholder="A short tagline" />
-            </div>
-            <div className="space-y-2 sm:col-span-2">
               <Label className="text-muted-foreground">App Category</Label>
               <Select value={appCategory} onValueChange={setAppCategory}>
                 <SelectTrigger>
@@ -115,6 +111,10 @@ export default function AppDetailsPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2 sm:col-span-2">
+              <Label className="text-muted-foreground">One Liner</Label>
+              <Input value={oneLiner} onChange={(e) => setOneLiner(e.target.value)} placeholder="A short tagline" />
             </div>
           </div>
         </div>
