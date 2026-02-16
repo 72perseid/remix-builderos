@@ -1,37 +1,56 @@
 
 
-## Consolidate Card Design System
+# Redesign App Details Page -- Inline Form
 
-### What Changes
+## Overview
+Replace the current list-of-apps + dialog approach with a single inline form that shows and edits the currently selected app's details. No dialogs, no app list. Project switching is handled by the header dropdown.
 
-Based on the reference screenshot, the card design should use:
-- A consistent dark navy background (currently hardcoded as `#161e2a` in 12+ files)
-- White for primary/title text
-- A blue-gray tone for secondary/description text (not pure white, not pure gray)
+## Form Layout
 
-### Design Tokens (src/index.css)
+### Section 1: Basic Information (2-column grid)
+- **Logo** -- `LogoUploader` component (large size) on the left
+- **App Name** -- text input (`app_name`)
+- **App One Liner** -- text input (`one_liner`)
+- **App Category** -- select dropdown (`app_category`) with options: Productivity, Social, E-commerce, Education, Health, Finance, Entertainment, Other
 
-1. **Update `--card`** variable to match the actual card background `#161e2a` (HSL ~215 28% 13%) instead of the current `240 10% 9%`. This lets us use `bg-card` everywhere instead of the hardcoded hex.
+### Section 2: Who is this app for?
+- Radio-style toggle: "For Myself" / "For a Client" (maps to `app_for` column)
 
-2. **Update `--secondary-foreground`** from pure white (`0 0% 100%`) to a blue-tinted gray (`215 20% 65%`, roughly `#94a0b8`). This creates the subtle blue-gray description text visible in the reference design, maintaining clear hierarchy below the white titles.
+### Section 3: Description Fields
+- **App Description** -- textarea (`app_description`)
+- **How did you come up with this idea?** -- textarea (`idea_generation`)
 
-### Component Updates
+### Section 4: Target Audience
+- **User Persona Description** -- textarea (`persona_description`)
+- **User Demographic Description** -- textarea (`user_demography`)
 
-3. **Replace all `bg-[#161e2a]`** with `bg-card` across ~12 files:
-   - ArtifactCard, ArtifactsGrid, ArchitectBanner
-   - highlight-card, business-card
-   - ProjectBoardPage, AIKanbanAssistantPage
-   - MasterPromptPage, DatabaseDesignPage, ValidationPage
-   - kanban-board
+### Section 5: App Type
+- Radio-style toggle: B2B / B2C / B2B2C (maps to `app_type` column)
 
-4. **Normalize secondary text color** in card components -- replace scattered `text-muted-foreground` body text in cards with `text-secondary-foreground` so they pick up the new blue-gray token:
-   - business-card.tsx (line 66)
-   - ArtifactCard.tsx description
-   - highlight-card.tsx description
-   - RoadmapCard.tsx description
-   - DynamicKanbanColumn.tsx counts/empty text
+### Footer
+- "Save Changes" button aligned right
 
-### Technical Details
+## Data Flow
+- Read `selectedApp` from `useProjectContext()` to pre-fill the form
+- On save, update the `app_ideas` row matching `selectedApp.id` via Supabase, then call `refreshApps()` to sync the context
+- Show empty state with message if no app is selected
 
-Files modified: `src/index.css` plus approximately 12 component files. No new files or dependencies. All changes are class name swaps and two CSS variable value updates.
+## Styling Rules
+- All colors use CSS variable classes: `bg-card`, `text-foreground`, `text-muted-foreground`, `text-primary`, `border-border`, `bg-background`
+- No hard-coded hex values or slate/blue color classes
+- Labels use `text-primary` for section headers, `text-muted-foreground` for field labels
+
+## Technical Details
+
+### File: `src/pages/AppDetailsPage.tsx` (full rewrite)
+- Remove all imports for Dialog, Badge, Check, Pencil, Trash2
+- Remove app list rendering, edit dialog, delete dialog, and all associated state
+- Add local form state initialized from `selectedApp` fields via `useEffect`
+- Add `handleSave` that calls `supabase.from('app_ideas').update({...}).eq('id', selectedApp.id)` with all form fields: `app_name`, `one_liner`, `app_category`, `app_for`, `app_description`, `idea_generation`, `persona_description`, `user_demography`, `app_type`
+- After successful save, call `refreshApps()` from ProjectContext and show success toast
+- Use `LogoUploader` component with `appId={selectedApp.id}` for logo management
+- Wrap content in a scrollable container with max-width for readability
+
+### No database changes needed
+The `app_ideas` table already has all the required columns.
 
