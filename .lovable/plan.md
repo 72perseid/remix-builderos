@@ -1,56 +1,35 @@
 
 
-# Redesign App Details Page -- Inline Form
+# App Details Page: Responsive Grid + Unified Borders
 
-## Overview
-Replace the current list-of-apps + dialog approach with a single inline form that shows and edits the currently selected app's details. No dialogs, no app list. Project switching is handled by the header dropdown.
+## 1. Responsive Grid Layout
 
-## Form Layout
+Restructure `AppDetailsPage.tsx` to use a proper responsive grid system:
 
-### Section 1: Basic Information (2-column grid)
-- **Logo** -- `LogoUploader` component (large size) on the left
-- **App Name** -- text input (`app_name`)
-- **App One Liner** -- text input (`one_liner`)
-- **App Category** -- select dropdown (`app_category`) with options: Productivity, Social, E-commerce, Education, Health, Finance, Entertainment, Other
+- The outer container gets a responsive max-width and full-width on mobile
+- Section 1 (Basic Information): Logo + fields use a responsive grid -- stack vertically on mobile, side-by-side on larger screens
+- Sections 3 and 4 (Description and Target Audience): Textarea fields use a 2-column grid on desktop (`md:grid-cols-2`), stacking to 1 column on mobile
+- Sections 2 and 5 (toggle buttons): Already use `flex` with `flex-1` children, which works well responsively
+- The "Who is this app for?" and "B2B/B2C" button groups will wrap on very small screens by adding `flex-wrap`
 
-### Section 2: Who is this app for?
-- Radio-style toggle: "For Myself" / "For a Client" (maps to `app_for` column)
+## 2. Consolidated Border Color
 
-### Section 3: Description Fields
-- **App Description** -- textarea (`app_description`)
-- **How did you come up with this idea?** -- textarea (`idea_generation`)
+The app defines `--border: 240 6% 20%` and `--input: 240 6% 20%` (same value). However, the sidebar uses hardcoded `border-slate-800/50` instead of the semantic token. To unify:
 
-### Section 4: Target Audience
-- **User Persona Description** -- textarea (`persona_description`)
-- **User Demographic Description** -- textarea (`user_demography`)
+- **Input, Textarea, SelectTrigger** -- already use `border-input` which resolves to `hsl(240, 6%, 20%)`. No change needed here.
+- **DashboardSidebar.tsx** -- replace all `border-slate-800/50` references with `border-sidebar-border` (which maps to `--sidebar-border`). To fully unify with the rest of the app, update `--sidebar-border` in `index.css` from `240 3.7% 15.9%` to match `--border` at `240 6% 20%`.
+- **Footer divider** on AppDetailsPage already uses `border-border` -- correct.
 
-### Section 5: App Type
-- Radio-style toggle: B2B / B2C / B2B2C (maps to `app_type` column)
+## Technical Changes
 
-### Footer
-- "Save Changes" button aligned right
+### File: `src/pages/AppDetailsPage.tsx`
+- Change outer container from `max-w-3xl` to `max-w-4xl w-full`
+- Section 1: Keep the logo + fields flex layout but make it responsive with `flex-col sm:flex-row`
+- Sections 3 and 4: Wrap textarea fields in a `grid grid-cols-1 md:grid-cols-2 gap-4` container so they sit side-by-side on wider screens
 
-## Data Flow
-- Read `selectedApp` from `useProjectContext()` to pre-fill the form
-- On save, update the `app_ideas` row matching `selectedApp.id` via Supabase, then call `refreshApps()` to sync the context
-- Show empty state with message if no app is selected
+### File: `src/index.css`
+- Update `--sidebar-border` from `240 3.7% 15.9%` to `240 6% 20%` to match `--border`
 
-## Styling Rules
-- All colors use CSS variable classes: `bg-card`, `text-foreground`, `text-muted-foreground`, `text-primary`, `border-border`, `bg-background`
-- No hard-coded hex values or slate/blue color classes
-- Labels use `text-primary` for section headers, `text-muted-foreground` for field labels
-
-## Technical Details
-
-### File: `src/pages/AppDetailsPage.tsx` (full rewrite)
-- Remove all imports for Dialog, Badge, Check, Pencil, Trash2
-- Remove app list rendering, edit dialog, delete dialog, and all associated state
-- Add local form state initialized from `selectedApp` fields via `useEffect`
-- Add `handleSave` that calls `supabase.from('app_ideas').update({...}).eq('id', selectedApp.id)` with all form fields: `app_name`, `one_liner`, `app_category`, `app_for`, `app_description`, `idea_generation`, `persona_description`, `user_demography`, `app_type`
-- After successful save, call `refreshApps()` from ProjectContext and show success toast
-- Use `LogoUploader` component with `appId={selectedApp.id}` for logo management
-- Wrap content in a scrollable container with max-width for readability
-
-### No database changes needed
-The `app_ideas` table already has all the required columns.
+### File: `src/components/dashboard/DashboardSidebar.tsx`
+- Replace `border-slate-800/50` with `border-sidebar-border` on the sidebar root and footer elements
 
