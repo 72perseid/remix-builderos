@@ -204,7 +204,7 @@ export default function BusinessModelPage() {
             {/* Generated Business Model Canvas */}
             {content && (
               <motion.div 
-                className="space-y-5"
+                className="space-y-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
