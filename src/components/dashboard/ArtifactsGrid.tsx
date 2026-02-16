@@ -100,7 +100,10 @@ export function ArtifactsGrid() {
   const launchingCards = artifactCards.filter(card => TYPE_SECTION_MAP[card.type] === 'launching');
   
   return <div className="space-y-8 p-6">
-      <h1 className="text-2xl font-bold text-foreground">Artifacts</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Artifacts</h1>
+        <p className="text-muted-foreground mt-1">Generate and manage your project's key documents and deliverables</p>
+      </div>
       {/* Architect Banner - hidden after onboarding */}
       {!isOnboarded && (
         <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
