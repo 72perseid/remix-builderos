@@ -14,17 +14,17 @@ import { cn } from '@/lib/utils';
 // Prerequisites configuration
 const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'validation', 'product_brief'] as const;
 
-const ARTIFACT_LABELS: Record<string, { label: string; route: string }> = {
+const ARTIFACT_LABELS: Record<string, {label: string;route: string;}> = {
   business_model: { label: 'Business Model', route: '/business-model' },
   db_design: { label: 'Database Design', route: '/database-design' },
   validation: { label: 'Validation Strategy', route: '/validation' },
-  product_brief: { label: 'Product Brief', route: '/product-brief' },
+  product_brief: { label: 'Product Brief', route: '/product-brief' }
 };
 
 // Helper to extract the prompt text from various formats
 function parsePromptContent(rawContent: unknown): string | null {
   if (!rawContent) return null;
-  
+
   // If already a string, return as-is
   if (typeof rawContent === 'string') {
     // Try to extract from markdown code block
@@ -38,7 +38,7 @@ function parsePromptContent(rawContent: unknown): string | null {
         return rawContent;
       }
     }
-    
+
     // Try direct JSON parse
     try {
       const parsed = JSON.parse(rawContent);
@@ -48,7 +48,7 @@ function parsePromptContent(rawContent: unknown): string | null {
       return rawContent;
     }
   }
-  
+
   // If object, extract prompt field or stringify
   if (typeof rawContent === 'object' && rawContent !== null) {
     const obj = rawContent as Record<string, unknown>;
@@ -57,7 +57,7 @@ function parsePromptContent(rawContent: unknown): string | null {
     if (typeof obj.content === 'string') return obj.content;
     return JSON.stringify(rawContent, null, 2);
   }
-  
+
   return null;
 }
 
@@ -67,7 +67,7 @@ export default function MasterPromptPage() {
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
   const { sendMessage, isLoading: isGenerating } = useCopilotChat({
     context: 'master_prompt',
-    onArtifactRefresh: refetchArtifact,
+    onArtifactRefresh: refetchArtifact
   });
   const [copied, setCopied] = useState(false);
 
@@ -80,7 +80,7 @@ export default function MasterPromptPage() {
 
   const handleCopy = async () => {
     if (!promptContent) return;
-    
+
     try {
       await navigator.clipboard.writeText(promptContent);
       setCopied(true);
@@ -100,8 +100,8 @@ export default function MasterPromptPage() {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -109,14 +109,14 @@ export default function MasterPromptPage() {
       <div className="max-w-full space-y-6 p-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
-            <p className="text-white/80 mt-1">
+            <p className="mt-1 text-muted-foreground">
               This prompt aggregates your Business Model, Roadmap, and Database Design into a single context for AI coding tools.
             </p>
           </div>
 
           {/* Locked State - Prerequisites Missing */}
-          {!isUnlocked && (
-            <Card className="bg-amber-500/10 border-amber-500/30">
+          {!isUnlocked &&
+        <Card className="bg-amber-500/10 border-amber-500/30">
               <CardContent className="p-8">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
@@ -130,32 +130,32 @@ export default function MasterPromptPage() {
                       Complete the following artifacts before generating your Master Prompt:
                     </p>
                     <ul className="space-y-2">
-                      {missingArtifacts.map((type) => (
-                        <li key={type}>
+                      {missingArtifacts.map((type) =>
+                  <li key={type}>
                           <Button
-                            variant="link"
-                            className="text-primary p-0 h-auto"
-                            onClick={() => navigate(ARTIFACT_LABELS[type].route)}
-                          >
+                      variant="link"
+                      className="text-primary p-0 h-auto"
+                      onClick={() => navigate(ARTIFACT_LABELS[type].route)}>
+
                             <Link2 className="w-4 h-4 mr-2" />
                             {ARTIFACT_LABELS[type].label}
                           </Button>
                         </li>
-                      ))}
+                  )}
                     </ul>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          )}
+        }
 
           {/* Ready State - Unlocked but Empty */}
-          {isUnlocked && !promptContent && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
+          {isUnlocked && !promptContent &&
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}>
+
               <Card className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50">
 
                 <CardContent className="relative p-12 text-center">
@@ -174,24 +174,24 @@ export default function MasterPromptPage() {
                     All prerequisites complete! Generate a comprehensive prompt that combines all your project context (Business Model, Database Design, Features) into one document you can paste into any AI coding tool.
                   </p>
                   
-                  <Button 
-                    variant="default" 
-                    size="lg"
-                    className="gap-2 px-8"
-                    onClick={handleGeneratePrompt}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
+                  <Button
+                variant="default"
+                size="lg"
+                className="gap-2 px-8"
+                onClick={handleGeneratePrompt}
+                disabled={isGenerating}>
+
+                    {isGenerating ?
+                <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Generating...
-                      </>
-                    ) : (
-                      <>
+                      </> :
+
+                <>
                         <Sparkles className="w-4 h-4" />
                         Generate Master Prompt
                       </>
-                    )}
+                }
                   </Button>
 
                   {/* Decorative lines */}
@@ -203,37 +203,37 @@ export default function MasterPromptPage() {
                 </CardContent>
               </Card>
             </motion.div>
-          )}
+        }
 
           {/* Content State - Prompt Generated */}
-          {isUnlocked && promptContent && (
-            <motion.div 
-              className="space-y-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
+          {isUnlocked && promptContent &&
+        <motion.div
+          className="space-y-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}>
+
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-white">Generated Prompt</h2>
                 <Button
-                  size="sm"
-                  onClick={handleCopy}
-                  className={cn(
-                    "gap-2 rounded-full transition-colors",
-                    copied ? "bg-green-500/20 border-green-500/50 text-green-400" : "bg-primary hover:bg-primary/90 text-white"
-                  )}
-                >
-                  {copied ? (
-                    <>
+              size="sm"
+              onClick={handleCopy}
+              className={cn(
+                "gap-2 rounded-full transition-colors",
+                copied ? "bg-green-500/20 border-green-500/50 text-green-400" : "bg-primary hover:bg-primary/90 text-white"
+              )}>
+
+                  {copied ?
+              <>
                       <Check className="w-4 h-4" />
                       Copied!
-                    </>
-                  ) : (
-                    <>
+                    </> :
+
+              <>
                       <Copy className="w-4 h-4" />
                       Copy to Clipboard
                     </>
-                  )}
+              }
                 </Button>
               </div>
 
@@ -241,19 +241,19 @@ export default function MasterPromptPage() {
               <div className="relative group">
                 <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
-                    variant="secondary"
-                    size="icon"
-                    onClick={handleCopy}
-                    className={cn(
-                      "h-8 w-8 bg-slate-700 hover:bg-slate-600 border-slate-600",
-                      copied && "bg-green-500/20 border-green-500/50"
-                    )}
-                  >
-                    {copied ? (
-                      <Check className="w-4 h-4 text-green-400" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
+                variant="secondary"
+                size="icon"
+                onClick={handleCopy}
+                className={cn(
+                  "h-8 w-8 bg-slate-700 hover:bg-slate-600 border-slate-600",
+                  copied && "bg-green-500/20 border-green-500/50"
+                )}>
+
+                    {copied ?
+                <Check className="w-4 h-4 text-green-400" /> :
+
+                <Copy className="w-4 h-4" />
+                }
                   </Button>
                 </div>
                 
@@ -266,8 +266,8 @@ export default function MasterPromptPage() {
                 Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
               </p>
           </motion.div>
-          )}
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 }
