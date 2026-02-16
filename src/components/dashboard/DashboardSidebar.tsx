@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeftClose, PanelLeft } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,7 @@ const mainNavItems = [{
 export function DashboardSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -42,10 +42,21 @@ export function DashboardSidebar() {
     <Sidebar className="border-r border-slate-800/50 bg-[#0B0E14]" collapsible="icon">
       {/* Logo */}
       <SidebarHeader className="px-5 pt-5 pb-4 bg-[#0B0E14]">
-        <Link to="/artifacts" className="flex items-center">
-          {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
-          {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
-        </Link>
+        <div className="flex items-center justify-between">
+          <Link to="/artifacts" className="flex items-center">
+            {!isCollapsed && <img src={logoHorizontalMono} alt="Ambitious Labs" className="h-8" />}
+            {isCollapsed && <span className="text-lg font-bold text-white">A</span>}
+          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            className="h-7 w-7 text-slate-400 hover:text-white hover:bg-white/10"
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </Button>
+        </div>
       </SidebarHeader>
 
       {/* Nav items inside a rounded container */}
