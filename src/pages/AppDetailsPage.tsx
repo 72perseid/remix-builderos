@@ -90,7 +90,7 @@ export default function AppDetailsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-full space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold text-white">App Details</h1>
         <p className="text-muted-foreground mt-1">Manage your apps and switch between projects</p>
