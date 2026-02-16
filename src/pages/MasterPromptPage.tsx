@@ -109,7 +109,7 @@ export default function MasterPromptPage() {
       <div className="max-w-full space-y-6 p-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
-            <p className="mt-1 text-muted-foreground">
+            <p className="text-white/80 mt-1">
               This prompt aggregates your Business Model, Roadmap, and Database Design into a single context for AI coding tools.
             </p>
           </div>
@@ -263,7 +263,7 @@ export default function MasterPromptPage() {
               </div>
 
               <p className="text-xs text-white/70 text-center">
-                Copy this prompt and paste it into ChatGPT, Claude, Cursor, or any AI coding assistant to give it full context about your project.
+                Copy this prompt and paste it into Lovable or any AI tool to give it full context about your project.
               </p>
           </motion.div>
         }
