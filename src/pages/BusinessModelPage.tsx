@@ -188,8 +188,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Building className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Business Name</h3>
-                        <p className="text-base text-white mt-0.5">{businessName}</p>
+                        <h3 className="text-base font-semibold text-white">Business Name</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{businessName}</p>
                       </div>
                     </div>
                   )}
@@ -197,8 +197,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Revenue</h3>
-                        <div className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Revenue</h3>
+                        <div className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {revenueInfo.source && <p>{revenueInfo.source}</p>}
                           {revenueInfo.annualRevenue && <p>Annual: ${revenueInfo.annualRevenue.toLocaleString()}</p>}
                         </div>
@@ -209,8 +209,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <DollarSign className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Expenses</h3>
-                        <div className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Expenses</h3>
+                        <div className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {expensesInfo.fixedCosts !== undefined && <p>Fixed: ${expensesInfo.fixedCosts.toLocaleString()}</p>}
                           {expensesInfo.variableCosts !== undefined && <p>Variable: ${expensesInfo.variableCosts.toLocaleString()}</p>}
                         </div>
@@ -221,8 +221,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Customers</h3>
-                        <div className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Customers</h3>
+                        <div className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {customersInfo.segment && <p>{customersInfo.segment}</p>}
                           {customersInfo.number !== undefined && <p>Count: {customersInfo.number.toLocaleString()}</p>}
                         </div>
@@ -233,8 +233,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Target className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Value Proposition</h3>
-                        <p className="text-base text-white mt-0.5">{valueProposition}</p>
+                        <h3 className="text-base font-semibold text-white">Value Proposition</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{valueProposition}</p>
                       </div>
                     </div>
                   )}
@@ -242,8 +242,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Customer Segments</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Customer Segments</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {customerSegments.map((s, i) => <li key={i}>{s}</li>)}
                         </ul>
                       </div>
@@ -253,8 +253,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Revenue Streams</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Revenue Streams</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {revenueStreams.map((s, i) => <li key={i}>{s.source}{s.price && ` — ${s.price}`}</li>)}
                         </ul>
                       </div>
@@ -264,8 +264,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Revenue Streams</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Revenue Streams</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {legacyRevenueStreams.map((s, i) => <li key={i}>{s}</li>)}
                         </ul>
                       </div>
@@ -275,8 +275,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Megaphone className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Marketing Channels</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Marketing Channels</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {marketingChannels.map((c, i) => <li key={i}>{c}</li>)}
                         </ul>
                       </div>
@@ -286,8 +286,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Monetization Strategy</h3>
-                        <p className="text-base text-white mt-0.5">{monetization}</p>
+                        <h3 className="text-base font-semibold text-white">Monetization Strategy</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{monetization}</p>
                       </div>
                     </div>
                   )}
@@ -295,8 +295,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Rocket className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Go-to-Market Approach</h3>
-                        <p className="text-base text-white mt-0.5">{goToMarket}</p>
+                        <h3 className="text-base font-semibold text-white">Go-to-Market Approach</h3>
+                        <p className="text-sm text-muted-foreground mt-0.5">{goToMarket}</p>
                       </div>
                     </div>
                   )}
@@ -304,8 +304,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Building className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Key Resources</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Key Resources</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {keyResources.map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                       </div>
@@ -315,8 +315,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Key Partners</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Key Partners</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {keyPartners.map((p, i) => <li key={i}>{p}</li>)}
                         </ul>
                       </div>
@@ -326,8 +326,8 @@ export default function BusinessModelPage() {
                     <div className="flex items-start gap-3 py-4">
                       <DollarSign className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Cost Structure</h3>
-                        <ul className="text-base text-white mt-0.5 space-y-1">
+                        <h3 className="text-base font-semibold text-white">Cost Structure</h3>
+                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
                           {costStructure.map((c, i) => <li key={i}>{c}</li>)}
                         </ul>
                       </div>
