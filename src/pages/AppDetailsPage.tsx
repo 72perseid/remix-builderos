@@ -78,7 +78,7 @@ export default function AppDetailsPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-8 p-6">
+    <div className="max-w-4xl w-full space-y-8 p-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">App Details</h1>
         <p className="text-muted-foreground mt-1">View and edit your app information</p>
@@ -87,14 +87,14 @@ export default function AppDetailsPage() {
       {/* Section 1: Basic Information */}
       <section className="space-y-5">
         <h2 className="text-lg font-semibold text-primary">Basic Information</h2>
-        <div className="flex items-start gap-6">
+        <div className="flex flex-col sm:flex-row items-start gap-6">
           <LogoUploader
             appId={selectedApp.id}
             appName={selectedApp.app_name || 'App'}
             currentLogo={selectedApp.logo}
             size="lg"
           />
-          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-muted-foreground">App Name</Label>
               <Input value={appName} onChange={(e) => setAppName(e.target.value)} placeholder="Enter app name" />
@@ -141,26 +141,30 @@ export default function AppDetailsPage() {
       {/* Section 3: Descriptions */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-primary">Description</h2>
-        <div className="space-y-2">
-          <Label className="text-muted-foreground">App Description</Label>
-          <Textarea value={appDescription} onChange={(e) => setAppDescription(e.target.value)} placeholder="Describe your app" className="min-h-[100px]" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-muted-foreground">How did you come up with this idea?</Label>
-          <Textarea value={ideaGeneration} onChange={(e) => setIdeaGeneration(e.target.value)} placeholder="Share the origin story" className="min-h-[100px]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">App Description</Label>
+            <Textarea value={appDescription} onChange={(e) => setAppDescription(e.target.value)} placeholder="Describe your app" className="min-h-[100px]" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">How did you come up with this idea?</Label>
+            <Textarea value={ideaGeneration} onChange={(e) => setIdeaGeneration(e.target.value)} placeholder="Share the origin story" className="min-h-[100px]" />
+          </div>
         </div>
       </section>
 
       {/* Section 4: Target Audience */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-primary">Target Audience</h2>
-        <div className="space-y-2">
-          <Label className="text-muted-foreground">User Persona Description</Label>
-          <Textarea value={personaDescription} onChange={(e) => setPersonaDescription(e.target.value)} placeholder="Describe your ideal user" className="min-h-[100px]" />
-        </div>
-        <div className="space-y-2">
-          <Label className="text-muted-foreground">User Demographic Description</Label>
-          <Textarea value={userDemography} onChange={(e) => setUserDemography(e.target.value)} placeholder="Age, location, profession…" className="min-h-[100px]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">User Persona Description</Label>
+            <Textarea value={personaDescription} onChange={(e) => setPersonaDescription(e.target.value)} placeholder="Describe your ideal user" className="min-h-[100px]" />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">User Demographic Description</Label>
+            <Textarea value={userDemography} onChange={(e) => setUserDemography(e.target.value)} placeholder="Age, location, profession…" className="min-h-[100px]" />
+          </div>
         </div>
       </section>
 
