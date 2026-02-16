@@ -3,14 +3,14 @@ import { cn } from "@/lib/utils";
 
 const tabs = [
   { id: "project-board", label: "Project Board", route: "/project-board" },
-  { id: "artifacts", label: "Artifacts", route: "/dashboard" },
+  { id: "artifacts", label: "Artifacts", route: "/artifacts" },
   { id: "database-design", label: "Database Design", route: "/database-design" },
   { id: "master-prompt", label: "Master Prompt", route: "/master-prompt" },
   { id: "app-details", label: "App Details", route: "/app-details" },
 ];
 
 const routeToTab: Record<string, string> = {
-  '/dashboard': 'artifacts',
+  '/artifacts': 'artifacts',
   '/project-board': 'project-board',
   '/database-design': 'database-design',
   '/master-prompt': 'master-prompt',

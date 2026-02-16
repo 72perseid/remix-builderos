@@ -52,7 +52,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
           onOpenChange(false);
           resetFinalizing();
           setTransitionComplete(false);
-          navigate('/dashboard');
+          navigate('/artifacts');
           // Force a page refresh to ensure all data is loaded
           window.location.reload();
         }, 1500);
