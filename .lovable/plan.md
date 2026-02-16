@@ -1,38 +1,60 @@
 
 
-## Normalize Button Styles and Copilot Button Alignment
+## Redesign Artifact Pages as Split-Screen (Chat Left, Content Right)
 
-### Problem
-1. **Copilot buttons** are placed inline next to the title text rather than right-aligned in the header row.
-2. **Action buttons** ("New App", "Copy to Clipboard", Copilot toggle buttons) have inconsistent styles -- some are white, some are outline, none have a pill shape with blue background.
+### Overview
+When a user clicks on Business Model, Validation Strategy, or Product Brief from the Artifacts grid, the page opens in a **full-screen split-screen layout** -- chatbot on the left, artifact content on the right. The Artifacts grid page itself stays unchanged.
+
+### Layout
+
+```text
++--------------------------------------------------+
+| <- Back                                          |
++-------------------+------------------------------+
+|                   |                              |
+|   CHATBOT         |  Business Model Canvas       |
+|   (left panel)    |                              |
+|   Dark background |  [Cards / content here]      |
+|                   |                              |
+|   AI messages     |                              |
+|   User messages   |                              |
+|                   |                              |
+|  [Type here... >] |                              |
++-------------------+------------------------------+
+```
 
 ### Changes
 
-#### 1. Update CopilotToggleButton style (1 file)
-**File:** `src/components/artifacts/ArtifactCopilot.tsx`
-- Change the `CopilotToggleButton` from `variant="outline"` with dark background to a blue pill button:
-  - `className="gap-2 bg-primary hover:bg-primary/90 text-white rounded-full"`
+#### 1. Add CopilotPanel component (`src/components/artifacts/ArtifactCopilot.tsx`)
+- Export a new `CopilotPanel` component that renders the chat as a **static side panel** (not an overlay)
+- Same chat functionality as the existing overlay: message list, input, send button
+- Styled with dark background (`bg-slate-950`), right border, fixed width (~380px)
+- Uses the same `useCopilotChat` hook
+- The existing `ArtifactCopilot` overlay and `CopilotToggleButton` remain available for other pages (Database Design, Kanban, Master Prompt)
 
-#### 2. Right-align Copilot buttons on every artifact page (6 files)
-Change the header layout from `flex items-center gap-3` to `flex items-center justify-between` so the title sits on the left and the Copilot button sits on the right.
+#### 2. Redesign BusinessModelPage (`src/pages/BusinessModelPage.tsx`)
+- Replace single-column layout with a **two-column flex layout**
+- Back button spans full width at the top
+- Left column: `CopilotPanel` with `context="business_model"` -- always visible
+- Right column: Scrollable area with the existing business model cards and content
+- Remove the `CopilotToggleButton` and `ArtifactCopilot` overlay from this page
 
-Pages to update:
-- `src/pages/BusinessModelPage.tsx` -- wrap title in a div, move `CopilotToggleButton` outside
-- `src/pages/ProductBriefPage.tsx` -- same pattern
-- `src/pages/ValidationPage.tsx` -- same pattern
-- `src/pages/DatabaseDesignPage.tsx` -- same pattern
-- `src/pages/AIKanbanAssistantPage.tsx` -- same pattern
-- `src/pages/MasterPromptPage.tsx` -- add a `CopilotToggleButton` or keep consistent header with right-aligned actions (this page currently has no copilot toggle in header; the "Copy to Clipboard" button should be styled as blue pill)
+#### 3. Redesign ValidationPage (`src/pages/ValidationPage.tsx`)
+- Same split-screen pattern
+- Left: `CopilotPanel` with `context="validation"`, heading "User Researcher"
+- Right: Scrollable persona cards
+- Remove toggle button and overlay
 
-#### 3. Style "New App" button as blue pill (1 file)
-**File:** `src/components/dashboard/DashboardHeader.tsx`
-- Change from `bg-white text-black hover:bg-slate-200 rounded-full` to `bg-primary text-white hover:bg-primary/90 rounded-full`
+#### 4. Redesign ProductBriefPage (`src/pages/ProductBriefPage.tsx`)
+- Same split-screen pattern
+- Left: `CopilotPanel` with `context="product_brief"`, heading "Product Strategist"
+- Right: Scrollable product brief content
+- Remove toggle button and overlay
 
-#### 4. Style "Copy to Clipboard" button as blue pill (1 file)
-**File:** `src/pages/MasterPromptPage.tsx`
-- Change from `variant="outline"` to explicit blue pill styling: `bg-primary text-white hover:bg-primary/90 rounded-full`
-
-### Summary of Visual Result
-- All action buttons across the app will have a consistent **blue background with pill (rounded-full) shape**
-- Copilot toggle buttons will be **right-aligned** with the page title on every artifact page
+### What stays the same
+- Artifacts grid page -- no changes, cards still navigate to the artifact routes
+- Database Design, Master Prompt, AI Kanban pages -- keep their current overlay-based copilot
+- All data fetching hooks (`useArtifact`, `useBusinessModel`, etc.)
+- All artifact content rendering (cards, grids, lists)
+- The `useCopilotChat` hook
 
