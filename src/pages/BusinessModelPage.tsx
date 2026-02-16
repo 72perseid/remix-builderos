@@ -149,7 +149,7 @@ export default function BusinessModelPage() {
   return (
     <div className="relative h-full min-h-screen">
       <div className="overflow-auto h-full">
-        <div className="max-w-5xl mx-auto space-y-6 p-6">
+        <div className="max-w-full space-y-6 p-6">
           <ArtifactBackButton />
           <div className="flex items-center gap-3">
             <div>
