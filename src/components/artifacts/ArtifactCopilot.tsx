@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { useCopilotChat, CopilotMessage } from '@/hooks/useCopilotChat';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
@@ -214,19 +213,19 @@ export function CopilotPanel({ context, heading = 'Copilot', onArtifactRefresh }
     );
   }
 
-  // On desktop, wrap in a resizable panel
+  // On desktop, render a horizontally resizable panel
   return (
-    <ResizablePanelGroup direction="horizontal" className="shrink-0" style={{ width: 'auto', flex: 'none' }}>
-      <ResizablePanel defaultSize={100} minSize={60} maxSize={100} style={{ minWidth: 280, maxWidth: 500 }}>
-        <CopilotPanelContent
-          context={context}
-          heading={heading}
-          onArtifactRefresh={onArtifactRefresh}
-          onCollapse={() => setIsCollapsed(true)}
-        />
-      </ResizablePanel>
-      <ResizableHandle className="bg-slate-800/50 hover:bg-primary/50 transition-colors w-[3px]" />
-    </ResizablePanelGroup>
+    <div
+      className="shrink-0 h-full"
+      style={{ width: 380, minWidth: 280, maxWidth: 500, resize: 'horizontal', overflow: 'hidden' }}
+    >
+      <CopilotPanelContent
+        context={context}
+        heading={heading}
+        onArtifactRefresh={onArtifactRefresh}
+        onCollapse={() => setIsCollapsed(true)}
+      />
+    </div>
   );
 }
 
