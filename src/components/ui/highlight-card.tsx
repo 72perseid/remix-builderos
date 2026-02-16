@@ -45,7 +45,7 @@ const HighlightCard: FC<HighlightCardProps> = ({ title, description, icon, onCli
         {/* Description */}
         <div className="flex-1 space-y-1">
           {descriptionArray.map((line, idx) => (
-            <p key={idx} className="text-sm text-muted-foreground leading-relaxed">
+            <p key={idx} className="text-sm text-secondary-foreground leading-relaxed">
               {line}
             </p>
           ))}

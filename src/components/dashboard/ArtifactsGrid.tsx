@@ -113,7 +113,7 @@ export function ArtifactsGrid() {
             <h2 className="text-lg font-semibold text-white mb-1">
               Feature Planning
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-secondary-foreground">
               Define your value proposition, validate your ideas, and create comprehensive product requirements.
             </p>
           </div>
@@ -136,7 +136,7 @@ export function ArtifactsGrid() {
             <h2 className="text-lg font-semibold text-white mb-1">
               Launching
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-secondary-foreground">
               Prepare for deployment, optimize performance, and execute your go-to-market strategy.
             </p>
           </div>

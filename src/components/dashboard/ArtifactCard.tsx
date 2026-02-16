@@ -111,7 +111,7 @@ export function ArtifactCard({ title, description, status, onClick, className }:
         {/* Description */}
         <p className={cn(
           "text-sm leading-relaxed flex-1",
-          status === "locked" ? "text-slate-500" : "text-muted-foreground"
+          status === "locked" ? "text-slate-500" : "text-secondary-foreground"
         )}>
           {description}
         </p>
