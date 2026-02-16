@@ -7,7 +7,7 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { toast } from 'sonner';
 import { Target, Users, DollarSign, Rocket, Building, Loader2, Megaphone } from 'lucide-react';
 import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
-import { ArtifactCopilot } from '@/components/artifacts/ArtifactCopilot';
+import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
 interface RevenueStream {
@@ -89,6 +89,7 @@ export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel } = useBusinessModel();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('business_model');
+  const [copilotOpen, setCopilotOpen] = useState(false);
   
   const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
   const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
@@ -146,14 +147,16 @@ export default function BusinessModelPage() {
   }
 
   return (
-    <div className="flex h-full min-h-screen">
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+    <div className="relative h-full min-h-screen">
+      <div className="overflow-auto h-full">
         <div className="max-w-5xl mx-auto space-y-6 p-6">
           <ArtifactBackButton />
-          <div>
-            <h1 className="text-2xl font-bold text-white">Business Model</h1>
-            <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Business Model</h1>
+              <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>
+            </div>
+            <CopilotToggleButton heading="Business Strategist" onClick={() => setCopilotOpen(v => !v)} />
           </div>
 
           {/* Empty State */}
@@ -407,8 +410,7 @@ export default function BusinessModelPage() {
         </div>
       </div>
 
-      {/* Copilot Sidebar */}
-      <ArtifactCopilot context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} />
+      <ArtifactCopilot context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} isOpen={copilotOpen} onToggle={() => setCopilotOpen(false)} />
     </div>
   );
 }
