@@ -209,159 +209,115 @@ export default function BusinessModelPage() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <h2 className="text-lg font-semibold text-white">Business Model Canvas</h2>
-                
-                <div className="divide-y divide-slate-700/50">
+                {valueProposition && (
+                  <BusinessCard title="Value Proposition" icon={Target} iconColor="text-blue-500" colSpan={2}>
+                    <p>{valueProposition}</p>
+                  </BusinessCard>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
                   {businessName && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Building className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Business Name</h3>
-                        <p className="text-sm text-secondary-foreground mt-0.5">{businessName}</p>
-                      </div>
-                    </div>
-                  )}
-                  {revenueInfo && (
-                    <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Revenue</h3>
-                        <div className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {revenueInfo.source && <p>{revenueInfo.source}</p>}
-                          {revenueInfo.annualRevenue && <p>Annual: ${revenueInfo.annualRevenue.toLocaleString()}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {expensesInfo && (
-                    <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Expenses</h3>
-                        <div className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {expensesInfo.fixedCosts !== undefined && <p>Fixed: ${expensesInfo.fixedCosts.toLocaleString()}</p>}
-                          {expensesInfo.variableCosts !== undefined && <p>Variable: ${expensesInfo.variableCosts.toLocaleString()}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {customersInfo && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Customers</h3>
-                        <div className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {customersInfo.segment && <p>{customersInfo.segment}</p>}
-                          {customersInfo.number !== undefined && <p>Count: {customersInfo.number.toLocaleString()}</p>}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {valueProposition && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Target className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Value Proposition</h3>
-                        <p className="text-sm text-secondary-foreground mt-0.5">{valueProposition}</p>
-                      </div>
-                    </div>
-                  )}
-                  {customerSegments.length > 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Customer Segments</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {customerSegments.map((s, i) => <li key={i}>{s}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  {revenueStreams.length > 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Revenue Streams</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {revenueStreams.map((s, i) => <li key={i}>{s.source}{s.price && ` — ${s.price}`}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  {legacyRevenueStreams.length > 0 && revenueStreams.length === 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Revenue Streams</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {legacyRevenueStreams.map((s, i) => <li key={i}>{s}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  {marketingChannels.length > 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Megaphone className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Marketing Channels</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {marketingChannels.map((c, i) => <li key={i}>{c}</li>)}
-                        </ul>
-                      </div>
-                    </div>
+                    <BusinessCard title="Business Name" icon={Building} iconColor="text-blue-500">
+                      <p>{businessName}</p>
+                    </BusinessCard>
                   )}
                   {monetization && (
-                    <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Monetization Strategy</h3>
-                        <p className="text-sm text-secondary-foreground mt-0.5">{monetization}</p>
-                      </div>
-                    </div>
-                  )}
-                  {goToMarket && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Rocket className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Go-to-Market Approach</h3>
-                        <p className="text-sm text-secondary-foreground mt-0.5">{goToMarket}</p>
-                      </div>
-                    </div>
-                  )}
-                  {keyResources.length > 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Building className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Key Resources</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {keyResources.map((r, i) => <li key={i}>{r}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  {keyPartners.length > 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Key Partners</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {keyPartners.map((p, i) => <li key={i}>{p}</li>)}
-                        </ul>
-                      </div>
-                    </div>
-                  )}
-                  {costStructure.length > 0 && (
-                    <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-secondary-foreground mt-0.5 shrink-0" />
-                      <div>
-                        <h3 className="text-base font-semibold text-white">Cost Structure</h3>
-                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
-                          {costStructure.map((c, i) => <li key={i}>{c}</li>)}
-                        </ul>
-                      </div>
-                    </div>
+                    <BusinessCard title="Monetization Strategy" icon={DollarSign} iconColor="text-green-500">
+                      <p>{monetization}</p>
+                    </BusinessCard>
                   )}
                 </div>
+
+                {customerSegments.length > 0 && (
+                  <BusinessCard title="Customer Segments" icon={Users} iconColor="text-purple-500">
+                    <ul className="space-y-1.5">
+                      {customerSegments.map((s, i) => <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{s}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
+
+                {customersInfo && (
+                  <BusinessCard title="Customers" icon={Users} iconColor="text-purple-500">
+                    <div className="space-y-1">
+                      {customersInfo.segment && <p>{customersInfo.segment}</p>}
+                      {customersInfo.number !== undefined && <p>Count: {customersInfo.number.toLocaleString()}</p>}
+                    </div>
+                  </BusinessCard>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {revenueInfo && (
+                    <BusinessCard title="Revenue" icon={DollarSign} iconColor="text-green-500">
+                      <div className="space-y-1">
+                        {revenueInfo.source && <p>{revenueInfo.source}</p>}
+                        {revenueInfo.annualRevenue && <p>Annual: ${revenueInfo.annualRevenue.toLocaleString()}</p>}
+                      </div>
+                    </BusinessCard>
+                  )}
+                  {expensesInfo && (
+                    <BusinessCard title="Expenses" icon={DollarSign} iconColor="text-red-500">
+                      <div className="space-y-1">
+                        {expensesInfo.fixedCosts !== undefined && <p>Fixed: ${expensesInfo.fixedCosts.toLocaleString()}</p>}
+                        {expensesInfo.variableCosts !== undefined && <p>Variable: ${expensesInfo.variableCosts.toLocaleString()}</p>}
+                      </div>
+                    </BusinessCard>
+                  )}
+                </div>
+
+                {revenueStreams.length > 0 && (
+                  <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500">
+                    <ul className="space-y-1.5">
+                      {revenueStreams.map((s, i) => <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">•</span>{s.source}{s.price && ` — ${s.price}`}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
+
+                {legacyRevenueStreams.length > 0 && revenueStreams.length === 0 && (
+                  <BusinessCard title="Revenue Streams" icon={DollarSign} iconColor="text-green-500">
+                    <ul className="space-y-1.5">
+                      {legacyRevenueStreams.map((s, i) => <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">•</span>{s}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
+
+                {marketingChannels.length > 0 && (
+                  <BusinessCard title="Marketing Channels" icon={Megaphone} iconColor="text-orange-500">
+                    <ul className="space-y-1.5">
+                      {marketingChannels.map((c, i) => <li key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">•</span>{c}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
+
+                {goToMarket && (
+                  <BusinessCard title="Go-to-Market Approach" icon={Rocket} iconColor="text-orange-500">
+                    <p>{goToMarket}</p>
+                  </BusinessCard>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {keyResources.length > 0 && (
+                    <BusinessCard title="Key Resources" icon={Building} iconColor="text-blue-500">
+                      <ul className="space-y-1.5">
+                        {keyResources.map((r, i) => <li key={i} className="flex items-start gap-2"><span className="text-blue-500 mt-0.5">•</span>{r}</li>)}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                  {keyPartners.length > 0 && (
+                    <BusinessCard title="Key Partners" icon={Users} iconColor="text-purple-500">
+                      <ul className="space-y-1.5">
+                        {keyPartners.map((p, i) => <li key={i} className="flex items-start gap-2"><span className="text-purple-500 mt-0.5">•</span>{p}</li>)}
+                      </ul>
+                    </BusinessCard>
+                  )}
+                </div>
+
+                {costStructure.length > 0 && (
+                  <BusinessCard title="Cost Structure" icon={DollarSign} iconColor="text-secondary-foreground">
+                    <ul className="space-y-1.5">
+                      {costStructure.map((c, i) => <li key={i} className="flex items-start gap-2"><span className="text-secondary-foreground mt-0.5">•</span>{c}</li>)}
+                    </ul>
+                  </BusinessCard>
+                )}
               </motion.div>
             )}
           </div>
