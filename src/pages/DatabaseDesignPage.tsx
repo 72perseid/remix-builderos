@@ -86,8 +86,8 @@ export default function DatabaseDesignPage() {
   }
 
   return (
-    <div className="relative h-full">
-      <div className="overflow-auto h-full">
+    <div className="relative h-dvh flex flex-col overflow-hidden">
+      <div className="overflow-auto flex-1">
         <div className="max-w-full space-y-6 p-6">
           <div className="flex items-center justify-between">
             <div>
