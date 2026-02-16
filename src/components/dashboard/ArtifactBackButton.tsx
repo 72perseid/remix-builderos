@@ -9,7 +9,7 @@ export function ArtifactBackButton() {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => navigate("/dashboard")}
+      onClick={() => navigate("/artifacts")}
       className="text-slate-400 hover:text-white hover:bg-slate-800/50 mb-4"
     >
       <ArrowLeft className="h-4 w-4 mr-2" />
