@@ -10,6 +10,37 @@ import { ArtifactBackButton } from '@/components/dashboard/ArtifactBackButton';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 
+interface BusinessModel {
+  targetMarket: string;
+  competitiveAdvantage: string;
+  generatedModel?: any;
+}
+
+interface AppIdea {
+  appDescription: string;
+}
+
+interface Artifact {
+  content: any;
+}
+
+// Helper function to parse JSON content from artifact
+function parseContent(artifact: Artifact | undefined): any {
+  if (!artifact || !artifact.content) {
+    return null;
+  }
+  try {
+    if (typeof artifact.content === 'string') {
+      return JSON.parse(artifact.content);
+    } else {
+      return artifact.content;
+    }
+  } catch (e) {
+    console.error("Failed to parse artifact content", e);
+    return null;
+  }
+}
+
 interface RevenueStream {
   source: string;
   price: string;
@@ -89,7 +120,6 @@ export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel } = useBusinessModel();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('business_model');
-  // copilotOpen state removed - panel is always visible
   
   const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
   const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
@@ -120,13 +150,11 @@ export default function BusinessModelPage() {
   const content: BusinessModelContent | null = parseArtifactContent(artifact?.content) || businessModel?.generatedModel;
 
   // Normalize data (handle multiple formats)
-  // New n8n format fields
   const businessName = content?.name;
   const revenueInfo = content?.revenue;
   const expensesInfo = content?.expenses;
   const customersInfo = content?.customers;
   
-  // Standard/Legacy format fields
   const valueProposition = content?.value_proposition || content?.valueProposition;
   const customerSegments = content?.customer_segments || content?.customerSegments || [];
   const revenueStreams = content?.revenue_streams || [];
@@ -157,16 +185,16 @@ export default function BusinessModelPage() {
           <div className="max-w-full space-y-6">
             <div>
               <h1 className="text-2xl font-bold text-white">Business Model</h1>
-              <p className="text-muted-foreground mt-1">Generate a comprehensive business model for your app</p>
+              <p className="text-secondary-foreground mt-1">Generate a comprehensive business model for your app</p>
             </div>
 
             {/* Empty State */}
             {!content && (
               <Card className="bg-card/50 border-border">
                 <CardContent className="p-8 text-center">
-                  <Target className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <Target className="w-12 h-12 mx-auto text-secondary-foreground mb-4" />
                   <h3 className="text-lg font-semibold mb-2 text-foreground">No Business Model Yet</h3>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-secondary-foreground text-sm">
                     Generate a business model using the AI Architect on the Dashboard.
                   </p>
                 </CardContent>
@@ -189,7 +217,7 @@ export default function BusinessModelPage() {
                       <Building className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Business Name</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">{businessName}</p>
+                        <p className="text-sm text-secondary-foreground mt-0.5">{businessName}</p>
                       </div>
                     </div>
                   )}
@@ -198,7 +226,7 @@ export default function BusinessModelPage() {
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Revenue</h3>
-                        <div className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <div className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {revenueInfo.source && <p>{revenueInfo.source}</p>}
                           {revenueInfo.annualRevenue && <p>Annual: ${revenueInfo.annualRevenue.toLocaleString()}</p>}
                         </div>
@@ -210,7 +238,7 @@ export default function BusinessModelPage() {
                       <DollarSign className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Expenses</h3>
-                        <div className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <div className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {expensesInfo.fixedCosts !== undefined && <p>Fixed: ${expensesInfo.fixedCosts.toLocaleString()}</p>}
                           {expensesInfo.variableCosts !== undefined && <p>Variable: ${expensesInfo.variableCosts.toLocaleString()}</p>}
                         </div>
@@ -222,7 +250,7 @@ export default function BusinessModelPage() {
                       <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Customers</h3>
-                        <div className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <div className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {customersInfo.segment && <p>{customersInfo.segment}</p>}
                           {customersInfo.number !== undefined && <p>Count: {customersInfo.number.toLocaleString()}</p>}
                         </div>
@@ -234,7 +262,7 @@ export default function BusinessModelPage() {
                       <Target className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Value Proposition</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">{valueProposition}</p>
+                        <p className="text-sm text-secondary-foreground mt-0.5">{valueProposition}</p>
                       </div>
                     </div>
                   )}
@@ -243,7 +271,7 @@ export default function BusinessModelPage() {
                       <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Customer Segments</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {customerSegments.map((s, i) => <li key={i}>{s}</li>)}
                         </ul>
                       </div>
@@ -254,7 +282,7 @@ export default function BusinessModelPage() {
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Revenue Streams</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {revenueStreams.map((s, i) => <li key={i}>{s.source}{s.price && ` — ${s.price}`}</li>)}
                         </ul>
                       </div>
@@ -265,7 +293,7 @@ export default function BusinessModelPage() {
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Revenue Streams</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {legacyRevenueStreams.map((s, i) => <li key={i}>{s}</li>)}
                         </ul>
                       </div>
@@ -276,7 +304,7 @@ export default function BusinessModelPage() {
                       <Megaphone className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Marketing Channels</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {marketingChannels.map((c, i) => <li key={i}>{c}</li>)}
                         </ul>
                       </div>
@@ -287,7 +315,7 @@ export default function BusinessModelPage() {
                       <DollarSign className="w-5 h-5 text-green-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Monetization Strategy</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">{monetization}</p>
+                        <p className="text-sm text-secondary-foreground mt-0.5">{monetization}</p>
                       </div>
                     </div>
                   )}
@@ -296,7 +324,7 @@ export default function BusinessModelPage() {
                       <Rocket className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Go-to-Market Approach</h3>
-                        <p className="text-sm text-muted-foreground mt-0.5">{goToMarket}</p>
+                        <p className="text-sm text-secondary-foreground mt-0.5">{goToMarket}</p>
                       </div>
                     </div>
                   )}
@@ -305,7 +333,7 @@ export default function BusinessModelPage() {
                       <Building className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Key Resources</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {keyResources.map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                       </div>
@@ -316,7 +344,7 @@ export default function BusinessModelPage() {
                       <Users className="w-5 h-5 text-purple-500 mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Key Partners</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {keyPartners.map((p, i) => <li key={i}>{p}</li>)}
                         </ul>
                       </div>
@@ -324,10 +352,10 @@ export default function BusinessModelPage() {
                   )}
                   {costStructure.length > 0 && (
                     <div className="flex items-start gap-3 py-4">
-                      <DollarSign className="w-5 h-5 text-muted-foreground mt-0.5 shrink-0" />
+                      <DollarSign className="w-5 h-5 text-secondary-foreground mt-0.5 shrink-0" />
                       <div>
                         <h3 className="text-base font-semibold text-white">Cost Structure</h3>
-                        <ul className="text-sm text-muted-foreground mt-0.5 space-y-1">
+                        <ul className="text-sm text-secondary-foreground mt-0.5 space-y-1">
                           {costStructure.map((c, i) => <li key={i}>{c}</li>)}
                         </ul>
                       </div>
