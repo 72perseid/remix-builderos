@@ -121,7 +121,7 @@ export default function DatabaseDesignPage() {
               {content.tables && content.tables.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
-                    <Table2 className="w-5 h-5 text-purple-500" />
+                    <Table2 className="w-5 h-5 text-primary" />
                     Tables & Fields
                   </h2>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -130,7 +130,7 @@ export default function DatabaseDesignPage() {
                         key={i} 
                         title={table.name}
                         icon={Columns}
-                        iconColor="text-purple-500"
+                        iconColor="text-primary"
                       >
                         <UITable>
                           <TableHeader>
@@ -172,13 +172,13 @@ export default function DatabaseDesignPage() {
               {content.relationships && content.relationships.length > 0 && (
                 <div>
                   <h2 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
-                    <Link2 className="w-5 h-5 text-orange-500" />
+                    <Link2 className="w-5 h-5 text-primary" />
                     Table Relationships
                   </h2>
                   <BusinessCard 
                     title="Relationships"
                     icon={Link2}
-                    iconColor="text-orange-500"
+                    iconColor="text-primary"
                   >
                     {typeof content.relationships[0] === 'string' ? (
                       <ul className="space-y-3">
@@ -187,7 +187,7 @@ export default function DatabaseDesignPage() {
                           return (
                             <li key={i} className="flex items-center gap-2">
                               <span className="font-mono text-white">{from}</span>
-                              <span className="text-orange-500 font-bold">→</span>
+                              <span className="text-primary font-bold">→</span>
                               <span className="font-mono text-white">{to}</span>
                             </li>
                           );
