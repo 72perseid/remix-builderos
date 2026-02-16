@@ -78,7 +78,7 @@ export default function AppDetailsPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8 p-6">
+    <div className="max-w-3xl space-y-8 p-6">
       <div>
         <h1 className="text-2xl font-bold text-foreground">App Details</h1>
         <p className="text-muted-foreground mt-1">View and edit your app information</p>
@@ -114,7 +114,7 @@ export default function AppDetailsPage() {
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label className="text-muted-foreground">One Liner</Label>
-              <Input value={oneLiner} onChange={(e) => setOneLiner(e.target.value)} placeholder="A short tagline" />
+              <Textarea value={oneLiner} onChange={(e) => setOneLiner(e.target.value)} placeholder="A short tagline" className="min-h-[80px]" />
             </div>
           </div>
         </div>
