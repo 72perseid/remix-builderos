@@ -12,6 +12,16 @@ import { Send, Loader2, Sparkles } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
@@ -35,6 +45,7 @@ export default function OnboardingPage() {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
+  const [showSkipWarning, setShowSkipWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -159,7 +170,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSkip = async () => {
+  const confirmSkip = async () => {
     if (isSkipping) return;
     setIsSkipping(true);
 
@@ -204,7 +215,7 @@ export default function OnboardingPage() {
         <img src={logoHorizontal} alt="Logo" className="h-8" />
         <Button
           variant="ghost"
-          onClick={handleSkip}
+          onClick={() => setShowSkipWarning(true)}
           disabled={isSkipping}
           className="text-muted-foreground hover:text-foreground">
 
@@ -300,6 +311,32 @@ export default function OnboardingPage() {
           </div>
         </div>
       }
+
+      {/* Skip Warning Dialog */}
+      <AlertDialog open={showSkipWarning} onOpenChange={setShowSkipWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Skip Onboarding?</AlertDialogTitle>
+            <AlertDialogDescription>
+              If you skip, you'll need to manually fill in all of the following sections yourself — without any AI-generated content:
+              <ul className="mt-3 space-y-1 list-disc list-inside text-sm">
+                <li>Business Modeling</li>
+                <li>Target Persona</li>
+                <li>Product Planning</li>
+                <li>Database Design</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Stay &amp; Continue</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmSkip}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {isNewAppMode ? 'Cancel Anyway' : 'Skip Anyway'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Completion Overlay */}
       <div className={cn(
