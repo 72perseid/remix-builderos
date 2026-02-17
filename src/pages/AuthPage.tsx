@@ -55,7 +55,7 @@ export default function AuthPage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      navigate('/artifacts', { replace: true });
+      navigate('/project-board', { replace: true });
     }
   }, [isAuthenticated, loading, navigate]);
 

@@ -32,7 +32,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
           <Routes>
-            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/login" element={<AuthPage />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <OnboardingPage />
