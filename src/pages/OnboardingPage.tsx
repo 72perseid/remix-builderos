@@ -18,7 +18,7 @@ export default function OnboardingPage() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const isNewAppMode = searchParams.get('mode') === 'new';
-  
+
   const { user } = useAuth();
   const { refreshApps, selectApp } = useProjectContext();
   const {
@@ -27,9 +27,9 @@ export default function OnboardingPage() {
     sendMessage,
     startSession,
     error,
-    clearMessages,
+    clearMessages
   } = useOnboardingChat();
-  
+
   const [inputValue, setInputValue] = useState('');
   const [showCompletion, setShowCompletion] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
@@ -99,34 +99,34 @@ export default function OnboardingPage() {
 
   const performFinalTransition = async () => {
     // Step 1: Wait 25 seconds for backend to finish writing to Supabase
-    await new Promise(resolve => setTimeout(resolve, 25000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 25000));
+
     console.log('25s wait complete, attempting data refresh...');
 
     // Step 2: Try to refresh data, but don't block navigation
     try {
       // Attempt to invalidate queries with timeout
       await Promise.race([
-        Promise.all([
-          queryClient.invalidateQueries({ queryKey: ['app_ideas'] }),
-          queryClient.invalidateQueries({ queryKey: ['artifacts'] }),
-        ]),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Query invalidation timeout')), 3000))
-      ]);
-      
+      Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['app_ideas'] }),
+      queryClient.invalidateQueries({ queryKey: ['artifacts'] })]
+      ),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Query invalidation timeout')), 3000))]
+      );
+
       // Attempt to refresh apps with timeout
       await Promise.race([
-        refreshApps(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Refresh timeout')), 3000))
-      ]);
+      refreshApps(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Refresh timeout')), 3000))]
+      );
 
       // Try to auto-select the latest app
-      const { data: latestApps } = await supabase
-        .from('app_ideas')
-        .select('id')
-        .eq('user_id', user?.id || '')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      const { data: latestApps } = await supabase.
+      from('app_ideas').
+      select('id').
+      eq('user_id', user?.id || '').
+      order('created_at', { ascending: false }).
+      limit(1);
 
       if (latestApps && latestApps.length > 0) {
         selectApp(latestApps[0].id);
@@ -147,7 +147,7 @@ export default function OnboardingPage() {
         console.log('Backup navigation triggered after 30s');
         navigate('/artifacts', { replace: true });
       }, 30000);
-      
+
       return () => clearTimeout(backupTimer);
     }
   }, [showCompletion, navigate]);
@@ -166,17 +166,17 @@ export default function OnboardingPage() {
     try {
       // Mark user as NOT onboarded when skipping
       if (user?.id && !isNewAppMode) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ onboarded: false })
-          .eq('id', user.id);
+        const { error } = await supabase.
+        from('profiles').
+        update({ onboarded: false }).
+        eq('id', user.id);
 
         if (error) console.error("Update failed, skipping anyway:", error);
       }
-      
+
       // Mark that user explicitly skipped (prevents redirect loop)
       sessionStorage.setItem('onboarding_skipped', 'true');
-      
+
     } catch (err) {
       console.error("Skip error:", err);
     } finally {
@@ -187,9 +187,9 @@ export default function OnboardingPage() {
   };
 
   const pageTitle = isNewAppMode ? "Create a New App" : "Let's build your app";
-  const pageSubtitle = isNewAppMode 
-    ? "Tell our BuilderOS about your new app idea."
-    : "Our BuilderOS will guide you through creating your perfect product roadmap.";
+  const pageSubtitle = isNewAppMode ?
+  "Tell our BuilderOS about your new app idea." :
+  "Our BuilderOS will guide you through creating your perfect product roadmap.";
 
   return (
     <div className="min-h-screen bg-[hsl(222,47%,11%)] flex flex-col relative overflow-hidden">
@@ -202,52 +202,52 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
         <img src={logoHorizontal} alt="Logo" className="h-8" />
-        <Button 
-          variant="ghost" 
-          onClick={handleSkip} 
+        <Button
+          variant="ghost"
+          onClick={handleSkip}
           disabled={isSkipping}
-          className="text-muted-foreground hover:text-foreground"
-        >
-          {isSkipping ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : null}
+          className="text-muted-foreground hover:text-foreground">
+
+          {isSkipping ?
+          <Loader2 className="w-4 h-4 animate-spin mr-2" /> :
+          null}
           {isNewAppMode ? 'Cancel' : 'Skip'}
         </Button>
       </header>
 
       {/* Chat Container - Hidden when finalizing to prevent flash */}
-      {!isFinalizing && (
-        <main className="relative z-10 flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-6">
+      {!isFinalizing &&
+      <main className="relative z-10 flex-1 flex flex-col max-w-3xl mx-auto w-full px-4 py-6">
           {/* Welcome Header */}
-          {messages.length === 0 && !isStreaming && (
-            <div className="flex-1 flex items-center justify-center">
+          {messages.length === 0 && !isStreaming &&
+        <div className="flex-1 flex items-center justify-center">
               <div className="text-center space-y-4 animate-in fade-in-0 duration-500">
                 <div className="w-16 h-16 mx-auto flex items-center justify-center">
                   <img src={logoIcon} alt="Logo" className="w-16 h-16 object-contain" />
                 </div>
                 <h1 className="text-3xl font-bold text-primary-foreground">{pageTitle}</h1>
-                <p className="text-lg max-w-md text-secondary">
+                <p className="text-lg max-w-md text-primary-foreground">
                   {pageSubtitle}
                 </p>
-                {isStreaming && (
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                {isStreaming &&
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Architect is thinking...</span>
                   </div>
-                )}
+            }
               </div>
             </div>
-          )}
+        }
 
           {/* Messages */}
-          {(messages.length > 0 || isStreaming) && (
-            <div className="flex-1 overflow-y-auto space-y-6 pb-4">
-              {messages.map(message => (
-                <OnboardingMessage key={message.id} role={message.role} content={message.content} />
-              ))}
+          {(messages.length > 0 || isStreaming) &&
+        <div className="flex-1 overflow-y-auto space-y-6 pb-4">
+              {messages.map((message) =>
+          <OnboardingMessage key={message.id} role={message.role} content={message.content} />
+          )}
 
-              {isStreaming && (
-                <div className="flex gap-4 justify-start animate-in fade-in-0">
+              {isStreaming &&
+          <div className="flex gap-4 justify-start animate-in fade-in-0">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                   </div>
@@ -262,44 +262,44 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                 </div>
-              )}
+          }
 
               <div ref={messagesEndRef} />
             </div>
-          )}
+        }
 
           {/* Error Display */}
-          {error && (
-            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
+          {error &&
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
               {error.message}
             </div>
-          )}
+        }
         </main>
-      )}
+      }
 
       {/* Input Area - Hidden when finalizing */}
-      {!isFinalizing && (
-        <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
+      {!isFinalizing &&
+      <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
           <div className="max-w-3xl mx-auto flex gap-3">
             <Input
-              ref={inputRef}
-              value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              disabled={isStreaming || showCompletion}
-              className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground"
-            />
+            ref={inputRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            disabled={isStreaming || showCompletion}
+            className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground" />
+
             <Button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isStreaming || showCompletion}
-              className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg"
-            >
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isStreaming || showCompletion}
+            className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg">
+
               {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>
         </div>
-      )}
+      }
 
       {/* Completion Overlay */}
       <div className={cn(
@@ -335,17 +335,17 @@ export default function OnboardingPage() {
 
           {/* Loading bar */}
           <div className="w-64 h-1.5 mx-auto bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-[loading_2s_ease-in-out_infinite]" 
-              style={{ animation: 'loading 2s ease-in-out infinite' }} 
-            />
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-[loading_2s_ease-in-out_infinite]"
+              style={{ animation: 'loading 2s ease-in-out infinite' }} />
+
           </div>
 
           {/* Manual redirect button */}
           <Button
             onClick={() => navigate('/artifacts')}
-            className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
-          >
+            className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg">
+
             Go to Dashboard
           </Button>
         </div>
@@ -359,6 +359,6 @@ export default function OnboardingPage() {
           100% { width: 0%; margin-left: 100%; }
         }
       `}</style>
-    </div>
-  );
+    </div>);
+
 }
