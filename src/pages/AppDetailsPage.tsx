@@ -18,12 +18,8 @@ export default function AppDetailsPage() {
   const [appName, setAppName] = useState('');
   const [oneLiner, setOneLiner] = useState('');
   const [appCategory, setAppCategory] = useState('');
-  const [appFor, setAppFor] = useState('');
   const [appDescription, setAppDescription] = useState('');
   const [ideaGeneration, setIdeaGeneration] = useState('');
-  const [personaDescription, setPersonaDescription] = useState('');
-  const [userDemography, setUserDemography] = useState('');
-  const [appType, setAppType] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -31,12 +27,8 @@ export default function AppDetailsPage() {
       setAppName(selectedApp.app_name || '');
       setOneLiner(selectedApp.one_liner || '');
       setAppCategory(selectedApp.app_category || '');
-      setAppFor(selectedApp.app_for || '');
       setAppDescription(selectedApp.app_description || '');
       setIdeaGeneration(selectedApp.idea_generation || '');
-      setPersonaDescription(selectedApp.persona_description || '');
-      setUserDemography(selectedApp.user_demography || '');
-      setAppType(selectedApp.app_type || '');
     }
   }, [selectedApp]);
 
@@ -50,12 +42,8 @@ export default function AppDetailsPage() {
         app_name: appName,
         one_liner: oneLiner,
         app_category: appCategory || null,
-        app_for: appFor || null,
         app_description: appDescription,
         idea_generation: ideaGeneration,
-        persona_description: personaDescription,
-        user_demography: userDemography,
-        app_type: appType || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', selectedApp.id);
@@ -120,25 +108,7 @@ export default function AppDetailsPage() {
         </div>
       </section>
 
-      {/* Section 2: Who is this app for? */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-primary">Who is this app for?</h2>
-        <div className="flex gap-3">
-          {['For Myself', 'For a Client'].map((option) => (
-            <Button
-              key={option}
-              type="button"
-              variant={appFor === option ? 'default' : 'outline'}
-              onClick={() => setAppFor(option)}
-              className="flex-1"
-            >
-              {option}
-            </Button>
-          ))}
-        </div>
-      </section>
-
-      {/* Section 3: Descriptions */}
+      {/* Section 2: Descriptions */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-primary">Description</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -150,39 +120,6 @@ export default function AppDetailsPage() {
             <Label className="text-muted-foreground">How did you come up with this idea?</Label>
             <Textarea value={ideaGeneration} onChange={(e) => setIdeaGeneration(e.target.value)} placeholder="Share the origin story" className="min-h-[100px]" />
           </div>
-        </div>
-      </section>
-
-      {/* Section 4: Target Audience */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-primary">Target Audience</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">User Persona Description</Label>
-            <Textarea value={personaDescription} onChange={(e) => setPersonaDescription(e.target.value)} placeholder="Describe your ideal user" className="min-h-[100px]" />
-          </div>
-          <div className="space-y-2">
-            <Label className="text-muted-foreground">User Demographic Description</Label>
-            <Textarea value={userDemography} onChange={(e) => setUserDemography(e.target.value)} placeholder="Age, location, profession…" className="min-h-[100px]" />
-          </div>
-        </div>
-      </section>
-
-      {/* Section 5: App Type */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-primary">Is this app B2B or B2C?</h2>
-        <div className="flex gap-3">
-          {['B2B', 'B2C', 'B2B2C'].map((option) => (
-            <Button
-              key={option}
-              type="button"
-              variant={appType === option ? 'default' : 'outline'}
-              onClick={() => setAppType(option)}
-              className="flex-1"
-            >
-              {option}
-            </Button>
-          ))}
         </div>
       </section>
 
