@@ -56,11 +56,15 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         const storedId = localStorage.getItem(STORAGE_KEY);
         const validSelection = data?.find(app => app.id === storedId);
         
-        if (!validSelection && data && data.length > 0) {
-          // Select the most recent app
+        if (validSelection) {
+          // Always explicitly set to ensure state is in sync
+          setSelectedAppId(validSelection.id);
+          localStorage.setItem(STORAGE_KEY, validSelection.id);
+        } else if (data && data.length > 0) {
+          // Fall back to the most recent app
           setSelectedAppId(data[0].id);
           localStorage.setItem(STORAGE_KEY, data[0].id);
-        } else if (!data || data.length === 0) {
+        } else {
           setSelectedAppId(null);
           localStorage.removeItem(STORAGE_KEY);
         }
