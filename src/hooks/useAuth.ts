@@ -54,6 +54,18 @@ export function useAuth() {
     return { error };
   }, []);
 
+  const forgotPassword = useCallback(async (email: string) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { data, error };
+  }, []);
+
+  const updatePassword = useCallback(async (password: string) => {
+    const { data, error } = await supabase.auth.updateUser({ password });
+    return { data, error };
+  }, []);
+
   return {
     user,
     session,
@@ -61,6 +73,8 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    forgotPassword,
+    updatePassword,
     isAuthenticated: !!session,
   };
 }

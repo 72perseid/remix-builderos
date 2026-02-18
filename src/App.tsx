@@ -8,6 +8,7 @@ import { ProjectProvider } from "@/contexts/ProjectContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Dashboard from "./pages/Dashboard";
 import AppIdeaPage from "./pages/AppIdeaPage";
@@ -33,6 +34,7 @@ const App = () => (
           <BrowserRouter>
           <Routes>
             <Route path="/login" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <OnboardingPage />
