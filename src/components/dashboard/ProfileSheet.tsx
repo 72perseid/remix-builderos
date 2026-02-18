@@ -130,7 +130,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
             <div className="flex flex-col items-center gap-3">
               <div className="relative">
                 <Avatar className="h-20 w-20 border border-border">
-                  <AvatarImage src={profile?.profile_image || ''} />
+                  <AvatarImage src={profile?.profile_image ? `${profile.profile_image}?t=${profile.updated_at || ''}` : ''} />
                   <AvatarFallback className="bg-secondary text-foreground text-xl font-semibold">
                     {initials}
                   </AvatarFallback>
