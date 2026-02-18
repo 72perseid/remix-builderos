@@ -146,6 +146,33 @@ export function useProfile() {
     }
   }, [user?.id, profile?.profile_image]);
 
+  const updateProfile = useCallback(async (updates: {
+    first_name?: string;
+    last_name?: string;
+    bio?: string;
+    timezone?: string;
+  }) => {
+    if (!user?.id) return { error: 'Not authenticated' };
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Profile update error:', error);
+        return { error: error.message };
+      }
+
+      setProfile(prev => prev ? { ...prev, ...updates } : null);
+      return { success: true };
+    } catch (error) {
+      console.error('Update exception:', error);
+      return { error: 'Failed to update profile' };
+    }
+  }, [user?.id]);
+
   return {
     profile,
     appIdeas,
@@ -153,6 +180,7 @@ export function useProfile() {
     uploading,
     uploadProfileImage,
     deleteProfileImage,
+    updateProfile,
     refreshProfile: fetchProfile,
     refreshAppIdeas: fetchAppIdeas,
   };
