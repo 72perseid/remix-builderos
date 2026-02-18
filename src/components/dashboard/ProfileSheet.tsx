@@ -96,7 +96,6 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast.error('Please select an image file'); return; }
     if (file.size > 5 * 1024 * 1024) { toast.error('Image must be less than 5MB'); return; }
-
     const result = await uploadProfileImage(file);
     if (result.success) { toast.success('Profile image updated'); }
     else { toast.error(result.error || 'Failed to upload image'); }
@@ -112,29 +111,27 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const handleSave = async () => {
     setSaving(true);
     const result = await updateProfile({ first_name: firstName, last_name: lastName, bio, timezone });
-    if (result?.success) {
-      toast.success('Profile saved');
-    } else {
-      toast.error(result?.error || 'Failed to save profile');
-    }
+    if (result?.success) { toast.success('Profile saved'); }
+    else { toast.error(result?.error || 'Failed to save profile'); }
     setSaving(false);
   };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-[#0f1219] border-slate-700 w-[400px] sm:w-[480px]">
-        <SheetHeader>
-          <SheetTitle className="text-white">Profile</SheetTitle>
+      <SheetContent className="border-border w-[420px] sm:w-[500px] p-0 flex flex-col">
+        <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
+          <SheetTitle className="text-foreground">Profile</SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="h-[calc(100vh-80px)] pr-4">
-          <div className="space-y-6 py-6">
-            {/* Profile Image Section */}
-            <div className="flex flex-col items-center gap-4">
+        <ScrollArea className="flex-1">
+          <div className="px-6 py-6 space-y-8">
+
+            {/* Avatar */}
+            <div className="flex flex-col items-center gap-3">
               <div className="relative">
-                <Avatar className="h-20 w-20 border-2 border-slate-600">
+                <Avatar className="h-20 w-20 border border-border">
                   <AvatarImage src={profile?.profile_image || ''} />
-                  <AvatarFallback className="bg-[#1a2744] text-white text-xl font-semibold">
+                  <AvatarFallback className="bg-secondary text-foreground text-xl font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
@@ -146,120 +143,106 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
               </div>
               <div className="flex gap-2">
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
-                  {profile?.profile_image ? (<><Camera className="h-4 w-4 mr-2" />Change</>) : (<><Upload className="h-4 w-4 mr-2" />Upload</>)}
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                  {profile?.profile_image ? (<><Camera className="h-4 w-4 mr-1.5" />Change</>) : (<><Upload className="h-4 w-4 mr-1.5" />Upload</>)}
                 </Button>
                 {profile?.profile_image && (
-                  <Button variant="outline" size="sm" onClick={handleDeleteImage} disabled={uploading} className="border-slate-600 text-red-400 hover:bg-red-900/30 hover:text-red-300">
-                    <Trash2 className="h-4 w-4 mr-2" />Remove
+                  <Button variant="outline" size="sm" onClick={handleDeleteImage} disabled={uploading} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4 mr-1.5" />Remove
                   </Button>
                 )}
               </div>
             </div>
 
-            <Separator className="bg-slate-700" />
+            {/* Personal Info */}
+            <section className="space-y-4">
+              <h2 className="text-base font-semibold text-primary">Personal Information</h2>
 
-            {/* Editable User Details */}
-            <div className="space-y-4">
-              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">User Details</h3>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">First Name</Label>
+                  <Label className="text-muted-foreground">First Name</Label>
                   <Input
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     placeholder="First name"
-                    className="bg-[#1a2744] border-slate-600 text-white placeholder:text-slate-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Last Name</Label>
+                  <Label className="text-muted-foreground">Last Name</Label>
                   <Input
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     placeholder="Last name"
-                    className="bg-[#1a2744] border-slate-600 text-white placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
               {/* Email — read-only */}
               <div className="space-y-2">
-                <Label className="text-slate-300 flex items-center gap-1.5">
-                  <Lock className="h-3.5 w-3.5 text-slate-500" />
+                <Label className="text-muted-foreground flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5" />
                   Email
                 </Label>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[#1a2744]/50 border border-slate-700 opacity-60">
-                  <Mail className="h-4 w-4 text-slate-500 shrink-0" />
-                  <span className="text-sm text-slate-400">{email}</span>
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-border bg-secondary/40 opacity-60">
+                  <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-muted-foreground">{email}</span>
                 </div>
-                <p className="text-xs text-slate-500">Email is managed through authentication and cannot be changed here.</p>
+                <p className="text-xs text-muted-foreground/60">Managed through authentication — cannot be changed here.</p>
               </div>
 
               {/* Bio */}
               <div className="space-y-2">
-                <Label className="text-slate-300">Bio</Label>
+                <Label className="text-muted-foreground">Bio</Label>
                 <Textarea
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                   placeholder="Tell us a bit about yourself…"
-                  rows={3}
-                  className="bg-[#1a2744] border-slate-600 text-white placeholder:text-slate-500 resize-none"
+                  className="min-h-[80px] resize-none"
                 />
               </div>
 
               {/* Timezone */}
               <div className="space-y-2">
-                <Label className="text-slate-300">Timezone</Label>
+                <Label className="text-muted-foreground">Timezone</Label>
                 <Select value={timezone} onValueChange={setTimezone}>
-                  <SelectTrigger className="bg-[#1a2744] border-slate-600 text-white">
+                  <SelectTrigger>
                     <SelectValue placeholder="Select your timezone" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a2744] border-slate-600 max-h-60">
+                  <SelectContent>
                     {TIMEZONES.map(tz => (
-                      <SelectItem key={tz} value={tz} className="text-white hover:bg-slate-700">
+                      <SelectItem key={tz} value={tz}>
                         {tz.replace(/_/g, ' ')}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            </section>
+
+            {/* Footer actions */}
+            <div className="space-y-3 border-t border-border pt-6">
+              <Button
+                className="w-full"
+                disabled={!isDirty || saving || uploading}
+                onClick={handleSave}
+              >
+                {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</> : 'Save Changes'}
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full text-muted-foreground hover:text-foreground"
+                onClick={async () => {
+                  const { error } = await signOut();
+                  if (error) { toast.error('Failed to sign out'); }
+                  else { toast.success('Signed out successfully'); navigate('/login'); }
+                }}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
             </div>
 
-            <Separator className="bg-slate-700" />
-
-            {/* Save Changes */}
-            <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={!isDirty || saving || uploading}
-              onClick={handleSave}
-            >
-              {saving ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-
-            <Separator className="bg-slate-700" />
-
-            <Button
-              variant="outline"
-              className="w-full border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
-              onClick={async () => {
-                const { error } = await signOut();
-                if (error) {
-                  toast.error("Failed to sign out");
-                } else {
-                  toast.success("Signed out successfully");
-                  navigate("/login");
-                }
-              }}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
           </div>
         </ScrollArea>
       </SheetContent>
