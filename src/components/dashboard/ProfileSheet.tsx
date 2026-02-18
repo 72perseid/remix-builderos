@@ -122,7 +122,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="bg-[#0B0E14] border-slate-800 w-[400px] sm:w-[540px]">
+      <SheetContent className="bg-[#0f1219] border-slate-700 w-[400px] sm:w-[480px]">
         <SheetHeader>
           <SheetTitle className="text-white">Profile</SheetTitle>
         </SheetHeader>
@@ -132,94 +132,94 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
             {/* Profile Image Section */}
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
-                <Avatar className="h-24 w-24 border-4 border-slate-700">
+                <Avatar className="h-20 w-20 border-2 border-slate-600">
                   <AvatarImage src={profile?.profile_image || ''} />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-2xl">
+                  <AvatarFallback className="bg-[#1a2744] text-white text-xl font-semibold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 {uploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                    <Loader2 className="h-8 w-8 text-white animate-spin" />
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
                   </div>
                 )}
               </div>
               <div className="flex gap-2">
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
-                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="border-slate-700 text-[#65686f] hover:bg-slate-800 hover:text-white">
+                <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white">
                   {profile?.profile_image ? (<><Camera className="h-4 w-4 mr-2" />Change</>) : (<><Upload className="h-4 w-4 mr-2" />Upload</>)}
                 </Button>
                 {profile?.profile_image && (
-                  <Button variant="outline" size="sm" onClick={handleDeleteImage} disabled={uploading} className="border-red-800 text-red-400 hover:bg-red-900/50 hover:text-red-300">
+                  <Button variant="outline" size="sm" onClick={handleDeleteImage} disabled={uploading} className="border-slate-600 text-red-400 hover:bg-red-900/30 hover:text-red-300">
                     <Trash2 className="h-4 w-4 mr-2" />Remove
                   </Button>
                 )}
               </div>
             </div>
 
-            <Separator className="bg-slate-800" />
+            <Separator className="bg-slate-700" />
 
             {/* Editable User Details */}
             <div className="space-y-4">
-              <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">User Details</h3>
+              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">User Details</h3>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-slate-500">First Name</Label>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">First Name</Label>
                   <Input
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     placeholder="First name"
-                    className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-slate-600"
+                    className="bg-[#1a2744] border-slate-600 text-white placeholder:text-slate-500"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-slate-500">Last Name</Label>
+                <div className="space-y-2">
+                  <Label className="text-slate-300">Last Name</Label>
                   <Input
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     placeholder="Last name"
-                    className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-slate-600"
+                    className="bg-[#1a2744] border-slate-600 text-white placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
               {/* Email — read-only */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-slate-500 flex items-center gap-1.5">
-                  <Lock className="h-3 w-3" />
+              <div className="space-y-2">
+                <Label className="text-slate-300 flex items-center gap-1.5">
+                  <Lock className="h-3.5 w-3.5 text-slate-500" />
                   Email
                 </Label>
-                <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-slate-900/30 border border-slate-800">
-                  <Mail className="h-4 w-4 text-slate-600 shrink-0" />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-[#1a2744]/50 border border-slate-700 opacity-60">
+                  <Mail className="h-4 w-4 text-slate-500 shrink-0" />
                   <span className="text-sm text-slate-400">{email}</span>
                 </div>
-                <p className="text-xs text-slate-600">Email is managed through authentication and cannot be changed here.</p>
+                <p className="text-xs text-slate-500">Email is managed through authentication and cannot be changed here.</p>
               </div>
 
               {/* Bio */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-slate-500">Bio</Label>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Bio</Label>
                 <Textarea
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                   placeholder="Tell us a bit about yourself…"
                   rows={3}
-                  className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-slate-600 resize-none"
+                  className="bg-[#1a2744] border-slate-600 text-white placeholder:text-slate-500 resize-none"
                 />
               </div>
 
               {/* Timezone */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-slate-500">Timezone</Label>
+              <div className="space-y-2">
+                <Label className="text-slate-300">Timezone</Label>
                 <Select value={timezone} onValueChange={setTimezone}>
-                  <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:ring-slate-600">
+                  <SelectTrigger className="bg-[#1a2744] border-slate-600 text-white">
                     <SelectValue placeholder="Select your timezone" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-60">
+                  <SelectContent className="bg-[#1a2744] border-slate-600 max-h-60">
                     {TIMEZONES.map(tz => (
-                      <SelectItem key={tz} value={tz} className="focus:bg-slate-800 focus:text-white">
-                        {tz.replace('_', ' ')}
+                      <SelectItem key={tz} value={tz} className="text-white hover:bg-slate-700">
+                        {tz.replace(/_/g, ' ')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -227,7 +227,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
               </div>
             </div>
 
-            <Separator className="bg-slate-800" />
+            <Separator className="bg-slate-700" />
 
             {/* Save Changes */}
             <Button
@@ -242,11 +242,11 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
               )}
             </Button>
 
-            <Separator className="bg-slate-800" />
+            <Separator className="bg-slate-700" />
 
             <Button
               variant="outline"
-              className="w-full border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white"
+              className="w-full border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
               onClick={async () => {
                 const { error } = await signOut();
                 if (error) {
