@@ -1,11 +1,15 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Camera, Trash2, Upload, Mail, User, Briefcase, Loader2, LogOut } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Camera, Trash2, Upload, Mail, Lock, Loader2, LogOut } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -15,17 +19,74 @@ interface ProfileSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const TIMEZONES = [
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Anchorage',
+  'America/Honolulu',
+  'America/Toronto',
+  'America/Vancouver',
+  'America/Sao_Paulo',
+  'America/Buenos_Aires',
+  'America/Mexico_City',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Europe/Madrid',
+  'Europe/Rome',
+  'Europe/Amsterdam',
+  'Europe/Stockholm',
+  'Europe/Moscow',
+  'Africa/Cairo',
+  'Africa/Johannesburg',
+  'Asia/Dubai',
+  'Asia/Kolkata',
+  'Asia/Bangkok',
+  'Asia/Singapore',
+  'Asia/Shanghai',
+  'Asia/Tokyo',
+  'Asia/Seoul',
+  'Australia/Sydney',
+  'Australia/Melbourne',
+  'Pacific/Auckland',
+];
+
 export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
-  const { profile, uploading, uploadProfileImage, deleteProfileImage } = useProfile();
+  const { profile, uploading, uploadProfileImage, deleteProfileImage, updateProfile } = useProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const displayName = profile?.first_name && profile?.last_name
-    ? `${profile.first_name} ${profile.last_name}`
-    : user?.user_metadata?.first_name
-      ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`
-      : 'User';
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [bio, setBio] = useState('');
+  const [timezone, setTimezone] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFirstName(profile.first_name || '');
+      setLastName(profile.last_name || '');
+      setBio(profile.bio || '');
+      setTimezone(profile.timezone || '');
+    }
+  }, [profile]);
+
+  const isDirty =
+    firstName !== (profile?.first_name || '') ||
+    lastName !== (profile?.last_name || '') ||
+    bio !== (profile?.bio || '') ||
+    timezone !== (profile?.timezone || '');
+
+  const displayName = firstName && lastName
+    ? `${firstName} ${lastName}`
+    : profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : user?.user_metadata?.first_name
+        ? `${user.user_metadata.first_name} ${user.user_metadata.last_name || ''}`
+        : 'User';
 
   const email = profile?.email || user?.email || '';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase() || 'U';
@@ -46,6 +107,17 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
     const result = await deleteProfileImage();
     if (result.success) { toast.success('Profile image removed'); }
     else { toast.error(result.error || 'Failed to remove image'); }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    const result = await updateProfile({ first_name: firstName, last_name: lastName, bio, timezone });
+    if (result?.success) {
+      toast.success('Profile saved');
+    } else {
+      toast.error(result?.error || 'Failed to save profile');
+    }
+    setSaving(false);
   };
 
   return (
@@ -87,41 +159,88 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
             <Separator className="bg-slate-800" />
 
-            {/* User Details Section */}
+            {/* Editable User Details */}
             <div className="space-y-4">
               <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">User Details</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50 border border-slate-800">
-                  <User className="h-5 w-5 text-blue-400" />
-                  <div>
-                    <p className="text-xs text-slate-500">Name</p>
-                    <p className="text-sm text-white">{displayName}</p>
-                  </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-slate-500">First Name</Label>
+                  <Input
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    placeholder="First name"
+                    className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-slate-600"
+                  />
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50 border border-slate-800">
-                  <Mail className="h-5 w-5 text-blue-400" />
-                  <div>
-                    <p className="text-xs text-slate-500">Email</p>
-                    <p className="text-sm text-white">{email}</p>
-                  </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-slate-500">Last Name</Label>
+                  <Input
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    placeholder="Last name"
+                    className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-slate-600"
+                  />
                 </div>
-                {profile?.bio && (
-                  <div className="p-3 rounded-lg bg-slate-900/50 border border-slate-800">
-                    <p className="text-xs text-slate-500 mb-1">Bio</p>
-                    <p className="text-sm text-slate-300">{profile.bio}</p>
-                  </div>
-                )}
-                {profile?.location && (
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-900/50 border border-slate-800">
-                    <Briefcase className="h-5 w-5 text-blue-400" />
-                    <div>
-                      <p className="text-xs text-slate-500">Location</p>
-                      <p className="text-sm text-white">{profile.location}</p>
-                    </div>
-                  </div>
-                )}
+              </div>
+
+              {/* Email — read-only */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <Lock className="h-3 w-3" />
+                  Email
+                </Label>
+                <div className="flex items-center gap-3 px-3 py-2 rounded-md bg-slate-900/30 border border-slate-800">
+                  <Mail className="h-4 w-4 text-slate-600 shrink-0" />
+                  <span className="text-sm text-slate-400">{email}</span>
+                </div>
+                <p className="text-xs text-slate-600">Email is managed through authentication and cannot be changed here.</p>
+              </div>
+
+              {/* Bio */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-slate-500">Bio</Label>
+                <Textarea
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  placeholder="Tell us a bit about yourself…"
+                  rows={3}
+                  className="bg-slate-900/50 border-slate-700 text-white placeholder:text-slate-600 focus-visible:ring-slate-600 resize-none"
+                />
+              </div>
+
+              {/* Timezone */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-slate-500">Timezone</Label>
+                <Select value={timezone} onValueChange={setTimezone}>
+                  <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white focus:ring-slate-600">
+                    <SelectValue placeholder="Select your timezone" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-900 border-slate-700 text-white max-h-60">
+                    {TIMEZONES.map(tz => (
+                      <SelectItem key={tz} value={tz} className="focus:bg-slate-800 focus:text-white">
+                        {tz.replace('_', ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            <Separator className="bg-slate-800" />
+
+            {/* Save Changes */}
+            <Button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={!isDirty || saving || uploading}
+              onClick={handleSave}
+            >
+              {saving ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving…</>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
 
             <Separator className="bg-slate-800" />
 
