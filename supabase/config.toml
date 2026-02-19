@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.chat-action]
 verify_jwt = false
+
+[functions.get-artifact]
+verify_jwt = false
