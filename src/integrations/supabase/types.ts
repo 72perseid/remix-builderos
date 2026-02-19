@@ -122,6 +122,13 @@ export type Database = {
             foreignKeyName: "artifacts_app_idea_id_fkey"
             columns: ["app_idea_id"]
             isOneToOne: false
+            referencedRelation: "app_idea_artifacts"
+            referencedColumns: ["app_idea_id"]
+          },
+          {
+            foreignKeyName: "artifacts_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
             referencedRelation: "app_ideas"
             referencedColumns: ["id"]
           },
@@ -159,6 +166,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "business_models_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
+            referencedRelation: "app_idea_artifacts"
+            referencedColumns: ["app_idea_id"]
+          },
           {
             foreignKeyName: "business_models_app_idea_id_fkey"
             columns: ["app_idea_id"]
@@ -230,6 +244,13 @@ export type Database = {
             foreignKeyName: "chat_sessions_app_idea_id_fkey"
             columns: ["app_idea_id"]
             isOneToOne: false
+            referencedRelation: "app_idea_artifacts"
+            referencedColumns: ["app_idea_id"]
+          },
+          {
+            foreignKeyName: "chat_sessions_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
             referencedRelation: "app_ideas"
             referencedColumns: ["id"]
           },
@@ -264,6 +285,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "database_designs_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
+            referencedRelation: "app_idea_artifacts"
+            referencedColumns: ["app_idea_id"]
+          },
           {
             foreignKeyName: "database_designs_app_idea_id_fkey"
             columns: ["app_idea_id"]
@@ -548,6 +576,13 @@ export type Database = {
             foreignKeyName: "project_tags_app_idea_id_fkey"
             columns: ["app_idea_id"]
             isOneToOne: false
+            referencedRelation: "app_idea_artifacts"
+            referencedColumns: ["app_idea_id"]
+          },
+          {
+            foreignKeyName: "project_tags_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
             referencedRelation: "app_ideas"
             referencedColumns: ["id"]
           },
@@ -646,6 +681,13 @@ export type Database = {
             foreignKeyName: "tasks_app_idea_id_fkey"
             columns: ["app_idea_id"]
             isOneToOne: false
+            referencedRelation: "app_idea_artifacts"
+            referencedColumns: ["app_idea_id"]
+          },
+          {
+            foreignKeyName: "tasks_app_idea_id_fkey"
+            columns: ["app_idea_id"]
+            isOneToOne: false
             referencedRelation: "app_ideas"
             referencedColumns: ["id"]
           },
@@ -671,7 +713,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      app_idea_artifacts: {
+        Row: {
+          app_category: string | null
+          app_description: string | null
+          app_idea_id: string | null
+          app_name: string | null
+          app_type: string | null
+          artifact_created_at: string | null
+          artifact_id: string | null
+          artifact_type: Database["public"]["Enums"]["artifact_type"] | null
+          content: Json | null
+          idea_generation: string | null
+          one_liner: string | null
+          persona_description: string | null
+          status: string | null
+          user_demography: string | null
+          user_id: string | null
+          version: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
