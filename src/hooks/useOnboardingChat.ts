@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-
-const N8N_WEBHOOK_URL = 'https://amblabsdevaccount.app.n8n.cloud/webhook/4c31dc75-04a8-4638-b2f5-b94b2ab0de59';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface OnboardingMessage {
   id: string;
@@ -42,24 +41,23 @@ export function useOnboardingChat() {
       setIsStreaming(true);
 
       try {
-        const response = await fetch(N8N_WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const workflowMode = isNewApp ? 'new_app' : 'onboarding';
+        
+        const { data, error: fnError } = await supabase.functions.invoke('chat-action', {
+          body: {
             message: content,
             user_id: user.id,
             session_id: sessionIdRef.current,
             app_idea_id: null,
             is_new_app: isNewApp,
-          }),
+            workflowMode,
+          },
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to get AI response: ${response.status}`);
+        if (fnError) {
+          throw new Error(`Failed to get AI response: ${fnError.message}`);
         }
 
-        const data = await response.json();
-        
         // Debug: Log raw response for troubleshooting
         console.log('Raw n8n onboarding response:', data);
         
