@@ -50,7 +50,7 @@ export default function AIKanbanAssistantPage() {
   const [copilotOpen, setCopilotOpen] = useState(false);
 
   // Parse artifact content with the exact expected structure
-  const content = artifact?.content as RoadmapContent | null;
+  const content = artifact?.content as unknown as RoadmapContent | null;
   const rawColumns = content?.columns || [];
 
   // Transform data to KanbanBoard format
