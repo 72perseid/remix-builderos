@@ -256,51 +256,6 @@ export type Database = {
           },
         ]
       }
-      database_designs: {
-        Row: {
-          app_idea_id: string | null
-          app_roadmap: string | null
-          created_at: string | null
-          generated_design: Json | null
-          id: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          app_idea_id?: string | null
-          app_roadmap?: string | null
-          created_at?: string | null
-          generated_design?: Json | null
-          id?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          app_idea_id?: string | null
-          app_roadmap?: string | null
-          created_at?: string | null
-          generated_design?: Json | null
-          id?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "database_designs_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_idea_artifacts"
-            referencedColumns: ["app_idea_id"]
-          },
-          {
-            foreignKeyName: "database_designs_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_ideas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       enrollments: {
         Row: {
           activations_id: number | null
@@ -548,75 +503,6 @@ export type Database = {
           xano_id?: number | null
         }
         Relationships: []
-      }
-      project_tags: {
-        Row: {
-          app_idea_id: string
-          color: string | null
-          created_at: string | null
-          id: string
-          label: string
-        }
-        Insert: {
-          app_idea_id: string
-          color?: string | null
-          created_at?: string | null
-          id?: string
-          label: string
-        }
-        Update: {
-          app_idea_id?: string
-          color?: string | null
-          created_at?: string | null
-          id?: string
-          label?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "project_tags_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_idea_artifacts"
-            referencedColumns: ["app_idea_id"]
-          },
-          {
-            foreignKeyName: "project_tags_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_ideas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      task_tags: {
-        Row: {
-          tag_id: string
-          task_id: string
-        }
-        Insert: {
-          tag_id: string
-          task_id: string
-        }
-        Update: {
-          tag_id?: string
-          task_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "task_tags_tag_id_fkey"
-            columns: ["tag_id"]
-            isOneToOne: false
-            referencedRelation: "project_tags"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_tags_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       tasks: {
         Row: {
