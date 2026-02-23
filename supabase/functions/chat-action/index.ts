@@ -5,9 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Webhook URLs
-const STANDARD_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/4c31dc75-04a8-4638-b2f5-b94b2ab0de59';
-const COPILOT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/158807ed-765b-4429-aa08-3688f7122393';
+// Webhook URL
+const STANDARD_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook-test/master_builder_os';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -35,10 +34,9 @@ serve(async (req) => {
       hasMessage: !!message,
     });
 
-    // Determine which webhook to use based on workflowMode
-    const targetUrl = workflowMode === 'copilot' ? COPILOT_WEBHOOK : STANDARD_CHAT_WEBHOOK;
+    const targetUrl = STANDARD_CHAT_WEBHOOK;
     
-    console.log(`Routing to: ${workflowMode === 'copilot' ? 'COPILOT' : 'STANDARD'} webhook`);
+    console.log(`Routing to STANDARD webhook with workflowMode: ${workflowMode}`);
 
     // Forward the request to the appropriate n8n webhook
     const response = await fetch(targetUrl, {
