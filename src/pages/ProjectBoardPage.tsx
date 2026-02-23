@@ -328,7 +328,7 @@ export default function ProjectBoardPage() {
   useEffect(() => {
     if (artifactLoading || tasksLoading || hasImportedArtifact) return;
     
-    const content = artifact?.content as ArtifactContent | null;
+    const content = artifact?.content as unknown as ArtifactContent | null;
     const rawColumns = content?.columns || [];
     
     // Only import if we have artifact data and no existing tasks
