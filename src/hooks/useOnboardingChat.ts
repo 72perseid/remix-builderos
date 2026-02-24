@@ -22,6 +22,7 @@ export function useOnboardingChat() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode | null>(null);
+  const [existingAppIdeaId, setExistingAppIdeaId] = useState<string | null>(null);
   const [modeLoading, setModeLoading] = useState(true);
 
   // On mount, determine workflowMode based on existing app_ideas
@@ -40,8 +41,11 @@ export function useOnboardingChat() {
         if (queryError) {
           console.error('Error checking app_ideas:', queryError);
           setWorkflowMode('new_app');
+        } else if (data && data.length > 0) {
+          setWorkflowMode('onboarded');
+          setExistingAppIdeaId(data[0].id);
         } else {
-          setWorkflowMode(data && data.length > 0 ? 'onboarded' : 'new_app');
+          setWorkflowMode('new_app');
         }
       } catch (err) {
         console.error('Failed to detect workflow mode:', err);
@@ -81,7 +85,7 @@ export function useOnboardingChat() {
             message: content,
             user_id: user.id,
             session_id: sessionIdRef.current,
-            app_idea_id: null,
+            app_idea_id: workflowMode === 'onboarded' ? existingAppIdeaId : null,
             is_new_app: workflowMode === 'new_app',
             workflowMode,
           },
