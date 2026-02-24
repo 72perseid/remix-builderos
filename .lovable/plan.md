@@ -1,89 +1,108 @@
 
-# Make Profile Sheet Editable (Name, Bio, Timezone)
 
-## What Changes
+# Unified workflow_mode Detection and Chat Persistence
 
-The Profile Sheet will be transformed from a read-only view into an editable form. Users will be able to edit their first name, last name, bio, and timezone. Email will remain read-only with a clear visual cue that it is tied to authentication. A "Save Changes" button will commit the edits to the `profiles` table via Supabase.
+## Summary
 
-## Scope
+Rewrite the workflow_mode logic across the edge function and both chat hooks so that **every webhook call** includes a dynamically determined `workflow_mode` based on the user's current state in Supabase. Also ensure full chat persistence (save user messages before the call, save AI responses after).
 
-No database migrations are needed — `first_name`, `last_name`, `bio`, and `timezone` already exist as columns in the `profiles` table, and the `UPDATE` RLS policy is already in place for authenticated users.
+## workflow_mode Rules
+
+```text
++---------------------------+-------------------------------------------+
+| Condition                 | workflow_mode                             |
++---------------------------+-------------------------------------------+
+| No app_idea_id            | "new"                                     |
+| Has app_idea_id, but NOT  | "onboarded"                               |
+|   all 3 artifacts done    |                                           |
+| Has app_idea_id AND all   | "chat"                                    |
+|   3 artifacts complete    |                                           |
++---------------------------+-------------------------------------------+
+
+Artifacts checked: business_model, validation, product_brief
+"Complete" = artifact exists with status = 'complete'
+```
+
+## Webhook Payload Shape
+
+Every call to the n8n webhook will include:
+
+```json
+{
+  "user_id": "...",
+  "message": "...",
+  "workflow_mode": "new" | "onboarded" | "chat",
+  "app_idea_id": "..." | null,
+  "app_name": "..." | null,
+  "app_description": "..." | null,
+  "app_category": "..." | null,
+  "session_id": "..."
+}
+```
+
+---
 
 ## Technical Changes
 
-### 1. `src/hooks/useProfile.ts` — Add `updateProfile` function
+### 1. New shared utility: `src/lib/resolveWorkflowMode.ts`
 
-Add a new `updateProfile` callback that accepts a partial profile object (first_name, last_name, bio, timezone) and performs a Supabase `UPDATE` on the `profiles` table. It will:
-- Accept `{ first_name, last_name, bio, timezone }` as arguments
-- Run `supabase.from('profiles').update(...).eq('id', user.id)`
-- Update local state on success via `setProfile`
-- Return `{ success: true }` or `{ error: string }`
+A single async function used by both `useOnboardingChat` and `useChat` to determine the correct `workflow_mode` before every webhook call.
 
-Export `updateProfile` from the hook alongside the existing functions.
-
-### 2. `src/components/dashboard/ProfileSheet.tsx` — Full refactor to editable form
-
-#### State additions
-```tsx
-const [firstName, setFirstName] = useState('');
-const [lastName, setLastName]   = useState('');
-const [bio, setBio]             = useState('');
-const [timezone, setTimezone]   = useState('');
-const [saving, setSaving]       = useState(false);
+```typescript
+async function resolveWorkflowMode(userId: string): Promise<{
+  workflowMode: 'new' | 'onboarded' | 'chat';
+  appIdeaId: string | null;
+  appName: string | null;
+  appDescription: string | null;
+  appCategory: string | null;
+}>
 ```
 
-A `useEffect` will seed these state values whenever `profile` loads/changes:
-```tsx
-useEffect(() => {
-  if (profile) {
-    setFirstName(profile.first_name || '');
-    setLastName(profile.last_name   || '');
-    setBio(profile.bio              || '');
-    setTimezone(profile.timezone    || '');
-  }
-}, [profile]);
-```
+Logic:
+1. Query `app_ideas` for the user (limit 1, most recent).
+2. If none found, return `{ workflowMode: 'new', appIdeaId: null, ... }`.
+3. If found, query `artifacts` for that `app_idea_id` where `type` is in `('business_model', 'validation', 'product_brief')` and `status = 'complete'`.
+4. If all 3 artifact types are present and complete, return `workflowMode: 'chat'`.
+5. Otherwise return `workflowMode: 'onboarded'`.
+6. Always return `app_name`, `app_description`, `app_category` from the app_idea row.
 
-#### Dirty tracking
-Compute `isDirty` to only enable the Save button when something actually changed, preventing unnecessary saves:
-```tsx
-const isDirty =
-  firstName !== (profile?.first_name || '') ||
-  lastName  !== (profile?.last_name  || '') ||
-  bio       !== (profile?.bio        || '') ||
-  timezone  !== (profile?.timezone   || '');
-```
+### 2. Update `src/hooks/useOnboardingChat.ts`
 
-#### UI layout changes
+- Replace the `WorkflowMode` type from `'onboarded' | 'new_app'` to `'new' | 'onboarded' | 'chat'`.
+- Replace the `useEffect` mode detection with a call to `resolveWorkflowMode`.
+- In `sendMessage`:
+  - Before calling the edge function, **save user message to `chat_messages`** (create a `chat_session` if one doesn't exist yet, persisted in Supabase not just a ref).
+  - Call `resolveWorkflowMode` fresh to get the current state.
+  - Pass the full payload (including `app_name`, `app_description`, `app_category`, `workflow_mode`).
+  - After receiving the response, **save assistant message to `chat_messages`**.
+- On mount, create or fetch a `chat_session` from Supabase (not just a random UUID ref).
+- Load existing messages from `chat_messages` for the session on mount.
 
-Replace the static read-only blocks in "User Details" with an editable form:
+### 3. Update `src/hooks/useChat.ts` (dashboard chat)
 
-- **First Name** — `<Input>` field
-- **Last Name** — `<Input>` field
-- **Email** — read-only display with a small lock icon and a note: *"Email is managed through authentication and cannot be changed here."*
-- **Bio** — `<Textarea>` (a few rows, placeholder "Tell us a bit about yourself…")
-- **Timezone** — `<Select>` component populated with a curated list of common IANA timezone strings (e.g. `America/New_York`, `Europe/London`, `Asia/Tokyo`, etc. — approximately 20–30 common ones)
+- In `sendMessageMutation`, before calling the webhook:
+  - Call `resolveWorkflowMode(user.id)` to get the correct `workflow_mode`.
+  - Include `workflow_mode`, `app_name`, `app_description`, `app_category` in the webhook payload.
+- Remove the old `is_new_app` / `isNewAppMode` fields from the payload (replaced by `workflow_mode`).
+- User message is already saved before the call (existing behavior) -- keep it.
+- Assistant message is already saved after the call (existing behavior) -- keep it.
 
-#### Save button
+### 4. Update `supabase/functions/chat-action/index.ts`
 
-A primary "Save Changes" button is placed at the bottom of the form, above the Sign Out button, separated by a `<Separator>`. It:
-- Is disabled when `!isDirty || saving || uploading`
-- Shows a `<Loader2>` spinner while saving
-- Calls `updateProfile({ first_name: firstName, last_name: lastName, bio, timezone })`
-- Shows `toast.success('Profile saved')` or `toast.error(...)` accordingly
+- Accept the new `workflow_mode` field (replacing `workflowMode`).
+- Accept `app_name`, `app_description`, `app_category`.
+- Forward all fields to the n8n webhook.
+- Remove `is_new_app` from the forwarded payload.
+- Update CORS headers to include the full set of required Supabase client headers.
 
-#### Imports to add
-- `Input` from `@/components/ui/input`
-- `Textarea` from `@/components/ui/textarea`
-- `Select, SelectContent, SelectItem, SelectTrigger, SelectValue` from `@/components/ui/select`
-- `Lock` icon from `lucide-react`
-- `useState`, `useEffect` from `react`
-
-## Summary of Files Changed
+### 5. Files Changed Summary
 
 | File | Change |
-|---|---|
-| `src/hooks/useProfile.ts` | Add `updateProfile` function |
-| `src/components/dashboard/ProfileSheet.tsx` | Replace static display with editable form + Save button |
+|------|--------|
+| `src/lib/resolveWorkflowMode.ts` | **New file** -- shared utility |
+| `src/hooks/useOnboardingChat.ts` | Use `resolveWorkflowMode`, add DB persistence for messages, manage real `chat_session` |
+| `src/hooks/useChat.ts` | Use `resolveWorkflowMode` for payload, include app metadata |
+| `supabase/functions/chat-action/index.ts` | Accept and forward `workflow_mode` + app metadata, update CORS |
 
-No database migration required.
+No database schema changes are needed -- `chat_sessions` and `chat_messages` tables already exist with the required structure.
+
