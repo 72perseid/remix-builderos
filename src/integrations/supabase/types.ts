@@ -21,6 +21,7 @@ export type Database = {
           app_for: string | null
           app_name: string | null
           app_type: string | null
+          bm_completion: number
           created_at: string | null
           currently_building: boolean | null
           figma_link: string | null
@@ -33,10 +34,12 @@ export type Database = {
           logo: string | null
           logo_text: string | null
           one_liner: string | null
+          pb_completion: number
           persona_description: string | null
           updated_at: string | null
           user_demography: string | null
           user_id: string
+          uv_completion: number
         }
         Insert: {
           app_category?: string | null
@@ -44,6 +47,7 @@ export type Database = {
           app_for?: string | null
           app_name?: string | null
           app_type?: string | null
+          bm_completion?: number
           created_at?: string | null
           currently_building?: boolean | null
           figma_link?: string | null
@@ -56,10 +60,12 @@ export type Database = {
           logo?: string | null
           logo_text?: string | null
           one_liner?: string | null
+          pb_completion?: number
           persona_description?: string | null
           updated_at?: string | null
           user_demography?: string | null
           user_id: string
+          uv_completion?: number
         }
         Update: {
           app_category?: string | null
@@ -67,6 +73,7 @@ export type Database = {
           app_for?: string | null
           app_name?: string | null
           app_type?: string | null
+          bm_completion?: number
           created_at?: string | null
           currently_building?: boolean | null
           figma_link?: string | null
@@ -79,10 +86,12 @@ export type Database = {
           logo?: string | null
           logo_text?: string | null
           one_liner?: string | null
+          pb_completion?: number
           persona_description?: string | null
           updated_at?: string | null
           user_demography?: string | null
           user_id?: string
+          uv_completion?: number
         }
         Relationships: []
       }
@@ -404,6 +413,7 @@ export type Database = {
           twitter_profile: string | null
           updated_at: string | null
           visibility: boolean | null
+          workflow_mode: string
           xano_id: number | null
         }
         Insert: {
@@ -428,6 +438,7 @@ export type Database = {
           twitter_profile?: string | null
           updated_at?: string | null
           visibility?: boolean | null
+          workflow_mode?: string
           xano_id?: number | null
         }
         Update: {
@@ -452,6 +463,7 @@ export type Database = {
           twitter_profile?: string | null
           updated_at?: string | null
           visibility?: boolean | null
+          workflow_mode?: string
           xano_id?: number | null
         }
         Relationships: []

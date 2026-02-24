@@ -23,6 +23,29 @@ export function useOnboardingChat() {
   const [error, setError] = useState<Error | null>(null);
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode | null>(null);
   const [modeLoading, setModeLoading] = useState(true);
+  const [bmCompletion, setBmCompletion] = useState(0);
+  const [uvCompletion, setUvCompletion] = useState(0);
+  const [pbCompletion, setPbCompletion] = useState(0);
+  const [appIdeaId, setAppIdeaId] = useState<string | null>(null);
+
+  // Fetch completion percentages from app_ideas
+  const fetchCompletion = useCallback(async (ideaId: string) => {
+    const { data, error } = await supabase
+      .from('app_ideas')
+      .select('bm_completion, uv_completion, pb_completion')
+      .eq('id', ideaId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('fetchCompletion error:', error);
+      return;
+    }
+    if (data) {
+      setBmCompletion((data as any).bm_completion ?? 0);
+      setUvCompletion((data as any).uv_completion ?? 0);
+      setPbCompletion((data as any).pb_completion ?? 0);
+    }
+  }, []);
 
   // On mount: resolve workflow mode and ensure a chat_session exists
   useEffect(() => {
@@ -34,6 +57,12 @@ export function useOnboardingChat() {
         // Resolve workflow mode
         const state = await resolveWorkflowMode(user.id);
         setWorkflowMode(state.workflowMode);
+
+        // Store appIdeaId and fetch completion
+        if (state.appIdeaId) {
+          setAppIdeaId(state.appIdeaId);
+          await fetchCompletion(state.appIdeaId);
+        }
 
         // Get or create a chat session
         const { data: existing } = await supabase
@@ -165,6 +194,14 @@ export function useOnboardingChat() {
         };
         setMessages((prev) => [...prev, assistantMessage]);
 
+        // Refetch completion after each exchange
+        const latestState = await resolveWorkflowMode(user.id);
+        setWorkflowMode(latestState.workflowMode);
+        if (latestState.appIdeaId) {
+          setAppIdeaId(latestState.appIdeaId);
+          await fetchCompletion(latestState.appIdeaId);
+        }
+
         return aiResponse;
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error');
@@ -174,7 +211,7 @@ export function useOnboardingChat() {
         setIsStreaming(false);
       }
     },
-    [user?.id]
+    [user?.id, fetchCompletion]
   );
 
   const startSession = useCallback(async () => {
@@ -210,5 +247,8 @@ export function useOnboardingChat() {
     startSession,
     clearMessages,
     forceNewAppMode,
+    bmCompletion,
+    uvCompletion,
+    pbCompletion,
   };
 }
