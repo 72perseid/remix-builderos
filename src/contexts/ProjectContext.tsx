@@ -115,8 +115,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       // 4. Delete chat_sessions
       await supabase.from('chat_sessions').delete().eq('app_idea_id', appId);
 
-      // 5. Delete business_models
-      await supabase.from('business_models').delete().eq('app_idea_id', appId);
+      // 5. Delete artifacts
+      await supabase.from('artifacts').delete().eq('app_idea_id', appId);
 
       // 9. Delete the app itself
       const { error } = await supabase.from('app_ideas').delete().eq('id', appId);
