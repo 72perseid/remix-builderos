@@ -6,7 +6,7 @@ import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
 import { resolveWorkflowMode } from '@/lib/resolveWorkflowMode';
 
-const N8N_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/4c31dc75-04a8-4638-b2f5-b94b2ab0de59';
+const N8N_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/master_os';
 const REQUEST_TIMEOUT_MS = 90000; // Extended to 90 seconds for heavy N8N workflows
 
 export interface ChatMessage {
