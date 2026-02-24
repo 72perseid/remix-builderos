@@ -10,17 +10,25 @@ export interface WorkflowState {
   appCategory: string | null;
 }
 
-const REQUIRED_ARTIFACTS = ['business_model', 'validation', 'product_brief'] as const;
-
 /**
- * Determines the correct workflow_mode for a user by querying Supabase.
- *
- * - "new"       → no app_idea exists
- * - "onboarded" → app_idea exists but < 3 core artifacts are complete
- * - "chat"      → app_idea exists and all 3 core artifacts are complete
+ * Reads workflow_mode directly from the profiles table (set by n8n)
+ * and fetches the most recent app_idea for metadata.
  */
 export async function resolveWorkflowMode(userId: string): Promise<WorkflowState> {
-  // 1. Get the most recent app idea for the user
+  // 1. Read workflow_mode from profiles
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('workflow_mode')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (profileError) {
+    console.error('resolveWorkflowMode: error fetching profile', profileError);
+  }
+
+  const workflowMode = ((profile as any)?.workflow_mode as WorkflowMode) ?? 'new';
+
+  // 2. Get the most recent app idea for metadata
   const { data: appIdea, error: ideaError } = await supabase
     .from('app_ideas')
     .select('id, app_name, app_description, app_category')
@@ -33,37 +41,11 @@ export async function resolveWorkflowMode(userId: string): Promise<WorkflowState
     console.error('resolveWorkflowMode: error fetching app_ideas', ideaError);
   }
 
-  if (!appIdea) {
-    return {
-      workflowMode: 'new',
-      appIdeaId: null,
-      appName: null,
-      appDescription: null,
-      appCategory: null,
-    };
-  }
-
-  // 2. Check which of the 3 required artifacts are complete
-  const { data: artifacts, error: artError } = await supabase
-    .from('artifacts')
-    .select('type')
-    .eq('app_idea_id', appIdea.id)
-    .eq('user_id', userId)
-    .in('type', [...REQUIRED_ARTIFACTS])
-    .eq('status', 'complete');
-
-  if (artError) {
-    console.error('resolveWorkflowMode: error fetching artifacts', artError);
-  }
-
-  const completedTypes = new Set((artifacts ?? []).map((a) => a.type));
-  const allComplete = REQUIRED_ARTIFACTS.every((t) => completedTypes.has(t));
-
   return {
-    workflowMode: allComplete ? 'chat' : 'onboarded',
-    appIdeaId: appIdea.id,
-    appName: appIdea.app_name,
-    appDescription: appIdea.app_description,
-    appCategory: appIdea.app_category,
+    workflowMode,
+    appIdeaId: appIdea?.id ?? null,
+    appName: appIdea?.app_name ?? null,
+    appDescription: appIdea?.app_description ?? null,
+    appCategory: appIdea?.app_category ?? null,
   };
 }
