@@ -37,7 +37,10 @@ export default function OnboardingPage() {
     sendMessage,
     startSession,
     error,
-    clearMessages
+    clearMessages,
+    workflowMode,
+    modeLoading,
+    forceNewAppMode,
   } = useOnboardingChat();
 
   const [inputValue, setInputValue] = useState('');
@@ -56,22 +59,23 @@ export default function OnboardingPage() {
     });
   }, [messages]);
 
-  // Clear messages when entering new app mode
+  // Force new_app mode when URL has ?mode=new
   useEffect(() => {
     if (isNewAppMode) {
       clearMessages();
+      forceNewAppMode();
       setSessionStarted(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNewAppMode]);
 
-  // Auto-start session on mount
+  // Auto-start session once workflowMode is resolved
   useEffect(() => {
-    if (!sessionStarted && user?.id) {
+    if (!sessionStarted && user?.id && !modeLoading && workflowMode) {
       setSessionStarted(true);
-      startSession(isNewAppMode).catch(console.error);
+      startSession().catch(console.error);
     }
-  }, [sessionStarted, user?.id, startSession, isNewAppMode]);
+  }, [sessionStarted, user?.id, startSession, modeLoading, workflowMode]);
 
   // Focus input when not streaming
   useEffect(() => {
@@ -85,7 +89,7 @@ export default function OnboardingPage() {
     const content = inputValue.trim();
     setInputValue('');
     try {
-      const response = await sendMessage(content, false, isNewAppMode);
+      const response = await sendMessage(content, false);
 
       // Check for completion trigger
       if (response.includes('JSON_GENERATION_COMPLETE')) {

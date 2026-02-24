@@ -1,6 +1,8 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+
+export type WorkflowMode = 'onboarded' | 'new_app';
 
 export interface OnboardingMessage {
   id: string;
@@ -19,10 +21,43 @@ export function useOnboardingChat() {
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [workflowMode, setWorkflowMode] = useState<WorkflowMode | null>(null);
+  const [modeLoading, setModeLoading] = useState(true);
+
+  // On mount, determine workflowMode based on existing app_ideas
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const detectMode = async () => {
+      setModeLoading(true);
+      try {
+        const { data, error: queryError } = await supabase
+          .from('app_ideas')
+          .select('id')
+          .eq('user_id', user.id)
+          .limit(1);
+
+        if (queryError) {
+          console.error('Error checking app_ideas:', queryError);
+          setWorkflowMode('new_app');
+        } else {
+          setWorkflowMode(data && data.length > 0 ? 'onboarded' : 'new_app');
+        }
+      } catch (err) {
+        console.error('Failed to detect workflow mode:', err);
+        setWorkflowMode('new_app');
+      } finally {
+        setModeLoading(false);
+      }
+    };
+
+    detectMode();
+  }, [user?.id]);
 
   const sendMessage = useCallback(
-    async (content: string, isHidden: boolean = false, isNewApp: boolean = false): Promise<string> => {
+    async (content: string, isHidden: boolean = false): Promise<string> => {
       if (!user?.id) throw new Error('No user authenticated');
+      if (!workflowMode) throw new Error('Workflow mode not yet determined');
 
       setError(null);
 
@@ -41,15 +76,13 @@ export function useOnboardingChat() {
       setIsStreaming(true);
 
       try {
-        const workflowMode = isNewApp ? 'new_app' : 'onboarding';
-        
         const { data, error: fnError } = await supabase.functions.invoke('chat-action', {
           body: {
             message: content,
             user_id: user.id,
             session_id: sessionIdRef.current,
             app_idea_id: null,
-            is_new_app: isNewApp,
+            is_new_app: workflowMode === 'new_app',
             workflowMode,
           },
         });
@@ -91,16 +124,15 @@ export function useOnboardingChat() {
         setIsStreaming(false);
       }
     },
-    [user?.id]
+    [user?.id, workflowMode]
   );
 
-  const startSession = useCallback(async (isNewApp: boolean = false) => {
-    if (!user?.id) return '';
+  const startSession = useCallback(async () => {
+    if (!user?.id || !workflowMode) return '';
     
-    // Send the hidden START_ONBOARDING_SESSION message with isNewApp flag
-    const startMessage = isNewApp ? 'START_NEW_APP_SESSION' : 'START_ONBOARDING_SESSION';
-    return sendMessage(startMessage, true, isNewApp);
-  }, [user?.id, sendMessage]);
+    // Send a hidden start message — workflowMode in the payload tells n8n what to do
+    return sendMessage('START_SESSION', true);
+  }, [user?.id, workflowMode, sendMessage]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -108,13 +140,21 @@ export function useOnboardingChat() {
     sessionIdRef.current = crypto.randomUUID();
   }, []);
 
+  // Allow overriding mode (e.g. when URL has ?mode=new)
+  const forceNewAppMode = useCallback(() => {
+    setWorkflowMode('new_app');
+  }, []);
+
   return {
     messages: messages.filter(m => !m.isHidden),
     allMessages: messages,
     isStreaming,
     error,
+    workflowMode,
+    modeLoading,
     sendMessage,
     startSession,
     clearMessages,
+    forceNewAppMode,
   };
 }
