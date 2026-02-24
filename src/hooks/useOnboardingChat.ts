@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveWorkflowMode, type WorkflowMode } from '@/lib/resolveWorkflowMode';
 
-export type WorkflowMode = 'onboarded' | 'new_app';
+export type { WorkflowMode };
 
 export interface OnboardingMessage {
   id: string;
@@ -14,59 +15,97 @@ export interface OnboardingMessage {
 
 export function useOnboardingChat() {
   const { user } = useAuth();
-  
-  // Generate a persistent session ID for the conversation
-  const sessionIdRef = useRef<string>(crypto.randomUUID());
-  
+
+  const sessionIdRef = useRef<string | null>(null);
+
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode | null>(null);
-  const [existingAppIdeaId, setExistingAppIdeaId] = useState<string | null>(null);
   const [modeLoading, setModeLoading] = useState(true);
 
-  // On mount, determine workflowMode based on existing app_ideas
+  // On mount: resolve workflow mode and ensure a chat_session exists
   useEffect(() => {
     if (!user?.id) return;
 
-    const detectMode = async () => {
+    const init = async () => {
       setModeLoading(true);
       try {
-        const { data, error: queryError } = await supabase
-          .from('app_ideas')
+        // Resolve workflow mode
+        const state = await resolveWorkflowMode(user.id);
+        setWorkflowMode(state.workflowMode);
+
+        // Get or create a chat session
+        const { data: existing } = await supabase
+          .from('chat_sessions')
           .select('id')
           .eq('user_id', user.id)
-          .limit(1);
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-        if (queryError) {
-          console.error('Error checking app_ideas:', queryError);
-          setWorkflowMode('new_app');
-        } else if (data && data.length > 0) {
-          setWorkflowMode('onboarded');
-          setExistingAppIdeaId(data[0].id);
+        if (existing) {
+          sessionIdRef.current = existing.id;
         } else {
-          setWorkflowMode('new_app');
+          const { data: newSession } = await supabase
+            .from('chat_sessions')
+            .insert({ user_id: user.id, title: 'Onboarding Chat' })
+            .select('id')
+            .single();
+          if (newSession) sessionIdRef.current = newSession.id;
+        }
+
+        // Load existing messages for this session
+        if (sessionIdRef.current) {
+          const { data: msgs } = await supabase
+            .from('chat_messages')
+            .select('id, role, content, created_at')
+            .eq('session_id', sessionIdRef.current)
+            .order('created_at', { ascending: true });
+
+          if (msgs && msgs.length > 0) {
+            setMessages(
+              msgs.map((m) => ({
+                id: m.id,
+                role: m.role as 'user' | 'assistant',
+                content: m.content,
+                timestamp: new Date(m.created_at),
+              }))
+            );
+          }
         }
       } catch (err) {
-        console.error('Failed to detect workflow mode:', err);
-        setWorkflowMode('new_app');
+        console.error('Onboarding init error:', err);
+        setWorkflowMode('new');
       } finally {
         setModeLoading(false);
       }
     };
 
-    detectMode();
+    init();
   }, [user?.id]);
 
   const sendMessage = useCallback(
     async (content: string, isHidden: boolean = false): Promise<string> => {
       if (!user?.id) throw new Error('No user authenticated');
-      if (!workflowMode) throw new Error('Workflow mode not yet determined');
 
       setError(null);
 
-      // Add user message to state (unless hidden)
+      // Resolve workflow mode fresh before every call
+      const state = await resolveWorkflowMode(user.id);
+      setWorkflowMode(state.workflowMode);
+
+      const currentSessionId = sessionIdRef.current;
+      if (!currentSessionId) throw new Error('No chat session');
+
+      // Save user message to DB before calling webhook
       if (!isHidden) {
+        await supabase.from('chat_messages').insert({
+          session_id: currentSessionId,
+          role: 'user',
+          content,
+        });
+
         const userMessage: OnboardingMessage = {
           id: crypto.randomUUID(),
           role: 'user',
@@ -74,7 +113,7 @@ export function useOnboardingChat() {
           timestamp: new Date(),
           isHidden: false,
         };
-        setMessages(prev => [...prev, userMessage]);
+        setMessages((prev) => [...prev, userMessage]);
       }
 
       setIsStreaming(true);
@@ -84,10 +123,12 @@ export function useOnboardingChat() {
           body: {
             message: content,
             user_id: user.id,
-            session_id: sessionIdRef.current,
-            app_idea_id: workflowMode === 'onboarded' ? existingAppIdeaId : null,
-            is_new_app: workflowMode === 'new_app',
-            workflowMode,
+            session_id: currentSessionId,
+            workflow_mode: state.workflowMode,
+            app_idea_id: state.appIdeaId,
+            app_name: state.appName,
+            app_description: state.appDescription,
+            app_category: state.appCategory,
           },
         });
 
@@ -95,29 +136,34 @@ export function useOnboardingChat() {
           throw new Error(`Failed to get AI response: ${fnError.message}`);
         }
 
-        // Debug: Log raw response for troubleshooting
         console.log('Raw n8n onboarding response:', data);
-        
-        // Handle array vs object response
-        const responseData = Array.isArray(data) ? data[0] : data;
-        
-        // Extract message from various possible keys
-        const aiResponse = 
-          responseData?.output || 
-          responseData?.message || 
-          responseData?.response || 
-          responseData?.text || 
-          responseData?.content ||
-          (typeof responseData === 'string' ? responseData : 'Error: No message found in response');
 
-        // Add assistant message to state
+        const responseData = Array.isArray(data) ? data[0] : data;
+
+        const aiResponse =
+          responseData?.output ||
+          responseData?.message ||
+          responseData?.response ||
+          responseData?.text ||
+          responseData?.content ||
+          (typeof responseData === 'string'
+            ? responseData
+            : 'Error: No message found in response');
+
+        // Save assistant message to DB
+        await supabase.from('chat_messages').insert({
+          session_id: currentSessionId,
+          role: 'assistant',
+          content: aiResponse,
+        });
+
         const assistantMessage: OnboardingMessage = {
           id: crypto.randomUUID(),
           role: 'assistant',
           content: aiResponse,
           timestamp: new Date(),
         };
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, assistantMessage]);
 
         return aiResponse;
       } catch (err) {
@@ -128,29 +174,33 @@ export function useOnboardingChat() {
         setIsStreaming(false);
       }
     },
-    [user?.id, workflowMode]
+    [user?.id]
   );
 
   const startSession = useCallback(async () => {
     if (!user?.id || !workflowMode) return '';
-    
-    // Send a hidden start message — workflowMode in the payload tells n8n what to do
     return sendMessage('START_SESSION', true);
   }, [user?.id, workflowMode, sendMessage]);
 
-  const clearMessages = useCallback(() => {
+  const clearMessages = useCallback(async () => {
     setMessages([]);
-    // Generate a new session ID for the next conversation
-    sessionIdRef.current = crypto.randomUUID();
-  }, []);
+    if (!user?.id) return;
 
-  // Allow overriding mode (e.g. when URL has ?mode=new)
+    // Create a fresh session
+    const { data: newSession } = await supabase
+      .from('chat_sessions')
+      .insert({ user_id: user.id, title: 'Onboarding Chat' })
+      .select('id')
+      .single();
+    if (newSession) sessionIdRef.current = newSession.id;
+  }, [user?.id]);
+
   const forceNewAppMode = useCallback(() => {
-    setWorkflowMode('new_app');
+    setWorkflowMode('new');
   }, []);
 
   return {
-    messages: messages.filter(m => !m.isHidden),
+    messages: messages.filter((m) => !m.isHidden),
     allMessages: messages,
     isStreaming,
     error,

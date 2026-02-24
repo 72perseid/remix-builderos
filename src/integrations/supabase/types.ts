@@ -134,54 +134,6 @@ export type Database = {
           },
         ]
       }
-      business_models: {
-        Row: {
-          app_idea_id: string | null
-          competitive_advantage: string | null
-          created_at: string | null
-          generated_model: Json | null
-          id: string
-          target_market: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          app_idea_id?: string | null
-          competitive_advantage?: string | null
-          created_at?: string | null
-          generated_model?: Json | null
-          id?: string
-          target_market?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          app_idea_id?: string | null
-          competitive_advantage?: string | null
-          created_at?: string | null
-          generated_model?: Json | null
-          id?: string
-          target_market?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "business_models_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_idea_artifacts"
-            referencedColumns: ["app_idea_id"]
-          },
-          {
-            foreignKeyName: "business_models_app_idea_id_fkey"
-            columns: ["app_idea_id"]
-            isOneToOne: false
-            referencedRelation: "app_ideas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       chat_messages: {
         Row: {
           content: string
