@@ -416,7 +416,6 @@ export type Database = {
           twitter_profile: string | null
           updated_at: string | null
           visibility: boolean | null
-          workflow_mode: string
           xano_id: number | null
         }
         Insert: {
@@ -441,7 +440,6 @@ export type Database = {
           twitter_profile?: string | null
           updated_at?: string | null
           visibility?: boolean | null
-          workflow_mode?: string
           xano_id?: number | null
         }
         Update: {
@@ -466,7 +464,6 @@ export type Database = {
           twitter_profile?: string | null
           updated_at?: string | null
           visibility?: boolean | null
-          workflow_mode?: string
           xano_id?: number | null
         }
         Relationships: []
