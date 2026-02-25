@@ -47,12 +47,21 @@ serve(async (req) => {
       }),
     });
 
+    const responseText = await response.text();
+    console.log('Webhook raw response status:', response.status, 'body length:', responseText.length);
+
     if (!response.ok) {
-      console.error('Webhook error:', response.status, response.statusText);
-      throw new Error(`Webhook returned ${response.status}`);
+      console.error('Webhook error:', response.status, responseText.substring(0, 500));
+      throw new Error(`Webhook returned ${response.status}: ${responseText.substring(0, 200)}`);
     }
 
-    const data = await response.json();
+    let data;
+    try {
+      data = responseText ? JSON.parse(responseText) : { output: 'No response from assistant.' };
+    } catch {
+      console.error('Failed to parse webhook response as JSON:', responseText.substring(0, 500));
+      data = { output: responseText || 'No response from assistant.' };
+    }
 
     console.log('Webhook response received:', {
       hasOutput: !!data?.output,
