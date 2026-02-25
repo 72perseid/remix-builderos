@@ -1,0 +1,1 @@
+ALTER TABLE public.chat_sessions ADD COLUMN workflow_mode text NOT NULL DEFAULT 'new';

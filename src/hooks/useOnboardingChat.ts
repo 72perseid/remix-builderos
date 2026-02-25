@@ -78,7 +78,7 @@ export function useOnboardingChat() {
         } else {
           const { data: newSession } = await supabase
             .from('chat_sessions')
-            .insert({ user_id: user.id, title: 'Onboarding Chat' })
+            .insert({ user_id: user.id, title: 'Onboarding Chat', workflow_mode: state.workflowMode })
             .select('id')
             .single();
           if (newSession) sessionIdRef.current = newSession.id;
@@ -223,7 +223,7 @@ export function useOnboardingChat() {
     // Create a fresh session
     const { data: newSession } = await supabase
       .from('chat_sessions')
-      .insert({ user_id: user.id, title: 'Onboarding Chat' })
+      .insert({ user_id: user.id, title: 'Onboarding Chat', workflow_mode: 'new' })
       .select('id')
       .single();
     if (newSession) sessionIdRef.current = newSession.id;
