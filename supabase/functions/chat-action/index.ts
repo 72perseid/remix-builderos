@@ -43,25 +43,22 @@ serve(async (req) => {
       message,
       user_id,
       session_id,
-      workflow_mode,
+      workflowMode,
       app_idea_id,
-      app_name,
-      app_description,
-      app_category,
+      artifact_type,
     } = body as {
       message?: string;
       user_id?: string;
       session_id?: string;
-      workflow_mode?: string;
+      workflowMode?: string;
       app_idea_id?: string | null;
-      app_name?: string | null;
-      app_description?: string | null;
-      app_category?: string | null;
+      artifact_type?: string | null;
     };
 
     console.log('Chat action received:', {
-      workflow_mode,
+      workflowMode,
       app_idea_id,
+      artifact_type,
       hasMessage: !!message,
     });
 
@@ -72,11 +69,9 @@ serve(async (req) => {
         message,
         user_id,
         session_id,
-        workflow_mode,
+        workflowMode,
         app_idea_id,
-        app_name,
-        app_description,
-        app_category,
+        artifact_type,
       }),
     });
 

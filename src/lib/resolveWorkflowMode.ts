@@ -5,14 +5,11 @@ export type WorkflowMode = 'new' | 'onboarded' | 'chat';
 export interface WorkflowState {
   workflowMode: WorkflowMode;
   appIdeaId: string | null;
-  appName: string | null;
-  appDescription: string | null;
-  appCategory: string | null;
 }
 
 /**
  * Reads workflow_mode directly from the profiles table (set by n8n)
- * and fetches the most recent app_idea for metadata.
+ * and fetches the most recent app_idea id.
  */
 export async function resolveWorkflowMode(userId: string): Promise<WorkflowState> {
   // 1. Read workflow_mode from profiles
@@ -28,10 +25,10 @@ export async function resolveWorkflowMode(userId: string): Promise<WorkflowState
 
   const workflowMode = ((profile as any)?.workflow_mode as WorkflowMode) ?? 'new';
 
-  // 2. Get the most recent app idea for metadata
+  // 2. Get the most recent app idea id
   const { data: appIdea, error: ideaError } = await supabase
     .from('app_ideas')
-    .select('id, app_name, app_description, app_category')
+    .select('id')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -44,8 +41,5 @@ export async function resolveWorkflowMode(userId: string): Promise<WorkflowState
   return {
     workflowMode,
     appIdeaId: appIdea?.id ?? null,
-    appName: appIdea?.app_name ?? null,
-    appDescription: appIdea?.app_description ?? null,
-    appCategory: appIdea?.app_category ?? null,
   };
 }

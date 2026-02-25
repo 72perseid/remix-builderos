@@ -153,11 +153,8 @@ export function useOnboardingChat() {
             message: content,
             user_id: user.id,
             session_id: currentSessionId,
-            workflow_mode: state.workflowMode,
+            workflowMode: state.workflowMode,
             app_idea_id: state.appIdeaId,
-            app_name: state.appName,
-            app_description: state.appDescription,
-            app_category: state.appCategory,
           },
         });
 

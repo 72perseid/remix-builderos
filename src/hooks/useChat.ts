@@ -199,11 +199,8 @@ export function useChat() {
               message: content,
               user_id: user.id,
               session_id: sessionId,
-              workflow_mode: state.workflowMode,
+              workflowMode: state.workflowMode,
               app_idea_id: state.appIdeaId ?? selectedAppId,
-              app_name: state.appName,
-              app_description: state.appDescription,
-              app_category: state.appCategory,
             }),
           },
           REQUEST_TIMEOUT_MS
@@ -335,11 +332,9 @@ export function useChat() {
       setSessionId(newSession.id);
       queryClient.invalidateQueries({ queryKey: ['chat-messages'] });
 
-      // Auto-send the hidden start message to trigger the webhook
       setIsStreaming(true);
       
       try {
-        const state = await resolveWorkflowMode(user.id);
 
         const response = await fetchWithTimeout(
           N8N_CHAT_WEBHOOK,
@@ -350,11 +345,8 @@ export function useChat() {
               message: 'START_NEW_APP_SESSION',
               user_id: user.id,
               session_id: newSession.id,
-              workflow_mode: state.workflowMode,
-              app_idea_id: state.appIdeaId,
-              app_name: state.appName,
-              app_description: state.appDescription,
-              app_category: state.appCategory,
+              workflowMode: 'new',
+              app_idea_id: null,
             }),
           },
           REQUEST_TIMEOUT_MS
