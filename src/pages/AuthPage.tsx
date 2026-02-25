@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,14 +41,33 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const { signIn, signUp, forgotPassword, isAuthenticated, loading } = useAuth();
+  const { user, signIn, signUp, forgotPassword, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
 
+  // Check onboarding status to decide where to redirect
+  const { data: onboardingProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['auth-onboarding-check', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('onboarded')
+        .eq('id', user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id && isAuthenticated,
+  });
+
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      navigate('/project-board', { replace: true });
+    if (!loading && !profileLoading && isAuthenticated && onboardingProfile !== undefined) {
+      if (onboardingProfile?.onboarded === false) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/project-board', { replace: true });
+      }
     }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate]);
 
   const switchView = (nextView: AuthView) => {
     setView(nextView);
