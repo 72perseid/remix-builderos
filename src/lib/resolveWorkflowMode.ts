@@ -8,25 +8,12 @@ export interface WorkflowState {
 }
 
 /**
- * Reads workflow_mode directly from the profiles table (set by n8n)
- * and fetches the most recent app_idea id.
+ * Derives workflowMode from whether the user has any app_ideas.
+ * No ideas → 'new', has ideas → 'onboarded'.
+ * The 'chat' mode is set explicitly by the copilot sidebar.
  */
 export async function resolveWorkflowMode(userId: string): Promise<WorkflowState> {
-  // 1. Read workflow_mode from profiles
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('workflow_mode')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (profileError) {
-    console.error('resolveWorkflowMode: error fetching profile', profileError);
-  }
-
-  const workflowMode = ((profile as any)?.workflow_mode as WorkflowMode) ?? 'new';
-
-  // 2. Get the most recent app idea id
-  const { data: appIdea, error: ideaError } = await supabase
+  const { data: appIdea, error } = await supabase
     .from('app_ideas')
     .select('id')
     .eq('user_id', userId)
@@ -34,12 +21,12 @@ export async function resolveWorkflowMode(userId: string): Promise<WorkflowState
     .limit(1)
     .maybeSingle();
 
-  if (ideaError) {
-    console.error('resolveWorkflowMode: error fetching app_ideas', ideaError);
+  if (error) {
+    console.error('resolveWorkflowMode: error fetching app_ideas', error);
   }
 
   return {
-    workflowMode,
+    workflowMode: appIdea ? 'onboarded' : 'new',
     appIdeaId: appIdea?.id ?? null,
   };
 }
