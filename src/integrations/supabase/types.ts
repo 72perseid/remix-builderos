@@ -185,6 +185,7 @@ export type Database = {
           id: string
           title: string | null
           user_id: string
+          workflow_mode: string
         }
         Insert: {
           app_idea_id?: string | null
@@ -192,6 +193,7 @@ export type Database = {
           id?: string
           title?: string | null
           user_id: string
+          workflow_mode?: string
         }
         Update: {
           app_idea_id?: string | null
@@ -199,6 +201,7 @@ export type Database = {
           id?: string
           title?: string | null
           user_id?: string
+          workflow_mode?: string
         }
         Relationships: [
           {

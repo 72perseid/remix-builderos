@@ -91,7 +91,7 @@ export function useChat() {
         // Create new session
         const { data: newSession, error } = await supabase
           .from('chat_sessions')
-          .insert({ user_id: user.id, title: 'New Chat' })
+          .insert({ user_id: user.id, title: 'New Chat', workflow_mode: 'onboarded' })
           .select('id')
           .single();
 
@@ -323,7 +323,7 @@ export function useChat() {
       // Create new session
       const { data: newSession, error } = await supabase
         .from('chat_sessions')
-        .insert({ user_id: user.id, title: 'New App Chat' })
+        .insert({ user_id: user.id, title: 'New App Chat', workflow_mode: 'new' })
         .select('id')
         .single();
 
@@ -401,7 +401,7 @@ export function useChat() {
       // Create new session
       const { data: newSession, error } = await supabase
         .from('chat_sessions')
-        .insert({ user_id: user.id, title: 'New Chat' })
+        .insert({ user_id: user.id, title: 'New Chat', workflow_mode: 'onboarded' })
         .select('id')
         .single();
 
