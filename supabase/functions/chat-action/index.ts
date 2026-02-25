@@ -13,7 +13,31 @@ serve(async (req) => {
   }
 
   try {
-    const body = await req.json();
+    const rawBody = await req.text();
+
+    if (!rawBody?.trim()) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body', details: 'Request body is empty' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(rawBody) as Record<string, unknown>;
+    } catch (parseError) {
+      console.error('Invalid JSON body:', rawBody.substring(0, 500));
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body', details: 'Malformed JSON payload' }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     const {
       message,
@@ -24,7 +48,16 @@ serve(async (req) => {
       app_name,
       app_description,
       app_category,
-    } = body;
+    } = body as {
+      message?: string;
+      user_id?: string;
+      session_id?: string;
+      workflow_mode?: string;
+      app_idea_id?: string | null;
+      app_name?: string | null;
+      app_description?: string | null;
+      app_category?: string | null;
+    };
 
     console.log('Chat action received:', {
       workflow_mode,
