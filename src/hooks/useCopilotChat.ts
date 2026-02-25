@@ -71,8 +71,8 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
           message: content,
           user_id: user.id,
           app_idea_id: selectedAppId,
-          context: context,
-          workflowMode: 'copilot',
+          workflowMode: 'chat',
+          artifact_type: context,
         },
       });
 
