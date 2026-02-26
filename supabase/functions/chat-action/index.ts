@@ -94,7 +94,9 @@ serve(async (req) => {
     console.log('Webhook response received:', {
       hasOutput: !!data?.output,
       hasMessage: !!data?.message,
+      hasSessionComplete: !!data?.session_complete,
       isArray: Array.isArray(data),
+      preview: JSON.stringify(data).substring(0, 300),
     });
 
     return new Response(JSON.stringify(data), {
