@@ -87,16 +87,19 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
       }
 
-      // n8n always returns { response, session_complete }
-      const aiResponse = 
-        (typeof responseData?.response === 'string' && responseData.response.length > 0
-          ? responseData.response
-          : null) ||
-        responseData?.output || 
-        responseData?.message || 
-        responseData?.text || 
-        responseData?.content ||
-        (typeof responseData === 'string' ? responseData : 'I received your request. How can I help further?');
+      console.log('Copilot raw response:', JSON.stringify(responseData)?.substring(0, 500));
+
+      // n8n returns { response, session_complete } — but also handle output, message, etc.
+      const aiResponse = [
+        responseData?.response,
+        responseData?.output,
+        responseData?.message,
+        responseData?.text,
+        responseData?.content,
+        typeof responseData === 'string' ? responseData : null,
+      ].find(v => typeof v === 'string' && v.length > 0 && v !== 'No response from assistant.')
+        || responseData?.output
+        || 'The assistant did not return a response. Please try again.';
 
       // Add assistant message to local state (display full text)
       const assistantMessage: CopilotMessage = {
