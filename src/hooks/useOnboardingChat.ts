@@ -164,7 +164,18 @@ export function useOnboardingChat() {
 
         console.log('Raw n8n onboarding response:', data);
 
-        const responseData = Array.isArray(data) ? data[0] : data;
+        let responseData = Array.isArray(data) ? data[0] : data;
+
+        // Handle double-stringified JSON from n8n
+        if (typeof responseData === 'string') {
+          try {
+            responseData = JSON.parse(responseData);
+          } catch {
+            // It's a plain string, keep as-is
+          }
+        }
+
+        console.log('Parsed responseData:', responseData);
 
         // Detect session_complete flag
         const sessionComplete = responseData?.session_complete === true;
