@@ -47,6 +47,7 @@ export default function ValidationPage() {
   });
 
   const uvCompletion = (completionData as any)?.uv_completion ?? 0;
+  console.log('ValidationPage completion:', { selectedAppId, completionData, uvCompletion });
 
   if (loading) {
     return (
