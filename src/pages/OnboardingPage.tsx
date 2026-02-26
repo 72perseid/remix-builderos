@@ -38,11 +38,9 @@ export default function OnboardingPage() {
     sendMessage,
     startSession,
     error,
-    clearMessages,
     workflowMode,
     modeLoading,
-    forceNewAppMode,
-  } = useOnboardingChat();
+  } = useOnboardingChat(isNewAppMode);
 
   const [inputValue, setInputValue] = useState('');
   const [showCompletion, setShowCompletion] = useState(false);
@@ -62,15 +60,7 @@ export default function OnboardingPage() {
     });
   }, [messages]);
 
-  // Force new_app mode when URL has ?mode=new
-  useEffect(() => {
-    if (isNewAppMode) {
-      clearMessages();
-      forceNewAppMode();
-      setSessionStarted(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isNewAppMode]);
+  // No need for mode=new effect — handled by useOnboardingChat(forceNew)
 
   // Auto-start session once workflowMode is resolved
   useEffect(() => {
