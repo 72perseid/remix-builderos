@@ -177,13 +177,16 @@ export function useOnboardingChat() {
 
         console.log('Parsed responseData:', responseData);
 
-        // Detect session_complete flag
-        const sessionComplete = responseData?.session_complete === true;
+        // Detect session_complete flag (comes as string "true" from n8n)
+        const sessionComplete = responseData?.session_complete === true || responseData?.session_complete === 'true';
 
+        // n8n always returns { response, session_complete } — use response field explicitly
         const aiResponse =
+          (typeof responseData?.response === 'string' && responseData.response.length > 0
+            ? responseData.response
+            : null) ||
           responseData?.output ||
           responseData?.message ||
-          responseData?.response ||
           responseData?.text ||
           responseData?.content ||
           (typeof responseData === 'string'
