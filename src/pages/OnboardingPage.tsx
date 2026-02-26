@@ -52,6 +52,7 @@ export default function OnboardingPage() {
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
+  const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [showSkipWarning, setShowSkipWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -95,20 +96,31 @@ export default function OnboardingPage() {
     try {
       const response = await sendMessage(content, false);
 
-      // Check for completion trigger
-      if (response.includes('JSON_GENERATION_COMPLETE')) {
-        // Immediately switch to finalizing state to hide chat
+      if (response.sessionComplete) {
+        // Session is complete — keep messages visible, disable input
+        setIsSessionComplete(true);
+
+        // Update profile as onboarded
+        if (user?.id && !isNewAppMode) {
+          await supabase.from('profiles').update({ onboarded: true }).eq('id', user.id);
+        }
+
+        // Wait 10 seconds so user can read the final message
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+
+        // Refresh data and navigate to project board
+        await performFinalTransition();
+      } else if (response.text.includes('JSON_GENERATION_COMPLETE')) {
+        // Legacy fallback
         setIsFinalizing(true);
         setShowCompletion(true);
 
-        // Update profile as onboarded (only if not in new app mode)
         if (user?.id && !isNewAppMode) {
           await supabase.from('profiles').update({
             onboarded: true
           }).eq('id', user.id);
         }
 
-        // Sequenced transition: wait for backend, refresh data, then navigate
         await performFinalTransition();
       }
     } catch (err) {
@@ -155,8 +167,8 @@ export default function OnboardingPage() {
     }
 
     // Step 3: ALWAYS navigate, regardless of data fetch success
-    console.log('Navigating to dashboard...');
-    navigate('/artifacts', { replace: true });
+    console.log('Navigating to project board...');
+    navigate('/project-board', { replace: true });
   };
 
   // Backup navigation effect - guarantees redirect even if primary method fails
@@ -164,7 +176,7 @@ export default function OnboardingPage() {
     if (showCompletion) {
       const backupTimer = setTimeout(() => {
         console.log('Backup navigation triggered after 30s');
-        navigate('/artifacts', { replace: true });
+        navigate('/project-board', { replace: true });
       }, 30000);
 
       return () => clearTimeout(backupTimer);
@@ -326,7 +338,7 @@ export default function OnboardingPage() {
       }
 
       {/* Input Area - Hidden when finalizing */}
-      {!isFinalizing &&
+      {!isFinalizing && !isSessionComplete &&
       <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
           <div className="max-w-3xl mx-auto flex gap-3">
             <Input
