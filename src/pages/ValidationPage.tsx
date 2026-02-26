@@ -5,7 +5,11 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, Users, Target, AlertTriangle, User } from 'lucide-react';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
+import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useProjectContext } from '@/contexts/ProjectContext';
 
 interface Persona {
   name: string;
@@ -24,12 +28,30 @@ interface ValidationContent {
 }
 
 export default function ValidationPage() {
-  const { data: artifact, loading, error } = useArtifact('validation');
+  const { data: artifact, loading, error, refetch: refetchArtifact } = useArtifact('validation');
+  const { selectedAppId } = useProjectContext();
+
+  const { data: completionData } = useQuery({
+    queryKey: ['app-completion-uv', selectedAppId],
+    queryFn: async () => {
+      if (!selectedAppId) return null;
+      const { data } = await supabase
+        .from('app_ideas')
+        .select('uv_completion')
+        .eq('id', selectedAppId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!selectedAppId,
+    refetchInterval: 10000,
+  });
+
+  const uvCompletion = (completionData as any)?.uv_completion ?? 0;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -43,12 +65,23 @@ export default function ValidationPage() {
         <ArtifactBreadcrumb currentPage="Validation Strategy" />
       </div>
       <div className="flex flex-1 overflow-hidden">
-        <CopilotPanel context="validation" heading="User Researcher" />
+        <CopilotPanel context="validation" heading="User Researcher" onArtifactRefresh={refetchArtifact} />
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-full space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Validation Strategy</h1>
-              <p className="mt-1 text-secondary-foreground">User personas and validation insights for your app</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Validation Strategy</h1>
+                <p className="mt-1 text-secondary-foreground">User personas and validation insights for your app</p>
+              </div>
+              {uvCompletion > 0 && (
+                <div className="w-40 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Completion</span>
+                    <span className="text-xs font-semibold text-blue-400">{uvCompletion}%</span>
+                  </div>
+                  <Progress value={uvCompletion} className="h-1.5 bg-slate-700/50" />
+                </div>
+              )}
             </div>
 
             {error && (
