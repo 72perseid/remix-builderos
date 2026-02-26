@@ -2,7 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BusinessCard } from '@/components/ui/business-card';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles, Calendar, TrendingUp, Package } from 'lucide-react';
+import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles, Calendar, TrendingUp, Package, AlertTriangle } from 'lucide-react';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { Progress } from '@/components/ui/progress';
@@ -10,6 +10,11 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProjectContext } from '@/contexts/ProjectContext';
+
+interface V1Feature {
+  feature: string;
+  description: string;
+}
 
 interface ProductBriefContent {
   elevator_pitch?: string;
@@ -24,9 +29,15 @@ interface ProductBriefContent {
   targetAudience?: string[] | string;
   keyFeatures?: string[];
   successMetrics?: string[];
+  success_metrics?: string[];
   constraints?: string[];
   timeline?: string;
   mvpScope?: string[];
+  // New format fields
+  v1_features?: V1Feature[];
+  out_of_scope?: string[];
+  product_tone?: string;
+  core_value_proposition?: string;
 }
 
 export default function ProductBriefPage() {
@@ -59,13 +70,16 @@ export default function ProductBriefPage() {
   }
 
   const content = artifact?.content as ProductBriefContent | null;
-  const elevatorPitch = content?.elevator_pitch || content?.summary;
+  const coreValueProp = content?.core_value_proposition || content?.elevator_pitch || content?.summary;
   const problemStatement = content?.problem_statement || content?.problem;
   const targetUsers = content?.target_users || content?.targetAudience;
+  const v1Features = content?.v1_features || [];
   const coreFeatures = content?.core_features || content?.keyFeatures || [];
   const differentiators = content?.differentiators || content?.solution;
+  const productTone = content?.product_tone;
   const title = content?.title;
-  const successMetrics = content?.successMetrics || [];
+  const successMetrics = content?.success_metrics || content?.successMetrics || [];
+  const outOfScope = content?.out_of_scope || content?.constraints || [];
   const mvpScope = content?.mvpScope || [];
   const timeline = content?.timeline;
 
@@ -119,14 +133,19 @@ export default function ProductBriefPage() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                {elevatorPitch && (
-                  <BusinessCard title={title || 'Elevator Pitch'} icon={Sparkles} iconColor="text-primary" colSpan={2}>
-                    <p>{elevatorPitch}</p>
+                {coreValueProp && (
+                  <BusinessCard title={title || 'Core Value Proposition'} icon={Sparkles} iconColor="text-primary" colSpan={2}>
+                    <p>{coreValueProp}</p>
                   </BusinessCard>
                 )}
                 {problemStatement && (
                   <BusinessCard title="Problem Statement" icon={Target} iconColor="text-red-500">
                     <p>{problemStatement}</p>
+                  </BusinessCard>
+                )}
+                {productTone && (
+                  <BusinessCard title="Product Tone" icon={Lightbulb} iconColor="text-yellow-500">
+                    <p>{productTone}</p>
                   </BusinessCard>
                 )}
                 {differentiators && (
@@ -147,6 +166,18 @@ export default function ProductBriefPage() {
                     )}
                   </BusinessCard>
                 )}
+                {v1Features.length > 0 && (
+                  <BusinessCard title="V1 Features" icon={CheckCircle2} iconColor="text-primary" colSpan={2}>
+                    <ul className="grid md:grid-cols-2 gap-3">
+                      {v1Features.map((f, i) => (
+                        <li key={i} className="space-y-1">
+                          <p className="font-medium flex items-start gap-2"><span className="text-primary mt-0.5">•</span>{f.feature}</p>
+                          <p className="text-sm text-muted-foreground ml-5">{f.description}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  </BusinessCard>
+                )}
                 {coreFeatures.length > 0 && (
                   <BusinessCard title="Core Features" icon={CheckCircle2} iconColor="text-primary" colSpan={2}>
                     <ul className="grid md:grid-cols-2 gap-2">
@@ -161,6 +192,15 @@ export default function ProductBriefPage() {
                     <ul className="space-y-1.5">
                       {mvpScope.map((item, i) => (
                         <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5">✓</span>{item}</li>
+                      ))}
+                    </ul>
+                  </BusinessCard>
+                )}
+                {outOfScope.length > 0 && (
+                  <BusinessCard title="Out of Scope" icon={AlertTriangle} iconColor="text-orange-500" colSpan={2}>
+                    <ul className="space-y-1.5">
+                      {outOfScope.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2"><span className="text-orange-500 mt-0.5">✗</span>{item}</li>
                       ))}
                     </ul>
                   </BusinessCard>
