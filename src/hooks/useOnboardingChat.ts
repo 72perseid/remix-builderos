@@ -17,6 +17,7 @@ export function useOnboardingChat() {
   const { user } = useAuth();
 
   const sessionIdRef = useRef<string | null>(null);
+  const forcedNewAppRef = useRef(false);
 
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -120,9 +121,18 @@ export function useOnboardingChat() {
 
       setError(null);
 
-      // Resolve workflow mode fresh before every call
-      const state = await resolveWorkflowMode(user.id);
-      setWorkflowMode(state.workflowMode);
+      // Use forced 'new' mode if set, otherwise resolve fresh
+      let resolvedMode: WorkflowMode;
+      let resolvedAppIdeaId: string | null = null;
+      
+      if (forcedNewAppRef.current) {
+        resolvedMode = 'new';
+      } else {
+        const state = await resolveWorkflowMode(user.id);
+        resolvedMode = state.workflowMode;
+        resolvedAppIdeaId = state.appIdeaId ?? null;
+      }
+      setWorkflowMode(resolvedMode);
 
       const currentSessionId = sessionIdRef.current;
       if (!currentSessionId) throw new Error('No chat session');
@@ -153,8 +163,8 @@ export function useOnboardingChat() {
             message: content,
             user_id: user.id,
             session_id: currentSessionId,
-            workflowMode: state.workflowMode,
-            app_idea_id: state.appIdeaId,
+            workflowMode: resolvedMode,
+            app_idea_id: resolvedAppIdeaId,
           },
         });
 
@@ -209,11 +219,13 @@ export function useOnboardingChat() {
         setMessages((prev) => [...prev, assistantMessage]);
 
         // Refetch completion after each exchange
-        const latestState = await resolveWorkflowMode(user.id);
-        setWorkflowMode(latestState.workflowMode);
-        if (latestState.appIdeaId) {
-          setAppIdeaId(latestState.appIdeaId);
-          await fetchCompletion(latestState.appIdeaId);
+        if (!forcedNewAppRef.current) {
+          const latestState = await resolveWorkflowMode(user.id);
+          setWorkflowMode(latestState.workflowMode);
+          if (latestState.appIdeaId) {
+            setAppIdeaId(latestState.appIdeaId);
+            await fetchCompletion(latestState.appIdeaId);
+          }
         }
 
         return { text: aiResponse, sessionComplete };
@@ -247,6 +259,7 @@ export function useOnboardingChat() {
   }, [user?.id]);
 
   const forceNewAppMode = useCallback(() => {
+    forcedNewAppRef.current = true;
     setWorkflowMode('new');
   }, []);
 
