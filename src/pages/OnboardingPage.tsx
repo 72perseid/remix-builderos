@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
+
 import { Send, Loader2, Sparkles } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
@@ -42,9 +42,6 @@ export default function OnboardingPage() {
     workflowMode,
     modeLoading,
     forceNewAppMode,
-    bmCompletion,
-    uvCompletion,
-    pbCompletion,
   } = useOnboardingChat();
 
   const [inputValue, setInputValue] = useState('');
@@ -263,34 +260,6 @@ export default function OnboardingPage() {
         </Button>
       </header>
 
-      {/* Completion Progress Bars */}
-      {!isFinalizing && (bmCompletion > 0 || uvCompletion > 0 || pbCompletion > 0) && (
-        <div className="relative z-10 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-3">
-          <div className="max-w-3xl mx-auto grid grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Business Model</span>
-                <span className="text-xs font-semibold text-blue-400">{bmCompletion}%</span>
-              </div>
-              <Progress value={bmCompletion} className="h-1.5 bg-slate-700/50" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">User Validation</span>
-                <span className="text-xs font-semibold text-purple-400">{uvCompletion}%</span>
-              </div>
-              <Progress value={uvCompletion} className="h-1.5 bg-slate-700/50" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Product Brief</span>
-                <span className="text-xs font-semibold text-emerald-400">{pbCompletion}%</span>
-              </div>
-              <Progress value={pbCompletion} className="h-1.5 bg-slate-700/50" />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Chat Container - Hidden when finalizing to prevent flash */}
       {!isFinalizing &&
