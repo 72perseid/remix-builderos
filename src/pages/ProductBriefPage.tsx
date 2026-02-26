@@ -5,7 +5,11 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { Loader2, FileText, Target, Lightbulb, CheckCircle2, Users, Sparkles, Calendar, TrendingUp, Package } from 'lucide-react';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
+import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useProjectContext } from '@/contexts/ProjectContext';
 
 interface ProductBriefContent {
   elevator_pitch?: string;
@@ -26,7 +30,25 @@ interface ProductBriefContent {
 }
 
 export default function ProductBriefPage() {
-  const { data: artifact, loading, error } = useArtifact('product_brief');
+  const { data: artifact, loading, error, refetch: refetchArtifact } = useArtifact('product_brief');
+  const { selectedAppId } = useProjectContext();
+
+  const { data: completionData } = useQuery({
+    queryKey: ['app-completion-pb', selectedAppId],
+    queryFn: async () => {
+      if (!selectedAppId) return null;
+      const { data } = await supabase
+        .from('app_ideas')
+        .select('pb_completion')
+        .eq('id', selectedAppId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!selectedAppId,
+    refetchInterval: 10000,
+  });
+
+  const pbCompletion = (completionData as any)?.pb_completion ?? 0;
 
   if (loading) {
     return (
@@ -53,12 +75,23 @@ export default function ProductBriefPage() {
         <ArtifactBreadcrumb currentPage="Product Brief" />
       </div>
       <div className="flex flex-1 overflow-hidden">
-        <CopilotPanel context="product_brief" heading="Product Strategist" />
+        <CopilotPanel context="product_brief" heading="Product Strategist" onArtifactRefresh={refetchArtifact} />
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-full space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Product Brief</h1>
-              <p className="text-secondary-foreground mt-1">Your comprehensive product requirements document</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Product Brief</h1>
+                <p className="text-secondary-foreground mt-1">Your comprehensive product requirements document</p>
+              </div>
+              {pbCompletion > 0 && (
+                <div className="w-40 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Completion</span>
+                    <span className="text-xs font-semibold text-blue-400">{pbCompletion}%</span>
+                  </div>
+                  <Progress value={pbCompletion} className="h-1.5 bg-slate-700/50" />
+                </div>
+              )}
             </div>
 
             {error && (
