@@ -4,11 +4,15 @@ import { BusinessCard } from '@/components/ui/business-card';
 import { useAppIdea } from '@/hooks/useAppIdea';
 import { useBusinessModel } from '@/hooks/useBusinessModel';
 import { useArtifact } from '@/hooks/useArtifact';
+import { useProjectContext } from '@/contexts/ProjectContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
 import { Target, Users, DollarSign, Rocket, Building, Loader2, Megaphone } from 'lucide-react';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
 import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 
 interface BusinessModel {
   targetMarket: string;
@@ -120,6 +124,27 @@ export default function BusinessModelPage() {
   const { appIdea } = useAppIdea();
   const { businessModel } = useBusinessModel();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('business_model');
+  const { selectedAppId } = useProjectContext();
+
+  // Fetch completion progress
+  const { data: completionData } = useQuery({
+    queryKey: ['app-completion', selectedAppId],
+    queryFn: async () => {
+      if (!selectedAppId) return null;
+      const { data } = await supabase
+        .from('app_ideas')
+        .select('bm_completion, uv_completion, pb_completion')
+        .eq('id', selectedAppId)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!selectedAppId,
+    refetchInterval: 10000,
+  });
+
+  const bmCompletion = (completionData as any)?.bm_completion ?? 0;
+  const uvCompletion = (completionData as any)?.uv_completion ?? 0;
+  const pbCompletion = (completionData as any)?.pb_completion ?? 0;
   
   const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
   const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
@@ -174,11 +199,43 @@ export default function BusinessModelPage() {
     );
   }
 
+  const showProgress = bmCompletion > 0 || uvCompletion > 0 || pbCompletion > 0;
+
   return (
     <div className="h-dvh flex flex-col bg-[#0B0E14] overflow-hidden">
       <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
         <ArtifactBreadcrumb currentPage="Business Model" />
       </div>
+
+      {/* Completion Progress Bar */}
+      {showProgress && (
+        <div className="shrink-0 border-b border-slate-800/50 bg-slate-950/80 px-6 py-3">
+          <div className="max-w-3xl grid grid-cols-3 gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Business Model</span>
+                <span className="text-xs font-semibold text-blue-400">{bmCompletion}%</span>
+              </div>
+              <Progress value={bmCompletion} className="h-1.5 bg-slate-700/50" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">User Validation</span>
+                <span className="text-xs font-semibold text-purple-400">{uvCompletion}%</span>
+              </div>
+              <Progress value={uvCompletion} className="h-1.5 bg-slate-700/50" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Product Brief</span>
+                <span className="text-xs font-semibold text-emerald-400">{pbCompletion}%</span>
+              </div>
+              <Progress value={pbCompletion} className="h-1.5 bg-slate-700/50" />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         <CopilotPanel context="business_model" heading="Business Strategist" onArtifactRefresh={refetchArtifact} />
         <div className="flex-1 overflow-auto p-6">

@@ -78,12 +78,19 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
 
       if (error) throw error;
 
-      // Extract response from various possible formats
-      const responseData = Array.isArray(data) ? data[0] : data;
+      // Extract response — handle double-stringified JSON from n8n
+      let responseData = Array.isArray(data) ? data[0] : data;
+      if (typeof responseData === 'string') {
+        try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
+      }
+
+      // n8n always returns { response, session_complete }
       const aiResponse = 
+        (typeof responseData?.response === 'string' && responseData.response.length > 0
+          ? responseData.response
+          : null) ||
         responseData?.output || 
         responseData?.message || 
-        responseData?.response || 
         responseData?.text || 
         responseData?.content ||
         (typeof responseData === 'string' ? responseData : 'I received your request. How can I help further?');
