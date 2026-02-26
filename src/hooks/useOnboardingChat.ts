@@ -13,7 +13,7 @@ export interface OnboardingMessage {
   isHidden?: boolean;
 }
 
-export function useOnboardingChat() {
+export function useOnboardingChat(forceNew: boolean = false) {
   const { user } = useAuth();
 
   const sessionIdRef = useRef<string | null>(null);
@@ -55,53 +55,67 @@ export function useOnboardingChat() {
     const init = async () => {
       setModeLoading(true);
       try {
-        // Resolve workflow mode
-        const state = await resolveWorkflowMode(user.id);
-        setWorkflowMode(state.workflowMode);
+        if (forceNew) {
+          // New app mode: always create a fresh session, skip old data
+          forcedNewAppRef.current = true;
+          setWorkflowMode('new');
 
-        // Store appIdeaId and fetch completion
-        if (state.appIdeaId) {
-          setAppIdeaId(state.appIdeaId);
-          await fetchCompletion(state.appIdeaId);
-        }
-
-        // Get or create a chat session
-        const { data: existing } = await supabase
-          .from('chat_sessions')
-          .select('id')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (existing) {
-          sessionIdRef.current = existing.id;
-        } else {
           const { data: newSession } = await supabase
             .from('chat_sessions')
-            .insert({ user_id: user.id, title: 'Onboarding Chat', workflow_mode: state.workflowMode })
+            .insert({ user_id: user.id, title: 'Onboarding Chat', workflow_mode: 'new' })
             .select('id')
             .single();
           if (newSession) sessionIdRef.current = newSession.id;
-        }
+          // No old messages to load
+        } else {
+          // Resolve workflow mode
+          const state = await resolveWorkflowMode(user.id);
+          setWorkflowMode(state.workflowMode);
 
-        // Load existing messages for this session
-        if (sessionIdRef.current) {
-          const { data: msgs } = await supabase
-            .from('chat_messages')
-            .select('id, role, content, created_at')
-            .eq('session_id', sessionIdRef.current)
-            .order('created_at', { ascending: true });
+          // Store appIdeaId and fetch completion
+          if (state.appIdeaId) {
+            setAppIdeaId(state.appIdeaId);
+            await fetchCompletion(state.appIdeaId);
+          }
 
-          if (msgs && msgs.length > 0) {
-            setMessages(
-              msgs.map((m) => ({
-                id: m.id,
-                role: m.role as 'user' | 'assistant',
-                content: m.content,
-                timestamp: new Date(m.created_at),
-              }))
-            );
+          // Get or create a chat session
+          const { data: existing } = await supabase
+            .from('chat_sessions')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (existing) {
+            sessionIdRef.current = existing.id;
+          } else {
+            const { data: newSession } = await supabase
+              .from('chat_sessions')
+              .insert({ user_id: user.id, title: 'Onboarding Chat', workflow_mode: state.workflowMode })
+              .select('id')
+              .single();
+            if (newSession) sessionIdRef.current = newSession.id;
+          }
+
+          // Load existing messages for this session
+          if (sessionIdRef.current) {
+            const { data: msgs } = await supabase
+              .from('chat_messages')
+              .select('id, role, content, created_at')
+              .eq('session_id', sessionIdRef.current)
+              .order('created_at', { ascending: true });
+
+            if (msgs && msgs.length > 0) {
+              setMessages(
+                msgs.map((m) => ({
+                  id: m.id,
+                  role: m.role as 'user' | 'assistant',
+                  content: m.content,
+                  timestamp: new Date(m.created_at),
+                }))
+              );
+            }
           }
         }
       } catch (err) {
@@ -113,7 +127,7 @@ export function useOnboardingChat() {
     };
 
     init();
-  }, [user?.id]);
+  }, [user?.id, forceNew]);
 
   const sendMessage = useCallback(
     async (content: string, isHidden: boolean = false): Promise<{ text: string; sessionComplete: boolean }> => {
