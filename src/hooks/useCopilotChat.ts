@@ -43,6 +43,8 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
   const { selectedAppId } = useProjectContext();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  // Local-only session ID (not persisted to DB), stable per hook instance
+  const [sessionId] = useState(() => crypto.randomUUID());
 
   const sendMessage = useCallback(async (content: string) => {
     if (!user?.id || !selectedAppId) {
@@ -70,6 +72,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         body: {
           message: content,
           user_id: user.id,
+          session_id: sessionId,
           app_idea_id: selectedAppId,
           workflowMode: 'chat',
           artifact_type: context,
