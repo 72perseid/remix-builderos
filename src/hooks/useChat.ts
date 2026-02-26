@@ -215,14 +215,19 @@ export function useChat() {
         // Debug: Log raw response to help troubleshoot
         console.log('Raw n8n response:', data);
         
-        // Handle array vs object response
-        const responseData = Array.isArray(data) ? data[0] : data;
+        // Handle array vs object response + double-stringified JSON
+        let responseData: any = Array.isArray(data) ? data[0] : data;
+        if (typeof responseData === 'string') {
+          try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
+        }
         
-        // Extract message from various possible keys
+        // n8n always returns { response, session_complete }
         const aiResponse = 
+          (typeof responseData?.response === 'string' && responseData.response.length > 0
+            ? responseData.response
+            : null) ||
           responseData?.output || 
           responseData?.message || 
-          responseData?.response || 
           responseData?.text || 
           responseData?.content ||
           (typeof responseData === 'string' ? responseData : 'Error: No message found in response');
@@ -355,11 +360,16 @@ export function useChat() {
         if (!response.ok) throw new Error('Failed to start session');
 
         const data = await response.json();
-        const responseData = Array.isArray(data) ? data[0] : data;
+        let responseData: any = Array.isArray(data) ? data[0] : data;
+        if (typeof responseData === 'string') {
+          try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
+        }
         const aiResponse = 
+          (typeof responseData?.response === 'string' && responseData.response.length > 0
+            ? responseData.response
+            : null) ||
           responseData?.output || 
           responseData?.message || 
-          responseData?.response || 
           responseData?.text || 
           responseData?.content ||
           (typeof responseData === 'string' ? responseData : 'Hi! Tell me about the app you want to build.');
