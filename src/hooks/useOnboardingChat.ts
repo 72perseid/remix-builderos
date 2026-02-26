@@ -115,7 +115,7 @@ export function useOnboardingChat() {
   }, [user?.id]);
 
   const sendMessage = useCallback(
-    async (content: string, isHidden: boolean = false): Promise<string> => {
+    async (content: string, isHidden: boolean = false): Promise<{ text: string; sessionComplete: boolean }> => {
       if (!user?.id) throw new Error('No user authenticated');
 
       setError(null);
@@ -166,6 +166,9 @@ export function useOnboardingChat() {
 
         const responseData = Array.isArray(data) ? data[0] : data;
 
+        // Detect session_complete flag
+        const sessionComplete = responseData?.session_complete === true;
+
         const aiResponse =
           responseData?.output ||
           responseData?.message ||
@@ -199,7 +202,7 @@ export function useOnboardingChat() {
           await fetchCompletion(latestState.appIdeaId);
         }
 
-        return aiResponse;
+        return { text: aiResponse, sessionComplete };
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error');
         setError(error);
