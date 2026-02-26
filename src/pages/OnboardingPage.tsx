@@ -53,6 +53,7 @@ export default function OnboardingPage() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [isSkipping, setIsSkipping] = useState(false);
   const [isSessionComplete, setIsSessionComplete] = useState(false);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [showSkipWarning, setShowSkipWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -89,6 +90,28 @@ export default function OnboardingPage() {
     }
   }, [isStreaming, showCompletion]);
 
+  // Countdown timer when session is complete
+  useEffect(() => {
+    if (!isSessionComplete) return;
+    setCountdown(5);
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          performFinalTransition();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSessionComplete]);
+
+  const handleSkipToBoard = () => {
+    performFinalTransition();
+  };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isStreaming || isFinalizing) return;
     const content = inputValue.trim();
@@ -97,19 +120,13 @@ export default function OnboardingPage() {
       const response = await sendMessage(content, false);
 
       if (response.sessionComplete) {
-        // Session is complete — keep messages visible, disable input
+        // Session is complete — keep messages visible, disable input, start countdown
         setIsSessionComplete(true);
 
         // Update profile as onboarded
         if (user?.id && !isNewAppMode) {
           await supabase.from('profiles').update({ onboarded: true }).eq('id', user.id);
         }
-
-        // Wait 10 seconds so user can read the final message
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-
-        // Refresh data and navigate to project board
-        await performFinalTransition();
       } else if (response.text.includes('JSON_GENERATION_COMPLETE')) {
         // Legacy fallback
         setIsFinalizing(true);
@@ -360,6 +377,23 @@ export default function OnboardingPage() {
           </div>
         </div>
       }
+
+      {/* Session Complete Banner */}
+      {isSessionComplete && (
+        <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
+          <div className="max-w-3xl mx-auto flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              Redirecting in <span className="font-semibold text-foreground">{countdown ?? 0}s</span>...
+            </p>
+            <Button
+              onClick={handleSkipToBoard}
+              className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg"
+            >
+              Go to Dashboard →
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Skip Warning Dialog */}
       <AlertDialog open={showSkipWarning} onOpenChange={setShowSkipWarning}>
