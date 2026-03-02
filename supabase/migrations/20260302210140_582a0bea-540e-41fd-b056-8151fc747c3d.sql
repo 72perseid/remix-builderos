@@ -1,0 +1,1 @@
+DELETE FROM tasks WHERE user_id = '54553caf-dc35-4e54-920d-2e066b9ce724' AND app_idea_id = 'acab4ca2-6531-48bf-84c2-61beb4dbc021';
