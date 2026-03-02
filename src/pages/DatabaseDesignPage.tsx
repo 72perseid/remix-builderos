@@ -1,17 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useAppIdea } from '@/hooks/useAppIdea';
 import { useDatabaseDesign } from '@/hooks/useDatabaseDesign';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Database, Loader2 } from 'lucide-react';
+import { Database, Loader2, Copy, Check } from 'lucide-react';
 import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import SchemaVisualizer from '@/components/database/SchemaVisualizer';
 
 interface DatabaseDesignContent {
   erdDiagram?: string;
   tables?: any[];
   relationships?: any[];
+  sql?: string;
 }
 
 export default function DatabaseDesignPage() {
@@ -19,8 +23,22 @@ export default function DatabaseDesignPage() {
   const { databaseDesign } = useDatabaseDesign();
   const { data: artifact, loading: artifactLoading } = useArtifact('db_design');
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const content: DatabaseDesignContent | null = artifact?.content as DatabaseDesignContent || databaseDesign?.generatedDesign;
+  const sqlContent = content?.sql || null;
+
+  const handleCopy = async () => {
+    if (!sqlContent) return;
+    try {
+      await navigator.clipboard.writeText(sqlContent);
+      setCopied(true);
+      toast.success('SQL copied to clipboard!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy to clipboard');
+    }
+  };
 
   if (artifactLoading) {
     return (
@@ -66,6 +84,70 @@ export default function DatabaseDesignPage() {
                 tables={content.tables}
                 relationships={content.relationships || []}
               />
+            </motion.div>
+          )}
+
+          {/* SQL Panel */}
+          {sqlContent && (
+            <motion.div
+              className="space-y-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-foreground">SQL Schema</h2>
+                <Button
+                  size="sm"
+                  onClick={handleCopy}
+                  className={cn(
+                    "gap-2 rounded-full transition-colors",
+                    copied
+                      ? "bg-green-500/20 border-green-500/50 text-green-400"
+                      : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                  )}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy SQL
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="relative group">
+                <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={handleCopy}
+                    className={cn(
+                      "h-8 w-8",
+                      copied && "bg-green-500/20 border-green-500/50"
+                    )}
+                  >
+                    {copied ? (
+                      <Check className="w-4 h-4 text-green-400" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                </div>
+
+                <pre className="bg-card border border-border rounded-xl p-6 overflow-auto max-h-[60vh] text-sm text-muted-foreground font-mono whitespace-pre-wrap leading-relaxed">
+                  {sqlContent}
+                </pre>
+              </div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                Copy this SQL and run it in your Supabase SQL editor or any database tool.
+              </p>
             </motion.div>
           )}
         </div>
