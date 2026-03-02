@@ -28,6 +28,8 @@ interface ArtifactContent {
       tag: string;
       title: string;
       description: string;
+      subtasks?: string[];
+      acceptance_criteria?: string[];
     }[];
   }[];
 }
@@ -349,6 +351,17 @@ export default function ProjectBoardPage() {
             targetColumnId = 'backlog';
           }
           
+          const subtaskItems: AcceptanceCriteriaItem[] = (card.subtasks || []).map((text, i) => ({
+            id: `st-${Date.now()}-${i}`,
+            text: typeof text === 'string' ? text : String(text),
+            done: false,
+          }));
+          const checklistItems: AcceptanceCriteriaItem[] = (card.acceptance_criteria || []).map((text, i) => ({
+            id: `ac-${Date.now()}-${i}`,
+            text: typeof text === 'string' ? text : String(text),
+            done: false,
+          }));
+
           tasksToImport.push({
             title: card.title,
             description: card.description,
@@ -356,8 +369,8 @@ export default function ProjectBoardPage() {
             category: (card.tag || 'MVP') as 'MVP' | 'V1' | 'Stretch Goals',
             priority: 'medium' as const,
             color: 'yellow' as const,
-            subtasks: [],
-            checklist: [],
+            subtasks: subtaskItems,
+            checklist: checklistItems,
           });
         });
       });
