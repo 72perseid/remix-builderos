@@ -16,6 +16,10 @@ interface DatabaseDesignContent {
   tables?: any[];
   relationships?: any[];
   sql?: string;
+  schema?: {
+    tables?: any[];
+    relationships?: any[];
+  };
 }
 
 export default function DatabaseDesignPage() {
@@ -26,6 +30,8 @@ export default function DatabaseDesignPage() {
   const [copied, setCopied] = useState(false);
 
   const content: DatabaseDesignContent | null = artifact?.content as DatabaseDesignContent || databaseDesign?.generatedDesign;
+  const tables = content?.schema?.tables || content?.tables || [];
+  const rels = content?.schema?.relationships || content?.relationships || [];
   const sqlContent = content?.sql || null;
 
   const handleCopy = async () => {
@@ -61,7 +67,7 @@ export default function DatabaseDesignPage() {
           </div>
 
           {/* Empty State */}
-          {!content && (
+          {tables.length === 0 && !sqlContent && (
             <Card className="bg-card border-border">
               <CardContent className="p-8 text-center">
                 <Database className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -74,15 +80,15 @@ export default function DatabaseDesignPage() {
           )}
 
           {/* Schema Visualizer */}
-          {content && content.tables && content.tables.length > 0 && (
+          {tables.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
               <SchemaVisualizer
-                tables={content.tables}
-                relationships={content.relationships || []}
+                tables={tables}
+                relationships={rels}
               />
             </motion.div>
           )}
