@@ -1,34 +1,15 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { Table2, KeyRound, Link2 } from 'lucide-react';
+import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
+import { Table2, KeyRound } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-/* ── Data types (matching DatabaseDesignPage formats) ── */
+/* ── Data types ── */
 
-interface TableField {
-  name: string;
-  type: string;
-  constraints?: string;
-}
-
-interface TableDefNew {
-  name: string;
-  columns: string[];
-}
-
-interface TableDefLegacy {
-  name: string;
-  fields: TableField[];
-}
-
+interface TableField { name: string; type: string; constraints?: string; }
+interface TableDefNew { name: string; columns: string[]; }
+interface TableDefLegacy { name: string; fields: TableField[]; }
 type TableDef = TableDefNew | TableDefLegacy;
 
-interface RelationshipObj {
-  from: string;
-  to: string;
-  type: string;
-  description?: string;
-}
-
+interface RelationshipObj { from: string; to: string; type: string; description?: string; }
 type Relationship = string | RelationshipObj;
 
 export interface SchemaVisualizerProps {
@@ -59,24 +40,54 @@ function isKeyField(name: string): boolean {
   return /\b(id|_id|pk|fk)\b/i.test(name) || name.toLowerCase() === 'id';
 }
 
-/* ── Layout constants ── */
-const CARD_W = 260;
-const CARD_MIN_H = 120;
-const COL_GAP = 80;
-const ROW_GAP = 60;
-const COLS = 3;
-const HEADER_H = 40;
-const ROW_H = 28;
-const PAD = 60;
-
 function getColumns(t: TableDef): { name: string; type: string }[] {
   if (isNewFormat(t)) return t.columns.map(parseColumn);
   return t.fields.map(f => ({ name: f.name, type: f.type + (f.constraints ? ` ${f.constraints}` : '') }));
 }
 
+/* ── Layout constants ── */
+const CARD_W = 260;
+const COL_GAP = 100;
+const ROW_GAP = 60;
+const COLS = 3;
+const HEADER_H = 40;
+const ROW_H = 28;
+const PAD = 80;
+
 function cardHeight(t: TableDef): number {
-  const rows = getColumns(t).length;
-  return HEADER_H + rows * ROW_H + 16; // 16 = padding
+  return HEADER_H + getColumns(t).length * ROW_H + 16;
+}
+
+/** Find which field in a table matches a "Table.field" or "Table" reference */
+function resolveFieldRef(ref: string, tables: TableDef[]): { tableIdx: number; fieldIdx: number } | null {
+  // Try "TableName.fieldName" format
+  const dotIdx = ref.indexOf('.');
+  if (dotIdx > 0) {
+    const tName = ref.slice(0, dotIdx).toLowerCase();
+    const fName = ref.slice(dotIdx + 1).toLowerCase();
+    const tIdx = tables.findIndex(t => t.name.toLowerCase() === tName);
+    if (tIdx >= 0) {
+      const cols = getColumns(tables[tIdx]);
+      const fIdx = cols.findIndex(c => c.name.toLowerCase() === fName);
+      if (fIdx >= 0) return { tableIdx: tIdx, fieldIdx: fIdx };
+      // Field not found, fall back to first key field
+      const keyIdx = cols.findIndex(c => isKeyField(c.name));
+      return { tableIdx: tIdx, fieldIdx: keyIdx >= 0 ? keyIdx : 0 };
+    }
+  }
+  // Just table name
+  const tIdx = tables.findIndex(t => t.name.toLowerCase() === ref.toLowerCase());
+  if (tIdx >= 0) {
+    const cols = getColumns(tables[tIdx]);
+    const keyIdx = cols.findIndex(c => isKeyField(c.name));
+    return { tableIdx: tIdx, fieldIdx: keyIdx >= 0 ? keyIdx : 0 };
+  }
+  return null;
+}
+
+/** Get Y position of a specific field row within a card */
+function fieldY(cardY: number, fieldIdx: number): number {
+  return cardY + HEADER_H + fieldIdx * ROW_H + ROW_H / 2;
 }
 
 /* ── Component ── */
@@ -84,14 +95,44 @@ function cardHeight(t: TableDef): number {
 export default function SchemaVisualizer({ tables, relationships }: SchemaVisualizerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Position each table card in a grid
+  // Pan state
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Only pan on middle-click or when clicking the background
+    if (e.button === 1 || (e.target as HTMLElement).closest('[data-canvas]') === e.currentTarget) {
+      e.preventDefault();
+      setIsPanning(true);
+      panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+    }
+  }, [pan]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanning) return;
+    setPan({
+      x: panStart.current.panX + (e.clientX - panStart.current.x),
+      y: panStart.current.panY + (e.clientY - panStart.current.y),
+    });
+  }, [isPanning]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isPanning) return;
+    const up = () => setIsPanning(false);
+    window.addEventListener('mouseup', up);
+    return () => window.removeEventListener('mouseup', up);
+  }, [isPanning]);
+
+  // Positions
   const positions = useMemo(() => {
     const pos: { x: number; y: number; w: number; h: number }[] = [];
-    // Track column bottom positions for masonry-like packing
     const colBottoms = Array(COLS).fill(PAD);
-
     tables.forEach((t) => {
-      // Pick the shortest column
       const col = colBottoms.indexOf(Math.min(...colBottoms));
       const x = PAD + col * (CARD_W + COL_GAP);
       const y = colBottoms[col];
@@ -102,77 +143,78 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
     return pos;
   }, [tables]);
 
-  const canvasW = useMemo(() => PAD * 2 + COLS * CARD_W + (COLS - 1) * COL_GAP, []);
-  const canvasH = useMemo(() => {
-    if (positions.length === 0) return 400;
-    return Math.max(...positions.map(p => p.y + p.h)) + PAD;
-  }, [positions]);
-
-  // Build name→index map for relationship line drawing
-  const nameIndex = useMemo(() => {
-    const m = new Map<string, number>();
-    tables.forEach((t, i) => m.set(t.name.toLowerCase(), i));
-    return m;
-  }, [tables]);
+  const canvasW = PAD * 2 + COLS * CARD_W + (COLS - 1) * COL_GAP;
+  const canvasH = positions.length === 0 ? 400 : Math.max(...positions.map(p => p.y + p.h)) + PAD;
 
   // Normalised relationships
   const rels = useMemo(() => relationships.map(normaliseRelationship), [relationships]);
 
-  // Compute SVG paths for relationships
+  // Compute SVG paths connecting specific fields
   const paths = useMemo(() => {
     return rels.map(rel => {
-      const fi = nameIndex.get(rel.from.toLowerCase());
-      const ti = nameIndex.get(rel.to.toLowerCase());
-      if (fi === undefined || ti === undefined) return null;
-      const from = positions[fi];
-      const to = positions[ti];
-      if (!from || !to) return null;
+      const fromRef = resolveFieldRef(rel.from, tables);
+      const toRef = resolveFieldRef(rel.to, tables);
+      if (!fromRef || !toRef) return null;
 
-      // Connect from right-center of "from" to left-center of "to"
-      // If "to" is to the left, swap sides
-      let x1: number, y1: number, x2: number, y2: number;
-      const fromCX = from.x + from.w / 2;
-      const toCX = to.x + to.w / 2;
+      const fromPos = positions[fromRef.tableIdx];
+      const toPos = positions[toRef.tableIdx];
+      if (!fromPos || !toPos) return null;
+
+      const y1 = fieldY(fromPos.y, fromRef.fieldIdx);
+      const y2 = fieldY(toPos.y, toRef.fieldIdx);
+
+      let x1: number, x2: number;
+      const fromCX = fromPos.x + fromPos.w / 2;
+      const toCX = toPos.x + toPos.w / 2;
 
       if (fromCX < toCX) {
-        x1 = from.x + from.w;
-        y1 = from.y + from.h / 2;
-        x2 = to.x;
-        y2 = to.y + to.h / 2;
+        x1 = fromPos.x + fromPos.w;
+        x2 = toPos.x;
       } else if (fromCX > toCX) {
-        x1 = from.x;
-        y1 = from.y + from.h / 2;
-        x2 = to.x + to.w;
-        y2 = to.y + to.h / 2;
+        x1 = fromPos.x;
+        x2 = toPos.x + toPos.w;
       } else {
-        // Same column — connect bottom to top
-        if (from.y < to.y) {
-          x1 = from.x + from.w / 2;
-          y1 = from.y + from.h;
-          x2 = to.x + to.w / 2;
-          y2 = to.y;
-        } else {
-          x1 = from.x + from.w / 2;
-          y1 = from.y;
-          x2 = to.x + to.w / 2;
-          y2 = to.y + to.h;
-        }
+        // Same column
+        x1 = fromPos.x + fromPos.w;
+        x2 = toPos.x + toPos.w;
       }
 
-      const dx = (x2 - x1) * 0.5;
-      const d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+      const dx = Math.abs(x2 - x1) * 0.5 + 30;
+      const cx1 = x1 < x2 ? x1 + dx : x1 - dx;
+      const cx2 = x1 < x2 ? x2 - dx : x2 + dx;
+      const d = `M${x1},${y1} C${cx1},${y1} ${cx2},${y2} ${x2},${y2}`;
 
-      return { d, label: rel.type, midX: (x1 + x2) / 2, midY: (y1 + y2) / 2 };
-    }).filter(Boolean) as { d: string; label: string; midX: number; midY: number }[];
-  }, [rels, nameIndex, positions]);
+      return { d, label: rel.type, x1, y1, x2, y2, midX: (x1 + x2) / 2, midY: (y1 + y2) / 2 };
+    }).filter(Boolean) as { d: string; label: string; x1: number; y1: number; x2: number; y2: number; midX: number; midY: number }[];
+  }, [rels, tables, positions]);
 
   return (
     <div
       ref={containerRef}
-      className="relative overflow-auto rounded-xl border border-border bg-background/50"
-      style={{ maxHeight: 'calc(100dvh - 200px)' }}
+      data-canvas
+      className={cn(
+        "relative overflow-hidden rounded-xl border border-border bg-background/50",
+        isPanning ? "cursor-grabbing" : "cursor-grab"
+      )}
+      style={{ height: 'calc(100dvh - 200px)' }}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
     >
-      <div className="relative" style={{ width: canvasW, height: canvasH, minWidth: '100%' }}>
+      {/* Pan hint */}
+      <div className="absolute top-3 right-3 z-10 text-[10px] text-muted-foreground bg-card/80 backdrop-blur px-2 py-1 rounded border border-border pointer-events-none">
+        Click &amp; drag to pan
+      </div>
+
+      <div
+        className="relative"
+        style={{
+          width: canvasW,
+          height: canvasH,
+          transform: `translate(${pan.x}px, ${pan.y}px)`,
+          transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+        }}
+      >
         {/* SVG relationship lines */}
         <svg
           className="absolute inset-0 pointer-events-none"
@@ -185,18 +227,28 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
               <path
                 d={p.d}
                 fill="none"
-                stroke="hsl(var(--primary) / 0.5)"
-                strokeWidth={2}
-                strokeDasharray="6 3"
+                stroke="hsl(var(--primary) / 0.4)"
+                strokeWidth={1.5}
               />
-              {/* Arrow head */}
-              <circle cx={p.midX} cy={p.midY} r={3} fill="hsl(var(--primary))" />
+              {/* Endpoint dots */}
+              <circle cx={p.x1} cy={p.y1} r={4} fill="hsl(var(--primary))" />
+              <circle cx={p.x2} cy={p.y2} r={4} fill="hsl(var(--primary))" />
               {/* Label */}
+              <rect
+                x={p.midX - 16}
+                y={p.midY - 10}
+                width={32}
+                height={16}
+                rx={4}
+                fill="hsl(var(--card))"
+                stroke="hsl(var(--border))"
+                strokeWidth={1}
+              />
               <text
                 x={p.midX}
-                y={p.midY - 8}
+                y={p.midY + 2}
                 textAnchor="middle"
-                className="fill-muted-foreground text-[10px] font-mono"
+                className="fill-foreground text-[9px] font-mono font-medium"
               >
                 {p.label}
               </text>
@@ -211,7 +263,7 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
           return (
             <div
               key={i}
-              className="absolute rounded-lg border border-border bg-card shadow-lg overflow-hidden"
+              className="absolute rounded-lg border border-border bg-card shadow-lg overflow-hidden select-none"
               style={{ left: pos.x, top: pos.y, width: pos.w, zIndex: 1 }}
             >
               {/* Header */}
@@ -219,12 +271,13 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
                 <Table2 className="w-3.5 h-3.5 text-primary" />
                 <span className="text-sm font-semibold text-foreground truncate">{table.name}</span>
               </div>
-              {/* Columns */}
+              {/* Fields */}
               <div className="py-1">
                 {cols.map((col, j) => (
                   <div
                     key={j}
-                    className="flex items-center gap-2 px-3 py-1 hover:bg-muted/30 transition-colors"
+                    className="flex items-center gap-2 px-3 hover:bg-muted/30 transition-colors"
+                    style={{ height: ROW_H }}
                   >
                     {isKeyField(col.name) ? (
                       <KeyRound className="w-3 h-3 text-yellow-500 shrink-0" />
