@@ -95,41 +95,68 @@ function fieldY(cardY: number, fieldIdx: number): number {
 export default function SchemaVisualizer({ tables, relationships }: SchemaVisualizerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Pan state
+  // Pan state (background drag)
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, panX: 0, panY: 0 });
 
+  // Card drag state
+  const [cardOffsets, setCardOffsets] = useState<Record<number, { dx: number; dy: number }>>({});
+  const [draggingCard, setDraggingCard] = useState<number | null>(null);
+  const cardDragStart = useRef({ x: 0, y: 0, dx: 0, dy: 0 });
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only pan on middle-click or when clicking the background
-    if (e.button === 1 || (e.target as HTMLElement).closest('[data-canvas]') === e.currentTarget) {
+    // Middle-click always pans
+    if (e.button === 1) {
+      e.preventDefault();
+      setIsPanning(true);
+      panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+      return;
+    }
+    // Left-click on background pans
+    if (e.button === 0 && (e.target as HTMLElement).closest('[data-canvas]') === e.currentTarget) {
       e.preventDefault();
       setIsPanning(true);
       panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
     }
   }, [pan]);
 
+  const handleCardMouseDown = useCallback((e: React.MouseEvent, idx: number) => {
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const existing = cardOffsets[idx] || { dx: 0, dy: 0 };
+    cardDragStart.current = { x: e.clientX, y: e.clientY, dx: existing.dx, dy: existing.dy };
+    setDraggingCard(idx);
+  }, [cardOffsets]);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isPanning) return;
-    setPan({
-      x: panStart.current.panX + (e.clientX - panStart.current.x),
-      y: panStart.current.panY + (e.clientY - panStart.current.y),
-    });
-  }, [isPanning]);
+    if (isPanning) {
+      setPan({
+        x: panStart.current.panX + (e.clientX - panStart.current.x),
+        y: panStart.current.panY + (e.clientY - panStart.current.y),
+      });
+    } else if (draggingCard !== null) {
+      const dx = cardDragStart.current.dx + (e.clientX - cardDragStart.current.x);
+      const dy = cardDragStart.current.dy + (e.clientY - cardDragStart.current.y);
+      setCardOffsets(prev => ({ ...prev, [draggingCard]: { dx, dy } }));
+    }
+  }, [isPanning, draggingCard]);
 
   const handleMouseUp = useCallback(() => {
     setIsPanning(false);
+    setDraggingCard(null);
   }, []);
 
   useEffect(() => {
-    if (!isPanning) return;
-    const up = () => setIsPanning(false);
+    if (!isPanning && draggingCard === null) return;
+    const up = () => { setIsPanning(false); setDraggingCard(null); };
     window.addEventListener('mouseup', up);
     return () => window.removeEventListener('mouseup', up);
-  }, [isPanning]);
+  }, [isPanning, draggingCard]);
 
-  // Positions
-  const positions = useMemo(() => {
+  // Positions with offsets applied
+  const basePositions = useMemo(() => {
     const pos: { x: number; y: number; w: number; h: number }[] = [];
     const colBottoms = Array(COLS).fill(PAD);
     tables.forEach((t) => {
@@ -143,8 +170,17 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
     return pos;
   }, [tables]);
 
-  const canvasW = PAD * 2 + COLS * CARD_W + (COLS - 1) * COL_GAP;
-  const canvasH = positions.length === 0 ? 400 : Math.max(...positions.map(p => p.y + p.h)) + PAD;
+  // Final positions = base + user drag offsets
+  const positions = useMemo(() => {
+    return basePositions.map((p, i) => {
+      const off = cardOffsets[i];
+      if (!off) return p;
+      return { ...p, x: p.x + off.dx, y: p.y + off.dy };
+    });
+  }, [basePositions, cardOffsets]);
+
+  const canvasW = PAD * 2 + COLS * CARD_W + (COLS - 1) * COL_GAP + 200;
+  const canvasH = positions.length === 0 ? 400 : Math.max(...positions.map(p => p.y + p.h)) + PAD + 200;
 
   // Normalised relationships
   const rels = useMemo(() => relationships.map(normaliseRelationship), [relationships]);
@@ -174,7 +210,6 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
         x1 = fromPos.x;
         x2 = toPos.x + toPos.w;
       } else {
-        // Same column
         x1 = fromPos.x + fromPos.w;
         x2 = toPos.x + toPos.w;
       }
@@ -194,16 +229,16 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
       data-canvas
       className={cn(
         "relative overflow-hidden rounded-xl border border-border bg-background/50",
-        isPanning ? "cursor-grabbing" : "cursor-grab"
+        draggingCard !== null ? "cursor-grabbing" : isPanning ? "cursor-grabbing" : "cursor-grab"
       )}
       style={{ height: 'calc(100dvh - 200px)' }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {/* Pan hint */}
+      {/* Hint */}
       <div className="absolute top-3 right-3 z-10 text-[10px] text-muted-foreground bg-card/80 backdrop-blur px-2 py-1 rounded border border-border pointer-events-none">
-        Click &amp; drag to pan
+        Drag cards to rearrange · Drag background to pan
       </div>
 
       <div
@@ -212,7 +247,7 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
           width: canvasW,
           height: canvasH,
           transform: `translate(${pan.x}px, ${pan.y}px)`,
-          transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+          transition: isPanning || draggingCard !== null ? 'none' : 'transform 0.1s ease-out',
         }}
       >
         {/* SVG relationship lines */}
@@ -230,10 +265,8 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
                 stroke="hsl(var(--primary) / 0.4)"
                 strokeWidth={1.5}
               />
-              {/* Endpoint dots */}
               <circle cx={p.x1} cy={p.y1} r={4} fill="hsl(var(--primary))" />
               <circle cx={p.x2} cy={p.y2} r={4} fill="hsl(var(--primary))" />
-              {/* Label */}
               <rect
                 x={p.midX - 16}
                 y={p.midY - 10}
@@ -260,11 +293,22 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
         {tables.map((table, i) => {
           const pos = positions[i];
           const cols = getColumns(table);
+          const isDragging = draggingCard === i;
           return (
             <div
               key={i}
-              className="absolute rounded-lg border border-border bg-card shadow-lg overflow-hidden select-none"
-              style={{ left: pos.x, top: pos.y, width: pos.w, zIndex: 1 }}
+              onMouseDown={(e) => handleCardMouseDown(e, i)}
+              className={cn(
+                "absolute rounded-lg border border-border bg-card shadow-lg overflow-hidden select-none",
+                isDragging ? "cursor-grabbing shadow-2xl ring-2 ring-primary/40 z-20" : "cursor-grab hover:shadow-xl hover:border-primary/30"
+              )}
+              style={{
+                left: pos.x,
+                top: pos.y,
+                width: pos.w,
+                zIndex: isDragging ? 20 : 1,
+                transition: isDragging ? 'none' : 'box-shadow 0.2s, border-color 0.2s',
+              }}
             >
               {/* Header */}
               <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 border-b border-border">
