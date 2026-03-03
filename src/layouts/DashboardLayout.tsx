@@ -14,6 +14,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const isProjectBoard = location.pathname === '/project-board';
+  const hideTopNav = location.pathname === '/coaching';
 
   return (
     <ChatProvider>
@@ -22,8 +23,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <DashboardSidebar />
           <main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
             <div className="overflow-y-auto flex-1 flex flex-col">
-              <DashboardHeader />
-              <DashboardTabs />
+              {!hideTopNav && (
+                <>
+                  <DashboardHeader />
+                  <DashboardTabs />
+                </>
+              )}
               <div className="flex-1">
                 {children}
               </div>

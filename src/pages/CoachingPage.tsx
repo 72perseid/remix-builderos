@@ -1,6 +1,7 @@
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import logoIcon from '@/assets/logo-icon.png';
 
 const plans = [
   {
@@ -38,6 +39,7 @@ export default function CoachingPage() {
     <div className="h-dvh flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
       {/* Header */}
       <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
+        <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
         <h1 className="text-2xl font-bold text-white">Expert Support</h1>
         <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
           Whether you need guidance or a full build partner, we've got you covered.
