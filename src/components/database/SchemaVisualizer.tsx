@@ -197,7 +197,7 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
     setCardOffsets({});
   }, [basePositions]);
 
-  /** Untangle: layered graph layout (Sugiyama-style) to minimize edge crossings */
+  /** Untangle: layered graph layout that spreads nodes to minimize crossings */
   const handleUntangle = useCallback(() => {
     if (tables.length === 0) return;
     const nRels = relationships.map(normaliseRelationship);
@@ -267,27 +267,52 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
       queue.push(...unique);
     }
 
+    // Split oversized layers: max 3 nodes per column to spread horizontally
+    const MAX_PER_LAYER = 3;
+    const splitLayers: number[][] = [];
+    layers.forEach(layer => {
+      if (layer.length <= MAX_PER_LAYER) {
+        splitLayers.push(layer);
+      } else {
+        for (let i = 0; i < layer.length; i += MAX_PER_LAYER) {
+          splitLayers.push(layer.slice(i, i + MAX_PER_LAYER));
+        }
+      }
+    });
+
     // Barycenter ordering to reduce crossings
-    for (let pass = 0; pass < 3; pass++) {
-      for (let li = 1; li < layers.length; li++) {
-        const prevLayer = layers[li - 1];
-        layers[li].sort((a, b) => {
-          const nA = [...(adj.get(a) || [])].filter(n => prevLayer.includes(n));
-          const nB = [...(adj.get(b) || [])].filter(n => prevLayer.includes(n));
-          const bA = nA.length > 0 ? nA.reduce((s, n) => s + prevLayer.indexOf(n), 0) / nA.length : prevLayer.length / 2;
-          const bB = nB.length > 0 ? nB.reduce((s, n) => s + prevLayer.indexOf(n), 0) / nB.length : prevLayer.length / 2;
+    for (let pass = 0; pass < 4; pass++) {
+      for (let li = 1; li < splitLayers.length; li++) {
+        // Gather all nodes in previous layers for reference
+        const prevNodes: number[] = [];
+        for (let p = 0; p < li; p++) prevNodes.push(...splitLayers[p]);
+
+        splitLayers[li].sort((a, b) => {
+          const nA = [...(adj.get(a) || [])].filter(n => prevNodes.includes(n));
+          const nB = [...(adj.get(b) || [])].filter(n => prevNodes.includes(n));
+          // Compute barycenter based on actual Y positions of connected nodes
+          const bA = nA.length > 0 ? nA.reduce((s, n) => s + prevNodes.indexOf(n), 0) / nA.length : prevNodes.length / 2;
+          const bB = nB.length > 0 ? nB.reduce((s, n) => s + prevNodes.indexOf(n), 0) / nB.length : prevNodes.length / 2;
           return bA - bB;
         });
       }
     }
 
-    // Compute new offsets
+    // Compute new offsets — spread left-to-right, center each column vertically
     const newOffsets: Record<number, { dx: number; dy: number }> = {};
     const layerGap = CARD_W + COL_GAP;
 
-    layers.forEach((layer, li) => {
+    // Find the tallest column to center others relative to it
+    let maxColHeight = 0;
+    splitLayers.forEach(layer => {
+      const h = layer.reduce((sum, idx) => sum + cardHeight(tables[idx]), 0) + (layer.length - 1) * ROW_GAP;
+      if (h > maxColHeight) maxColHeight = h;
+    });
+
+    splitLayers.forEach((layer, li) => {
       const totalHeight = layer.reduce((sum, idx) => sum + cardHeight(tables[idx]), 0) + (layer.length - 1) * ROW_GAP;
-      let currentY = PAD;
+      const startY = PAD + (maxColHeight - totalHeight) / 2;
+      let currentY = startY;
 
       layer.forEach(idx => {
         const basePos = basePositions[idx];
