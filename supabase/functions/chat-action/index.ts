@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,33 @@ serve(async (req) => {
   }
 
   try {
+    // --- JWT Authentication ---
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = claimsData.claims.sub;
+    // --- End Authentication ---
+
     const rawBody = await req.text();
 
     if (!rawBody?.trim()) {
@@ -41,25 +69,27 @@ serve(async (req) => {
 
     const {
       message,
-      user_id,
       session_id,
       workflowMode,
       app_idea_id,
       artifact_type,
     } = body as {
       message?: string;
-      user_id?: string;
       session_id?: string;
       workflowMode?: string;
       app_idea_id?: string | null;
       artifact_type?: string | null;
     };
 
+    // Use the authenticated user_id, ignoring any user_id from the body
+    const user_id = authenticatedUserId;
+
     console.log('Chat action received:', {
       workflowMode,
       app_idea_id,
       artifact_type,
       hasMessage: !!message,
+      user_id,
     });
 
     const response = await fetch(N8N_WEBHOOK, {

@@ -6,7 +6,7 @@ import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
 import { resolveWorkflowMode } from '@/lib/resolveWorkflowMode';
 
-const N8N_CHAT_WEBHOOK = 'https://amblabsdevaccount.app.n8n.cloud/webhook/master_os';
+const CHAT_ACTION_URL = `https://bsogscaipffwkjszicfc.supabase.co/functions/v1/chat-action`;
 const REQUEST_TIMEOUT_MS = 90000; // Extended to 90 seconds for heavy N8N workflows
 
 export interface ChatMessage {
@@ -189,12 +189,20 @@ export function useChat() {
         // Resolve workflow mode fresh before every call
         const state = await resolveWorkflowMode(user.id);
 
-        // Call n8n webhook with extended timeout
+        // Get current session for auth header
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const accessToken = currentSession?.access_token;
+
+        // Call edge function with auth and extended timeout
         const response = await fetchWithTimeout(
-          N8N_CHAT_WEBHOOK,
+          CHAT_ACTION_URL,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzb2dzY2FpcGZmd2tqc3ppY2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxODg3MTEsImV4cCI6MjA4MDc2NDcxMX0.QsK1D0ymysT6sBSIP428J6iF-JgZ7P5jRvsZkjTbtY4',
+            },
             body: JSON.stringify({
               message: content,
               user_id: user.id,
@@ -341,11 +349,19 @@ export function useChat() {
       
       try {
 
+        // Get current session for auth header
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const accessToken = currentSession?.access_token;
+
         const response = await fetchWithTimeout(
-          N8N_CHAT_WEBHOOK,
+          CHAT_ACTION_URL,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzb2dzY2FpcGZmd2tqc3ppY2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxODg3MTEsImV4cCI6MjA4MDc2NDcxMX0.QsK1D0ymysT6sBSIP428J6iF-JgZ7P5jRvsZkjTbtY4',
+            },
             body: JSON.stringify({
               message: 'START_NEW_APP_SESSION',
               user_id: user.id,
