@@ -29,9 +29,9 @@ const dfyFeatures = [
 ];
 
 const pricingTiers = [
-  { hours: 10, price: 1000, originalPrice: null, label: '10 Hours', perHour: 100, discount: null, popular: false },
-  { hours: 20, price: 1800, originalPrice: 2000, label: '20 Hours', perHour: 90, discount: '10% off', popular: true },
-  { hours: 40, price: 3600, originalPrice: 4000, label: '40 Hours', perHour: 90, discount: '10% off', popular: false },
+  { hours: 10, price: 1000, originalPrice: null, label: '10 Hours', perHour: 100, discount: null, badge: 'Starter', popular: false },
+  { hours: 20, price: 1800, originalPrice: 2000, label: '20 Hours', perHour: 90, discount: '10% off', badge: null, popular: true },
+  { hours: 40, price: 3600, originalPrice: 4000, label: '40 Hours', perHour: 90, discount: '10% off', badge: null, popular: false },
 ];
 
 type View = 'plans' | 'pricing' | 'form';
@@ -259,6 +259,11 @@ export default function CoachingPage() {
                         {tier.discount && (
                           <span className="inline-block text-xs font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
                             {tier.discount}
+                          </span>
+                        )}
+                        {tier.badge && (
+                          <span className="inline-block text-xs font-medium text-slate-300 bg-slate-500/15 px-2 py-0.5 rounded-full">
+                            {tier.badge}
                           </span>
                         )}
                       </div>
