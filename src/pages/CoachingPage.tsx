@@ -29,9 +29,9 @@ const dfyFeatures = [
 ];
 
 const pricingTiers = [
-  { hours: 10, price: 1000, label: '10 Hours', perHour: 100, discount: null, popular: false },
-  { hours: 20, price: 1800, label: '20 Hours', perHour: 90, discount: '10% off', popular: true },
-  { hours: 40, price: 3600, label: '40 Hours', perHour: 90, discount: '10% off', popular: false },
+  { hours: 10, price: 1000, originalPrice: null, label: '10 Hours', perHour: 100, discount: null, popular: false },
+  { hours: 20, price: 1800, originalPrice: 2000, label: '20 Hours', perHour: 90, discount: '10% off', popular: true },
+  { hours: 40, price: 3600, originalPrice: 4000, label: '40 Hours', perHour: 90, discount: '10% off', popular: false },
 ];
 
 type View = 'plans' | 'pricing' | 'form';
@@ -254,6 +254,13 @@ export default function CoachingPage() {
                           : 'bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)]'
                       }`}
                     >
+                      {tier.discount && (
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="inline-block text-xs font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
+                            {tier.discount}
+                          </span>
+                        </div>
+                      )}
                       {tier.popular && (
                         <div className="absolute top-3 right-3 bg-primary/20 text-primary text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                           Popular
@@ -261,16 +268,14 @@ export default function CoachingPage() {
                       )}
                       <div className="space-y-3 flex-1">
                         <h3 className="text-lg font-bold text-white">{tier.label}</h3>
-                        <div className="flex items-baseline gap-1">
+                        <div className="flex items-baseline gap-2">
                           <span className="text-3xl font-bold text-white">${tier.price.toLocaleString()}</span>
+                          {tier.originalPrice && (
+                            <span className="text-lg text-slate-500 line-through">${tier.originalPrice.toLocaleString()}</span>
+                          )}
                           <span className="text-sm text-slate-400">USD</span>
                         </div>
                         <p className="text-sm text-slate-400">${tier.perHour}/hr</p>
-                        {tier.discount && (
-                          <span className="inline-block text-xs font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
-                            {tier.discount}
-                          </span>
-                        )}
                       </div>
                       <Button
                         className={`mt-5 w-full gap-2 ${
