@@ -10,6 +10,7 @@ import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from '
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { CoachCTA } from '@/components/dashboard/CoachCTA';
 
 // Prerequisites configuration
 const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'validation', 'product_brief'] as const;
@@ -267,6 +268,9 @@ export default function MasterPromptPage() {
               </p>
           </motion.div>
         }
+
+        {/* Coach CTA */}
+        <CoachCTA message="Want someone to run this for you?" ctaLabel="Talk to an Expert" />
       </div>
     </div>);
 

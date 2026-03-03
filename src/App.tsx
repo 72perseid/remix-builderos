@@ -20,6 +20,7 @@ import ValidationPage from "./pages/ValidationPage";
 import ProductBriefPage from "./pages/ProductBriefPage";
 import MasterPromptPage from "./pages/MasterPromptPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
+import CoachingPage from "./pages/CoachingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -86,6 +87,7 @@ const App = () => (
                 <DashboardLayout><AppDetailsPage /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/coaching" element={<CoachingPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

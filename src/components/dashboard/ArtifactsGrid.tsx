@@ -3,6 +3,7 @@ import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
+import { useProjectContext } from '@/contexts/ProjectContext';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -60,7 +61,15 @@ export function ArtifactsGrid() {
     loading
   } = useArtifacts();
   const { profile } = useProfile();
+  const { selectedApp } = useProjectContext();
   const navigate = useNavigate();
+
+  // Completion mapping from app_ideas fields
+  const completionMap: Partial<Record<ArtifactType, number | null>> = {
+    business_model: selectedApp?.bm_completion ?? null,
+    validation: selectedApp?.uv_completion ?? null,
+    product_brief: selectedApp?.pb_completion ?? null,
+  };
   const isOnboarded = profile?.onboarded === true;
 
   // Check if user has any artifacts
@@ -128,6 +137,7 @@ export function ArtifactsGrid() {
                 title={card.title} 
                 description={card.description} 
                 status={getCardStatus(card.type)} 
+                completion={completionMap[card.type]}
                 onClick={() => navigate(card.route)}
               />
             ))}

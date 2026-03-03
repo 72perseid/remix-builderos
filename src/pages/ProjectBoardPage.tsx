@@ -5,6 +5,7 @@ import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
 import { useTasks } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag } from 'lucide-react';
+import { CoachCTA } from '@/components/dashboard/CoachCTA';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay, KanbanMoveEvent } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -1089,5 +1090,10 @@ export default function ProjectBoardPage() {
             </div>}
         </DialogContent>
       </Dialog>
+
+      {/* Coach CTA */}
+      <div className="px-6 pb-6">
+        <CoachCTA message="Not sure how to prioritize this?" ctaLabel="Talk to an Expert" />
+      </div>
     </div>;
 }

@@ -9,10 +9,17 @@ import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-import { Send, Loader2, Sparkles } from 'lucide-react';
+import { Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -77,9 +84,17 @@ export default function OnboardingPage() {
     }
   }, [isStreaming, showCompletion]);
 
-  // Countdown timer when session is complete
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+
+  // Show completion popup when session is complete (replaces immediate countdown)
   useEffect(() => {
     if (!isSessionComplete) return;
+    setShowCompletionPopup(true);
+  }, [isSessionComplete]);
+
+  const handleDismissPopup = () => {
+    setShowCompletionPopup(false);
+    // Start countdown after dismissing
     setCountdown(5);
     const interval = setInterval(() => {
       setCountdown((prev) => {
@@ -91,9 +106,7 @@ export default function OnboardingPage() {
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSessionComplete]);
+  };
 
   const handleSkipToBoard = () => {
     performFinalTransition();
@@ -171,8 +184,8 @@ export default function OnboardingPage() {
     }
 
     // Step 3: ALWAYS navigate, regardless of data fetch success
-    console.log('Navigating to project board...');
-    navigate('/project-board', { replace: true });
+    console.log('Navigating to artifacts...');
+    navigate('/artifacts', { replace: true });
   };
 
   // Backup navigation effect - guarantees redirect even if primary method fails
@@ -180,7 +193,7 @@ export default function OnboardingPage() {
     if (showCompletion) {
       const backupTimer = setTimeout(() => {
         console.log('Backup navigation triggered after 30s');
-        navigate('/project-board', { replace: true });
+        navigate('/artifacts', { replace: true });
       }, 30000);
 
       return () => clearTimeout(backupTimer);
@@ -353,6 +366,33 @@ export default function OnboardingPage() {
           </div>
         </div>
       )}
+
+      {/* Completion Popup */}
+      <Dialog open={showCompletionPopup} onOpenChange={(open) => { if (!open) handleDismissPopup(); }}>
+        <DialogContent className="sm:max-w-md bg-card border-border">
+          <DialogHeader>
+            <DialogTitle className="text-xl text-foreground">Your idea is taking shape!</DialogTitle>
+            <DialogDescription className="text-muted-foreground leading-relaxed pt-2">
+              Your Business Model, User Validation and Product Scope are ready to refine.
+              This is where the real building begins — dig into each artifact to unlock your
+              Kanban board, database design and master prompt.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-2">
+            <p className="text-sm text-muted-foreground">Still unsure about the path forward?</p>
+            <Button
+              onClick={() => navigate('/coaching')}
+              className="gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
+            >
+              Let's Build This Together
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" onClick={handleDismissPopup} className="text-muted-foreground">
+              Continue to Artifacts
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Skip Warning Dialog */}
       <AlertDialog open={showSkipWarning} onOpenChange={setShowSkipWarning}>
