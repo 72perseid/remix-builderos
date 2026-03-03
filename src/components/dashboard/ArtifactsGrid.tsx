@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Palette, Type, Instagram, CreditCard } from 'lucide-react';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { useArtifacts } from '@/hooks/useArtifacts';
@@ -147,6 +148,13 @@ export function ArtifactsGrid() {
                   <div className="absolute top-3 right-3 bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">
                     Coming Soon
                   </div>
+                  <div className="mb-3">
+                    <div className="relative inline-flex">
+                      <div className="relative flex items-center justify-center w-12 h-12 rounded-xl border bg-primary/10 border-primary/20">
+                        <Palette className="w-7 h-7 text-white" />
+                      </div>
+                    </div>
+                  </div>
                   <h3 className="text-base font-semibold text-slate-400 mb-1.5 mt-auto">{card.title}</h3>
                   <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
                 </div>
@@ -176,13 +184,20 @@ export function ArtifactsGrid() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { title: 'Landing Copy', description: 'Generate compelling landing page copy for your product.' },
-              { title: 'Social Content', description: 'Instagram content aligned with your brand.' },
-              { title: 'Paywall Prompts', description: 'Craft high-converting paywall prompts for subscriptions.' },
+              { title: 'Landing Copy', description: 'Generate compelling landing page copy for your product.', icon: <Type className="w-7 h-7 text-white" /> },
+              { title: 'Social Content', description: 'Instagram content aligned with your brand.', icon: <Instagram className="w-7 h-7 text-white" /> },
+              { title: 'Paywall Prompts', description: 'Craft high-converting paywall prompts for subscriptions.', icon: <CreditCard className="w-7 h-7 text-white" /> },
             ].map((card) => (
               <div key={card.title} className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 opacity-60 p-5 pt-10 min-h-[180px] flex flex-col">
                 <div className="absolute top-3 right-3 bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">
                   Coming Soon
+                </div>
+                <div className="mb-3">
+                  <div className="relative inline-flex">
+                    <div className="relative flex items-center justify-center w-12 h-12 rounded-xl border bg-primary/10 border-primary/20">
+                      {card.icon}
+                    </div>
+                  </div>
                 </div>
                 <h3 className="text-base font-semibold text-slate-400 mb-1.5 mt-auto">{card.title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
