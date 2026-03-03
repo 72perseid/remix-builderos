@@ -7,7 +7,7 @@ import { useProjectContext } from '@/contexts/ProjectContext';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 import { Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
@@ -58,7 +58,7 @@ export default function OnboardingPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showSkipWarning, setShowSkipWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -330,14 +330,15 @@ export default function OnboardingPage() {
       {!isFinalizing && !isSessionComplete &&
       <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
           <div className="max-w-3xl mx-auto flex gap-3">
-            <Input
+            <Textarea
             ref={inputRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             disabled={isStreaming || showCompletion}
-            className="flex-1 h-12 text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground" />
+            rows={1}
+            className="flex-1 min-h-[48px] max-h-[160px] resize-none text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground py-3" />
 
             <Button
             onClick={handleSendMessage}
