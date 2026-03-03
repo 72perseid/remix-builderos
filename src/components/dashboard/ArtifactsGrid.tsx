@@ -22,8 +22,8 @@ const artifactCards: ArtifactCardConfig[] = [{
   category: 'planning'
 }, {
   type: 'validation',
-  title: 'Validation Strategy',
-  description: 'User personas and validation insights for your target audience.',
+  title: 'User Validation',
+  description: 'Personas, pain points, and validation insights for your target audience.',
   route: '/validation',
   category: 'planning'
 }, {
@@ -34,21 +34,21 @@ const artifactCards: ArtifactCardConfig[] = [{
   category: 'planning'
 }, {
   type: 'ui_ux',
-  title: 'UI/UX Design System',
-  description: 'Define your design system, color palette, typography, and component style guide.',
+  title: 'UI/UX Design',
+  description: 'Color palette, typography, and component style guide.',
   route: '/ui-ux',
   category: 'planning',
   comingSoon: true,
 }, {
   type: 'db_design',
-  title: 'Database Design',
-  description: 'ERD diagram and table schema for your application data.',
+  title: 'DB Design',
+  description: 'ERD diagram and table schema for your app data.',
   route: '/database-design',
   category: 'building'
 }, {
   type: 'master_prompt',
-  title: 'Master Prompt / PRD',
-  description: 'Generate a comprehensive prompt containing your entire project context (DB, Business, Features) to paste into any AI coding tool.',
+  title: 'Master Prompt',
+  description: 'Full project context prompt for any AI coding tool.',
   route: '/master-prompt',
   category: 'building'
 }];
@@ -176,9 +176,9 @@ export function ArtifactsGrid() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
-              { title: 'Landing Page Copy Editor', description: 'Generate compelling landing page copy tailored to your product and audience.' },
-              { title: 'Content Generator for Instagram', description: 'Create scroll-stopping Instagram content aligned with your brand voice.' },
-              { title: 'Converting Paywall Prompt Generator', description: 'Craft high-converting paywall prompts to maximize your subscription revenue.' },
+              { title: 'Landing Copy', description: 'Generate compelling landing page copy for your product.' },
+              { title: 'Social Content', description: 'Create scroll-stopping Instagram content for your brand.' },
+              { title: 'Paywall Prompts', description: 'Craft high-converting paywall prompts for subscriptions.' },
             ].map((card) => (
               <div key={card.title} className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 opacity-60 p-5 pt-10 min-h-[180px] flex flex-col">
                 <div className="absolute top-3 right-3 bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">
