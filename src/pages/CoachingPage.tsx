@@ -254,13 +254,14 @@ export default function CoachingPage() {
                           : 'bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)]'
                       }`}
                     >
-                      {tier.discount && (
-                        <div className="flex items-center gap-2 mb-1">
+                      {/* Badge area — always takes space for alignment */}
+                      <div className="flex items-center gap-2 mb-1 min-h-[22px]">
+                        {tier.discount && (
                           <span className="inline-block text-xs font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
                             {tier.discount}
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
                       {tier.popular && (
                         <div className="absolute top-3 right-3 bg-primary/20 text-primary text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                           Popular
@@ -275,7 +276,6 @@ export default function CoachingPage() {
                           <span className="text-3xl font-bold text-white">${tier.price.toLocaleString()}</span>
                           <span className="text-sm text-slate-400">USD</span>
                         </div>
-                        <p className="text-sm text-slate-400">${tier.perHour}/hr</p>
                       </div>
                       <Button
                         className={`mt-5 w-full gap-2 ${
