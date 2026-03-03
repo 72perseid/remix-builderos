@@ -298,6 +298,18 @@ export default function CoachingPage() {
                   </motion.div>
                 ))}
               </div>
+
+              {/* DFY upsell CTA */}
+              <div className="mt-8 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
+                <p className="text-sm text-slate-400">Need us to handle everything? Let our team build it for you end-to-end.</p>
+                <button
+                  onClick={() => setView('plans')}
+                  className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  Done For You
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </motion.div>
           )}
 
