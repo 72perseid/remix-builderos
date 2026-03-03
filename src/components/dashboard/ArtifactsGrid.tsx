@@ -174,21 +174,20 @@ export function ArtifactsGrid() {
               Prepare for deployment, optimize performance, and execute your go-to-market strategy.
             </p>
           </div>
-          <div className="grid grid-cols-1 gap-4">
-            {launchingCards.length > 0 ? launchingCards.map(card => (
-              <ArtifactCard 
-                key={card.type} 
-                title={card.title} 
-                description={card.description} 
-                status={getCardStatus(card.type)} 
-                onClick={() => navigate(card.route)} 
-              />
-            )) : (
-              <div className="bg-card border border-slate-700/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center min-h-[140px]">
-                <span className="text-lg font-semibold text-secondary-foreground">Coming Soon!</span>
-                <p className="text-sm text-secondary-foreground/60 mt-1">Stay tuned for launching tools.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              { title: 'Landing Page Copy Editor', description: 'Generate compelling landing page copy tailored to your product and audience.' },
+              { title: 'Content Generator for Instagram', description: 'Create scroll-stopping Instagram content aligned with your brand voice.' },
+              { title: 'Converting Paywall Prompt Generator', description: 'Craft high-converting paywall prompts to maximize your subscription revenue.' },
+            ].map((card) => (
+              <div key={card.title} className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 opacity-60 p-5 pt-10 min-h-[180px] flex flex-col">
+                <div className="absolute top-3 right-3 bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                  Coming Soon
+                </div>
+                <h3 className="text-base font-semibold text-slate-400 mb-1.5 mt-auto">{card.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>
