@@ -6,6 +6,7 @@ import { useDatabaseDesign } from '@/hooks/useDatabaseDesign';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Database, Loader2, Copy, Check } from 'lucide-react';
 import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
+import { CoachCTA } from '@/components/dashboard/CoachCTA';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -156,6 +157,9 @@ export default function DatabaseDesignPage() {
               </p>
             </motion.div>
           )}
+
+          {/* Coach CTA */}
+          <CoachCTA message="Need help deploying this?" ctaLabel="Talk to an Expert" />
         </div>
       </div>
 

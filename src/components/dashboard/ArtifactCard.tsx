@@ -1,6 +1,7 @@
 import { Lock, Loader2, CheckCircle2, Briefcase, Users, FileText, Database, Kanban, FileCode, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { ReactNode } from "react";
 
 export type ArtifactStatus = "loading" | "locked" | "completed" | "available" | "ready";
@@ -9,6 +10,7 @@ interface ArtifactCardProps {
   title: string;
   description: string;
   status: ArtifactStatus;
+  completion?: number | null;
   onClick?: () => void;
   className?: string;
 }
@@ -63,7 +65,7 @@ const getCardIcon = (title: string): ReactNode => {
   }
 };
 
-export function ArtifactCard({ title, description, status, onClick, className }: ArtifactCardProps) {
+export function ArtifactCard({ title, description, status, completion, onClick, className }: ArtifactCardProps) {
   const isClickable = status === "available" || status === "completed" || status === "ready";
   const config = statusConfig[status];
 
@@ -115,6 +117,18 @@ export function ArtifactCard({ title, description, status, onClick, className }:
         )}>
           {description}
         </p>
+
+        {/* Progress indicator */}
+        {completion != null && (
+          <div className="mt-3 space-y-1.5">
+            <Progress value={completion} className="h-1.5" />
+            <p className="text-xs text-muted-foreground">
+              {completion >= 100
+                ? "✓ Complete — output generated"
+                : `${completion}% · Keep refining`}
+            </p>
+          </div>
+        )}
       </div>
     </Card>
   );
