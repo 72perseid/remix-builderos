@@ -78,17 +78,35 @@ export function useOnboardingChat(forceNew: boolean = false) {
             await fetchCompletion(state.appIdeaId);
           }
 
-          // Get or create a chat session
-          const { data: existing } = await supabase
-            .from('chat_sessions')
-            .select('id')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+          // Get or create a chat session — prefer one linked to the current app_idea
+          let existingSession: { id: string } | null = null;
 
-          if (existing) {
-            sessionIdRef.current = existing.id;
+          if (state.appIdeaId) {
+            const { data: linkedSession } = await supabase
+              .from('chat_sessions')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('app_idea_id', state.appIdeaId)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            existingSession = linkedSession;
+          }
+
+          // Fall back to most recent session if none linked
+          if (!existingSession) {
+            const { data: recentSession } = await supabase
+              .from('chat_sessions')
+              .select('id')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            existingSession = recentSession;
+          }
+
+          if (existingSession) {
+            sessionIdRef.current = existingSession.id;
           } else {
             const { data: newSession } = await supabase
               .from('chat_sessions')
@@ -241,6 +259,14 @@ export function useOnboardingChat(forceNew: boolean = false) {
           resolvedAppIdeaId = latestState.appIdeaId;
           setAppIdeaId(latestState.appIdeaId);
           await fetchCompletion(latestState.appIdeaId);
+
+          // Link the current session to this app_idea
+          if (currentSessionId) {
+            await supabase
+              .from('chat_sessions')
+              .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
+              .eq('id', currentSessionId);
+          }
         }
 
         return { text: aiResponse, sessionComplete };
