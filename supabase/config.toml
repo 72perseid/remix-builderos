@@ -1,1 +1,10 @@
 project_id = "bsogscaipffwkjszicfc"
+
+[functions.chat-action]
+verify_jwt = false
+
+[functions.get-artifact]
+verify_jwt = false
+
+[functions.sync-user-from-xano]
+verify_jwt = false
