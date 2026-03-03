@@ -269,9 +269,11 @@ export default function CoachingPage() {
                       )}
                       <div className="space-y-3 flex-1">
                         <h3 className="text-lg font-bold text-white">{tier.label}</h3>
-                        {tier.originalPrice && (
-                          <p className="text-xs text-slate-500 line-through">${tier.originalPrice.toLocaleString()} USD</p>
-                        )}
+                        <div className="min-h-[18px]">
+                          {tier.originalPrice && (
+                            <p className="text-xs text-slate-500 line-through">${tier.originalPrice.toLocaleString()} USD</p>
+                          )}
+                        </div>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-3xl font-bold text-white">${tier.price.toLocaleString()}</span>
                           <span className="text-sm text-slate-400">USD</span>
