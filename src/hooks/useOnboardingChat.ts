@@ -232,14 +232,15 @@ export function useOnboardingChat(forceNew: boolean = false) {
         };
         setMessages((prev) => [...prev, assistantMessage]);
 
-        // Refetch completion after each exchange
-        if (!forcedNewAppRef.current) {
-          const latestState = await resolveWorkflowMode(user.id);
-          setWorkflowMode(latestState.workflowMode);
-          if (latestState.appIdeaId) {
-            setAppIdeaId(latestState.appIdeaId);
-            await fetchCompletion(latestState.appIdeaId);
-          }
+        // Always re-check workflow mode after each exchange
+        const latestState = await resolveWorkflowMode(user.id);
+        if (latestState.appIdeaId) {
+          // App idea exists — switch to onboarded mode
+          forcedNewAppRef.current = false;
+          setWorkflowMode('onboarded');
+          resolvedAppIdeaId = latestState.appIdeaId;
+          setAppIdeaId(latestState.appIdeaId);
+          await fetchCompletion(latestState.appIdeaId);
         }
 
         return { text: aiResponse, sessionComplete };
