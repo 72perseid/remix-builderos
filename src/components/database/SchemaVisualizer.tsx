@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
-import { Table2, KeyRound } from 'lucide-react';
+import { Table2, KeyRound, ZoomOut, ZoomIn, Maximize } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 /* ── Data types ── */
@@ -95,6 +96,11 @@ function fieldY(cardY: number, fieldIdx: number): number {
 export default function SchemaVisualizer({ tables, relationships }: SchemaVisualizerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Zoom state
+  const [zoom, setZoom] = useState(1);
+  const MIN_ZOOM = 0.3;
+  const MAX_ZOOM = 1.5;
+
   // Pan state (background drag)
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
@@ -155,7 +161,15 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
     return () => window.removeEventListener('mouseup', up);
   }, [isPanning, draggingCard]);
 
-  // Positions with offsets applied
+  const handleZoomIn = useCallback(() => {
+    setZoom(z => Math.min(z + 0.15, MAX_ZOOM));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom(z => Math.max(z - 0.15, MIN_ZOOM));
+  }, []);
+
+  // Positions with offsets applied (declared early for fitToScreen)
   const basePositions = useMemo(() => {
     const pos: { x: number; y: number; w: number; h: number }[] = [];
     const colBottoms = Array(COLS).fill(PAD);
@@ -169,6 +183,19 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
     });
     return pos;
   }, [tables]);
+
+  const handleFitToScreen = useCallback(() => {
+    if (!containerRef.current || basePositions.length === 0) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const contentW = PAD * 2 + COLS * CARD_W + (COLS - 1) * COL_GAP;
+    const contentH = Math.max(...basePositions.map(p => p.y + p.h)) + PAD;
+    const scaleX = rect.width / contentW;
+    const scaleY = rect.height / contentH;
+    const newZoom = Math.min(scaleX, scaleY, MAX_ZOOM) * 0.9;
+    setZoom(Math.max(newZoom, MIN_ZOOM));
+    setPan({ x: 0, y: 0 });
+    setCardOffsets({});
+  }, [basePositions]);
 
   // Final positions = base + user drag offsets
   const positions = useMemo(() => {
@@ -233,24 +260,39 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
       )}
       style={{
         height: 'calc(100dvh - 200px)',
-        backgroundImage: 'radial-gradient(circle, hsl(var(--muted-foreground) / 0.15) 1px, transparent 1px)',
+        backgroundImage: 'radial-gradient(circle, hsl(var(--muted-foreground) / 0.08) 1px, transparent 1px)',
         backgroundSize: '20px 20px',
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
+      {/* Zoom controls */}
+      <div className="absolute bottom-3 right-3 z-10 flex items-center gap-1 bg-card/80 backdrop-blur rounded-lg border border-border p-1">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomOut} title="Zoom out">
+          <ZoomOut className="w-3.5 h-3.5" />
+        </Button>
+        <span className="text-[10px] text-muted-foreground font-mono w-8 text-center">{Math.round(zoom * 100)}%</span>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleZoomIn} title="Zoom in">
+          <ZoomIn className="w-3.5 h-3.5" />
+        </Button>
+        <div className="w-px h-4 bg-border mx-0.5" />
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleFitToScreen} title="Fit to screen">
+          <Maximize className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
       {/* Hint */}
       <div className="absolute top-3 right-3 z-10 text-[10px] text-muted-foreground bg-card/80 backdrop-blur px-2 py-1 rounded border border-border pointer-events-none">
         Drag cards to rearrange · Drag background to pan
       </div>
 
       <div
-        className="relative"
+        className="relative origin-top-left"
         style={{
           width: canvasW,
           height: canvasH,
-          transform: `translate(${pan.x}px, ${pan.y}px)`,
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
           transition: isPanning || draggingCard !== null ? 'none' : 'transform 0.1s ease-out',
         }}
       >
