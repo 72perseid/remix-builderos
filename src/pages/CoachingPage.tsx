@@ -1,6 +1,7 @@
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import logoIcon from '@/assets/logo-icon.png';
 
 const plans = [
@@ -36,7 +37,7 @@ const plans = [
 
 export default function CoachingPage() {
   return (
-    <div className="h-dvh flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+    <div className="h-dvh flex flex-col overflow-hidden relative bg-gradient-to-br from-[#0a0d13] via-[#0d1a2e] to-[#0a0d13]">
       {/* Header */}
       <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
         <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
@@ -49,7 +50,13 @@ export default function CoachingPage() {
       {/* Pricing Cards */}
       <div className="relative z-10 flex-1 overflow-auto px-6 pb-6">
         <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-6">
-          {plans.map((plan) => (
+          {plans.map((plan, index) => (
+            <motion.div
+              key={plan.name}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeIn' }}
+            >
             <Card
               key={plan.name}
               className={`relative overflow-hidden rounded-2xl p-6 flex flex-col backdrop-blur-sm ${
@@ -96,6 +103,7 @@ export default function CoachingPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Card>
+            </motion.div>
           ))}
         </div>
       </div>
