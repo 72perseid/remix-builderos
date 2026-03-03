@@ -58,11 +58,10 @@ export default function CoachingPage() {
               transition={{ duration: 0.5, delay: index * 0.15, ease: 'easeIn' }}
             >
             <Card
-              key={plan.name}
-              className={`relative overflow-hidden rounded-2xl p-6 flex flex-col backdrop-blur-sm ${
+              className={`relative overflow-hidden rounded-2xl p-6 flex flex-col backdrop-blur-sm transition-shadow duration-300 ${
                 plan.highlighted
-                  ? 'bg-white/[0.06] border-primary/30'
-                  : 'bg-white/[0.04] border-white/10'
+                  ? 'bg-blue-500/[0.08] border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)]'
+                  : 'bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)]'
               }`}
             >
               {plan.highlighted && (
