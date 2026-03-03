@@ -146,10 +146,10 @@ export default function OnboardingPage() {
   };
 
   const performFinalTransition = async () => {
-    // Step 1: Wait 25 seconds for backend to finish writing to Supabase
-    await new Promise((resolve) => setTimeout(resolve, 25000));
+    // Step 1: Brief wait for backend to start writing to Supabase
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    console.log('25s wait complete, attempting data refresh...');
+    console.log('5s wait complete, attempting data refresh...');
 
     // Step 2: Try to refresh data, but don't block navigation
     try {
