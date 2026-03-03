@@ -110,7 +110,7 @@ export default function CoachingPage() {
     <div className="h-dvh flex flex-col overflow-hidden relative" style={{
       background: 'linear-gradient(135deg, #0a0d13, #0d1a2e, #0a0d13, #0d1a2e)',
       backgroundSize: '400% 400%',
-      animation: 'gradient-flow 12s ease infinite',
+      animation: 'gradient-flow 30s ease infinite',
     }}>
       <style>{`@keyframes gradient-flow { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }`}</style>
       {/* Header */}
