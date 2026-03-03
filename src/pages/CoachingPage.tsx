@@ -107,7 +107,17 @@ export default function CoachingPage() {
   const direction = view === 'plans' ? -1 : 1;
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden relative bg-gradient-to-br from-[#0a0d13] via-[#0d1a2e] to-[#0a0d13]">
+    <div className="h-dvh flex flex-col overflow-hidden relative">
+      {/* Rotating gradient background */}
+      <div
+        className="absolute inset-0 -m-[50%] w-[200%] h-[200%]"
+        style={{
+          background: 'conic-gradient(from 0deg at 50% 50%, #0a0d13, #0d1a2e, #0a0d13, #0d1a2e, #0a0d13)',
+          animation: 'spin-slow 20s linear infinite',
+        }}
+      />
+      <div className="absolute inset-0 bg-[#0a0d13]/40" />
+      <style>{`@keyframes spin-slow { to { transform: rotate(360deg); } }`}</style>
       {/* Header */}
       <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
         <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
