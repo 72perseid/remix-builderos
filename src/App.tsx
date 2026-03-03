@@ -19,6 +19,7 @@ import ProjectBoardPage from "./pages/ProjectBoardPage";
 import ValidationPage from "./pages/ValidationPage";
 import ProductBriefPage from "./pages/ProductBriefPage";
 import MasterPromptPage from "./pages/MasterPromptPage";
+import UIUXPage from "./pages/UIUXPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
 import CoachingPage from "./pages/CoachingPage";
 import NotFound from "./pages/NotFound";
@@ -75,6 +76,11 @@ const App = () => (
             <Route path="/product-brief" element={
               <ProtectedRoute>
                 <ProductBriefPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/ui-ux" element={
+              <ProtectedRoute>
+                <UIUXPage />
               </ProtectedRoute>
             } />
             <Route path="/master-prompt" element={
