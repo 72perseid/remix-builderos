@@ -312,6 +312,39 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          created_at: string
+          email: string
+          hours: number | null
+          id: string
+          message: string | null
+          name: string
+          package: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          hours?: number | null
+          id?: string
+          message?: string | null
+          name: string
+          package: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          hours?: number | null
+          id?: string
+          message?: string | null
+          name?: string
+          package?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           annual_stripe_price_id: string | null
