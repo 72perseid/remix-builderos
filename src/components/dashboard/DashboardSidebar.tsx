@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, PanelLeftClose, PanelLeft } from "lucide-react";
+import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,13 @@ import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
 const mainNavItems = [{
   title: "Build",
   url: "/project-board",
-  icon: LayoutDashboard
+  icon: LayoutDashboard,
+  routes: ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief', '/ui-ux'],
+}, {
+  title: "Expert Support",
+  url: "/coaching",
+  icon: Sparkles,
+  routes: ['/coaching'],
 }];
 
 export function DashboardSidebar() {
@@ -24,8 +30,7 @@ export function DashboardSidebar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
 
-  const buildRoutes = ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief'];
-  const isActive = (path: string) => buildRoutes.includes(location.pathname);
+  const isActive = (item: typeof mainNavItems[0]) => item.routes.includes(location.pathname);
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-[#0B0E14]" collapsible="icon">
@@ -57,7 +62,7 @@ export function DashboardSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={isActive(item.url)}
+                    isActive={isActive(item)}
                     className="rounded-full h-10 px-4 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
                   >
                     <Link to={item.url}>

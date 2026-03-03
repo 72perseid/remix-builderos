@@ -93,7 +93,11 @@ const App = () => (
                 <DashboardLayout><AppDetailsPage /></DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path="/coaching" element={<CoachingPage />} />
+            <Route path="/coaching" element={
+              <ProtectedRoute>
+                <DashboardLayout><CoachingPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
