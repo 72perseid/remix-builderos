@@ -40,6 +40,7 @@ export type Database = {
           user_demography: string | null
           user_id: string
           uv_completion: number
+          ux_completion: number
         }
         Insert: {
           app_category?: string | null
@@ -66,6 +67,7 @@ export type Database = {
           user_demography?: string | null
           user_id: string
           uv_completion?: number
+          ux_completion?: number
         }
         Update: {
           app_category?: string | null
@@ -92,6 +94,7 @@ export type Database = {
           user_demography?: string | null
           user_id?: string
           uv_completion?: number
+          ux_completion?: number
         }
         Relationships: []
       }
@@ -603,6 +606,7 @@ export type Database = {
         | "db_design"
         | "kanban"
         | "master_prompt"
+        | "ui_ux"
       build_feature:
         | "ai_tools"
         | "templates"
@@ -765,6 +769,7 @@ export const Constants = {
         "db_design",
         "kanban",
         "master_prompt",
+        "ui_ux",
       ],
       build_feature: [
         "ai_tools",

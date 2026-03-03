@@ -32,6 +32,12 @@ const artifactCards: ArtifactCardConfig[] = [{
   route: '/product-brief',
   category: 'planning'
 }, {
+  type: 'ui_ux',
+  title: 'UI/UX Design System',
+  description: 'Define your design system, color palette, typography, and component style guide.',
+  route: '/ui-ux',
+  category: 'planning'
+}, {
   type: 'db_design',
   title: 'Database Design',
   description: 'ERD diagram and table schema for your application data.',
@@ -50,6 +56,7 @@ const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launchin
   business_model: 'planning',
   validation: 'planning',
   product_brief: 'planning',
+  ui_ux: 'planning',
   db_design: 'building',
   kanban: 'building',
   master_prompt: 'building',
@@ -69,6 +76,7 @@ export function ArtifactsGrid() {
     business_model: selectedApp?.bm_completion ?? null,
     validation: selectedApp?.uv_completion ?? null,
     product_brief: selectedApp?.pb_completion ?? null,
+    ui_ux: (selectedApp as any)?.ux_completion ?? null,
   };
   const isOnboarded = profile?.onboarded === true;
 
@@ -85,7 +93,7 @@ export function ArtifactsGrid() {
       if (artifact?.status === 'generating') return 'loading';
       
       // Check if all prerequisites are met
-      const prerequisites = ['business_model', 'db_design', 'validation', 'product_brief'];
+      const prerequisites = ['business_model', 'db_design', 'validation', 'product_brief', 'ui_ux'];
       const allPrerequisitesMet = prerequisites.every(
         prereq => artifacts.some(a => a.type === prereq)
       );
