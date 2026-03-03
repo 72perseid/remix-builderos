@@ -1,40 +1,77 @@
 
 
-## Database Design Page: Visual Schema Diagram
+## BuilderOS Upsell Feature Plan
 
-Replace the current table-grid layout with an interactive, Supabase-style schema visualizer where each table is a draggable card showing its columns, and relationship lines connect related tables.
+### Overview
+Three features: (1) completion popup on onboarding finish, (2) progress indicators on artifact cards, (3) coach CTAs on output pages. All upsell links point to a placeholder URL (`/coaching`).
 
-### What Changes
+---
 
-**Replace `src/pages/DatabaseDesignPage.tsx`** -- Remove the grid of BusinessCard/UITable components and replace with a canvas-style layout:
+### Feature 1: Completion Popup
 
-1. **Table Nodes** -- Each table rendered as a styled card (dark background, rounded corners) with:
-   - Header bar with table name and icon
-   - Column list showing name, type, and a key icon for primary/foreign keys
-   - Styled similarly to Supabase's schema viewer (compact, monospace fonts)
+**Where**: `src/pages/OnboardingPage.tsx`
 
-2. **Relationship Lines** -- SVG lines drawn between table nodes based on the `relationships` data, with:
-   - Lines connecting the relevant tables
-   - Small labels or arrows indicating relationship type (1:1, 1:N, M:N)
+**What**: Replace the current redirect-on-completion behavior with a dismissable dialog that shows before redirecting to `/artifacts`.
 
-3. **Auto-layout** -- Tables positioned in a grid arrangement automatically (no dragging needed initially), spaced evenly across the canvas
+**How**:
+- When `isSessionComplete` fires, show a new `Dialog` instead of immediately starting the countdown/redirect
+- Dialog content:
+  - Headline: "Your idea is taking shape!"
+  - Body text about Business Model, User Validation, Product Scope being ready
+  - CTA button: "Let's Build This Together" linking to `/coaching`
+  - Dismiss/close button (X or "Continue" button)
+- On dismiss: proceed with the existing `performFinalTransition()` flow (which redirects to `/artifacts` instead of `/project-board`)
+- Update the redirect target from `/project-board` to `/artifacts`
 
-4. **Zoom/Pan Container** -- Wrap the entire schema in a scrollable container so large schemas are navigable
+---
 
-### New Component
+### Feature 2: Artifact Card Progress Indicators
 
-**`src/components/database/SchemaVisualizer.tsx`** -- A self-contained component that:
-- Accepts the `tables` and `relationships` arrays from the existing data
-- Computes positions for each table node in a grid
-- Renders table cards as absolutely-positioned divs
-- Draws SVG relationship lines between connected tables
-- Uses the existing dark theme styling
+**Where**: `src/components/dashboard/ArtifactsGrid.tsx` + `src/components/dashboard/ArtifactCard.tsx`
 
-### Technical Details
+**What**: Show completion percentage and status label on each planning artifact card (Business Model, Validation, Product Brief).
 
-- No new dependencies needed -- pure React + CSS + inline SVG for lines
-- Tables laid out in a responsive grid (3-4 columns), positions calculated from index
-- Relationship lines use SVG `<path>` elements with bezier curves between table edges
-- Both data formats (new `columns: string[]` and legacy `fields: []`) remain supported via existing parse utilities
-- The page header, empty state, and copilot panel remain unchanged
+**How**:
+- In `ArtifactsGrid`, fetch `bm_completion`, `uv_completion`, `pb_completion` from `app_ideas` table (using existing `selectedAppId` from `ProjectContext`) with a polling query
+- Map completion values to each card type: `business_model` -> `bm_completion`, `validation` -> `uv_completion`, `product_brief` -> `pb_completion`
+- Pass `completion` prop to `ArtifactCard`
+- In `ArtifactCard`, render a `Progress` bar with percentage when completion is between 0-99, and show "Complete - output generated" label at 100%. Below 100% show "Keep refining" label.
+
+---
+
+### Feature 3: Coach CTAs on Output Pages
+
+**Where**: Three pages get a subtle CTA banner:
+- `src/pages/ProjectBoardPage.tsx`: "Not sure how to prioritize this?" + "Talk to an Expert"
+- `src/pages/DatabaseDesignPage.tsx`: "Need help deploying this?" + "Talk to an Expert"
+- `src/pages/MasterPromptPage.tsx`: "Want someone to run this for you?" + "Talk to an Expert"
+
+**How**:
+- Create a reusable `CoachCTA` component (`src/components/dashboard/CoachCTA.tsx`) that accepts `message` and `ctaLabel` props
+- Renders a subtle, non-pushy banner with the message and a link/button to `/coaching`
+- Styled as a soft card with muted colors, not attention-grabbing
+- Add this component to the bottom of each output page's content area
+
+---
+
+### Placeholder Upsell Page
+
+**Where**: `src/pages/CoachingPage.tsx` + new route in `App.tsx`
+
+**What**: A minimal placeholder page at `/coaching` with a heading like "Expert Support Coming Soon" so the links don't 404. This page will later be replaced with the full funnel.
+
+---
+
+### Files to Create
+- `src/components/dashboard/CoachCTA.tsx` (reusable coach CTA component)
+- `src/pages/CoachingPage.tsx` (placeholder upsell page)
+
+### Files to Modify
+- `src/pages/OnboardingPage.tsx` (completion popup + redirect target change)
+- `src/components/dashboard/ArtifactsGrid.tsx` (fetch completion data, pass to cards)
+- `src/components/dashboard/ArtifactCard.tsx` (accept + render completion prop)
+- `src/pages/ProjectBoardPage.tsx` (add CoachCTA)
+- `src/pages/DatabaseDesignPage.tsx` (add CoachCTA)
+- `src/pages/MasterPromptPage.tsx` (add CoachCTA)
+- `src/App.tsx` (add `/coaching` route)
 
