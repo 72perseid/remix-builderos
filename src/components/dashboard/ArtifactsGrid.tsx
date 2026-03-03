@@ -12,6 +12,7 @@ interface ArtifactCardConfig {
   description: string;
   route: string;
   category: 'planning' | 'building' | 'launching';
+  comingSoon?: boolean;
 }
 const artifactCards: ArtifactCardConfig[] = [{
   type: 'business_model',
@@ -36,7 +37,8 @@ const artifactCards: ArtifactCardConfig[] = [{
   title: 'UI/UX Design System',
   description: 'Define your design system, color palette, typography, and component style guide.',
   route: '/ui-ux',
-  category: 'planning'
+  category: 'planning',
+  comingSoon: true,
 }, {
   type: 'db_design',
   title: 'Database Design',
@@ -140,14 +142,24 @@ export function ArtifactsGrid() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {planningCards.map(card => (
-              <ArtifactCard 
-                key={card.type} 
-                title={card.title} 
-                description={card.description} 
-                status={getCardStatus(card.type)} 
-                completion={completionMap[card.type]}
-                onClick={() => navigate(card.route)}
-              />
+              card.comingSoon ? (
+                <div key={card.type} className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 opacity-60 p-5 pt-10 min-h-[180px] flex flex-col">
+                  <div className="absolute top-3 right-3 bg-muted/50 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full">
+                    Coming Soon
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-400 mb-1.5 mt-auto">{card.title}</h3>
+                  <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
+                </div>
+              ) : (
+                <ArtifactCard 
+                  key={card.type} 
+                  title={card.title} 
+                  description={card.description} 
+                  status={getCardStatus(card.type)} 
+                  completion={completionMap[card.type]}
+                  onClick={() => navigate(card.route)}
+                />
+              )
             ))}
           </div>
         </div>
