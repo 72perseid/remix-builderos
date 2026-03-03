@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react';
-import { Table2, KeyRound, ZoomOut, ZoomIn, Maximize } from 'lucide-react';
+import { Table2, KeyRound, ZoomOut, ZoomIn, Maximize, Unplug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -197,6 +197,111 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
     setCardOffsets({});
   }, [basePositions]);
 
+  /** Untangle: layered graph layout (Sugiyama-style) to minimize edge crossings */
+  const handleUntangle = useCallback(() => {
+    if (tables.length === 0) return;
+    const nRels = relationships.map(normaliseRelationship);
+
+    // Build adjacency
+    const adj = new Map<number, Set<number>>();
+    const directed = new Map<number, Set<number>>();
+    tables.forEach((_, i) => { adj.set(i, new Set()); directed.set(i, new Set()); });
+
+    nRels.forEach(rel => {
+      const fromIdx = tables.findIndex(t => {
+        const ref = rel.from.includes('.') ? rel.from.split('.')[0] : rel.from;
+        return t.name.toLowerCase() === ref.toLowerCase();
+      });
+      const toIdx = tables.findIndex(t => {
+        const ref = rel.to.includes('.') ? rel.to.split('.')[0] : rel.to;
+        return t.name.toLowerCase() === ref.toLowerCase();
+      });
+      if (fromIdx >= 0 && toIdx >= 0 && fromIdx !== toIdx) {
+        adj.get(fromIdx)!.add(toIdx);
+        adj.get(toIdx)!.add(fromIdx);
+        directed.get(fromIdx)!.add(toIdx);
+      }
+    });
+
+    // BFS layering from roots
+    const inDegree = new Map<number, number>();
+    tables.forEach((_, i) => inDegree.set(i, 0));
+    directed.forEach((targets) => {
+      targets.forEach(t => inDegree.set(t, (inDegree.get(t) || 0) + 1));
+    });
+
+    const layers: number[][] = [];
+    const assigned = new Set<number>();
+    const queue: number[] = [];
+    tables.forEach((_, i) => { if (inDegree.get(i) === 0) queue.push(i); });
+    if (queue.length === 0) queue.push(0);
+
+    while (assigned.size < tables.length) {
+      const layer: number[] = [];
+      const nextQueue: number[] = [];
+
+      if (queue.length === 0) {
+        for (let i = 0; i < tables.length; i++) {
+          if (!assigned.has(i)) { queue.push(i); break; }
+        }
+      }
+
+      for (const node of queue) {
+        if (assigned.has(node)) continue;
+        assigned.add(node);
+        layer.push(node);
+      }
+
+      for (const node of layer) {
+        directed.get(node)?.forEach(child => {
+          if (!assigned.has(child)) nextQueue.push(child);
+        });
+        adj.get(node)?.forEach(neighbor => {
+          if (!assigned.has(neighbor)) nextQueue.push(neighbor);
+        });
+      }
+
+      if (layer.length > 0) layers.push(layer);
+      queue.length = 0;
+      const unique = [...new Set(nextQueue)];
+      queue.push(...unique);
+    }
+
+    // Barycenter ordering to reduce crossings
+    for (let pass = 0; pass < 3; pass++) {
+      for (let li = 1; li < layers.length; li++) {
+        const prevLayer = layers[li - 1];
+        layers[li].sort((a, b) => {
+          const nA = [...(adj.get(a) || [])].filter(n => prevLayer.includes(n));
+          const nB = [...(adj.get(b) || [])].filter(n => prevLayer.includes(n));
+          const bA = nA.length > 0 ? nA.reduce((s, n) => s + prevLayer.indexOf(n), 0) / nA.length : prevLayer.length / 2;
+          const bB = nB.length > 0 ? nB.reduce((s, n) => s + prevLayer.indexOf(n), 0) / nB.length : prevLayer.length / 2;
+          return bA - bB;
+        });
+      }
+    }
+
+    // Compute new offsets
+    const newOffsets: Record<number, { dx: number; dy: number }> = {};
+    const layerGap = CARD_W + COL_GAP;
+
+    layers.forEach((layer, li) => {
+      const totalHeight = layer.reduce((sum, idx) => sum + cardHeight(tables[idx]), 0) + (layer.length - 1) * ROW_GAP;
+      let currentY = PAD;
+
+      layer.forEach(idx => {
+        const basePos = basePositions[idx];
+        if (!basePos) return;
+        const targetX = PAD + li * layerGap;
+        const targetY = Math.max(PAD, currentY);
+        newOffsets[idx] = { dx: targetX - basePos.x, dy: targetY - basePos.y };
+        currentY = targetY + cardHeight(tables[idx]) + ROW_GAP;
+      });
+    });
+
+    setCardOffsets(newOffsets);
+  }, [tables, relationships, basePositions]);
+
   // Final positions = base + user drag offsets
   const positions = useMemo(() => {
     return basePositions.map((p, i) => {
@@ -279,6 +384,10 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
         <div className="w-px h-4 bg-border mx-0.5" />
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleFitToScreen} title="Fit to screen">
           <Maximize className="w-3.5 h-3.5" />
+        </Button>
+        <div className="w-px h-4 bg-border mx-0.5" />
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleUntangle} title="Untangle — minimize line crossings">
+          <Unplug className="w-3.5 h-3.5" />
         </Button>
       </div>
 
