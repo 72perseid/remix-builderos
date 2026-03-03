@@ -231,7 +231,11 @@ export default function SchemaVisualizer({ tables, relationships }: SchemaVisual
         "relative overflow-hidden rounded-xl border border-border bg-background/50",
         draggingCard !== null ? "cursor-grabbing" : isPanning ? "cursor-grabbing" : "cursor-grab"
       )}
-      style={{ height: 'calc(100dvh - 200px)' }}
+      style={{
+        height: 'calc(100dvh - 200px)',
+        backgroundImage: 'radial-gradient(circle, hsl(var(--muted-foreground) / 0.15) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+      }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
