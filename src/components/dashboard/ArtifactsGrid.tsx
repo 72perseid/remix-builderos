@@ -177,7 +177,7 @@ export function ArtifactsGrid() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               { title: 'Landing Copy', description: 'Generate compelling landing page copy for your product.' },
-              { title: 'Social Content', description: 'Create scroll-stopping Instagram content for your brand.' },
+              { title: 'Social Content', description: 'Instagram content aligned with your brand.' },
               { title: 'Paywall Prompts', description: 'Craft high-converting paywall prompts for subscriptions.' },
             ].map((card) => (
               <div key={card.title} className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 opacity-60 p-5 pt-10 min-h-[180px] flex flex-col">
