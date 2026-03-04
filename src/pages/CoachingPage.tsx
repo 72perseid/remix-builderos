@@ -158,10 +158,10 @@ export default function CoachingPage() {
                 className="lg:col-span-2"
               >
                 <Card
-                  className="relative overflow-hidden rounded-2xl p-7 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
+                  className="relative overflow-hidden rounded-2xl p-8 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
                   onClick={handleSelectSupportPack}
                 >
-                  <div className="space-y-5 flex-1">
+                  <div className="space-y-6 flex-1">
                     <div>
                       <h2 className="text-2xl font-extrabold text-white tracking-tight">Support Pack</h2>
                       <p className="text-sm text-blue-400 font-medium mt-1">Guided help when you need it</p>
@@ -229,7 +229,7 @@ export default function CoachingPage() {
 
                   <div className="flex flex-col sm:flex-row gap-6 md:gap-8 flex-1">
                     {/* Content */}
-                    <div className="space-y-5 flex-1">
+                    <div className="space-y-6 flex-1">
                       <div>
                         <h2 className="text-2xl font-extrabold text-white tracking-tight">Done For You</h2>
                         <p className="text-sm text-blue-400 font-medium mt-1">We build it with you</p>
