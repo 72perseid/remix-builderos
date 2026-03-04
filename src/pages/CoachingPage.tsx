@@ -186,7 +186,7 @@ export default function CoachingPage() {
                         <SelectContent>
                           {pricingTiers.map((tier, i) => (
                             <SelectItem key={tier.hours} value={String(i)}>
-                              {tier.label} — {tier.displayPrice}{tier.discount ? ` (${tier.discount})` : ''}
+                              {tier.label}{tier.discount ? ` (${tier.discount})` : ''}
                             </SelectItem>
                           ))}
                         </SelectContent>
