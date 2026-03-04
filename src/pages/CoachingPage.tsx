@@ -235,11 +235,15 @@ export default function CoachingPage() {
                         <p className="text-sm text-blue-400 font-medium mt-1">We build it with you</p>
                       </div>
 
-                      {/* Price */}
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xs font-medium text-slate-400">From</span>
-                        <span className="text-4xl font-extrabold text-white">$10k</span>
-                        <span className="text-sm text-slate-400">USD</span>
+                      {/* Price + spacer to align with Support Pack's dropdown area */}
+                      <div className="space-y-3">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xs font-medium text-slate-400">From</span>
+                          <span className="text-4xl font-extrabold text-white">$10k</span>
+                          <span className="text-sm text-slate-400">USD</span>
+                        </div>
+                        {/* Spacer matching strikethrough + dropdown height */}
+                        <div className="h-[calc(18px+36px+12px)]" />
                       </div>
 
                       <p className="text-xs text-slate-400 leading-relaxed">
