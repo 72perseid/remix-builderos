@@ -148,14 +148,14 @@ export default function CoachingPage() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.35, ease: 'easeInOut' }}
-              className="max-w-4xl mx-auto flex flex-col-reverse md:grid md:grid-cols-5 gap-6"
+              className="max-w-4xl mx-auto flex flex-col-reverse lg:grid lg:grid-cols-5 gap-6"
             >
               {/* Support Pack — 2 cols */}
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: 'easeIn' }}
-                className="md:col-span-2"
+                className="lg:col-span-2"
               >
                 <Card
                   className="relative overflow-hidden rounded-2xl p-7 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
@@ -218,7 +218,7 @@ export default function CoachingPage() {
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.15, ease: 'easeIn' }}
-                className="md:col-span-3"
+                className="lg:col-span-3"
               >
                 <Card
                   className="relative overflow-hidden rounded-2xl p-8 flex flex-col backdrop-blur-sm transition-shadow duration-300 bg-blue-500/[0.08] border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)] h-full"
