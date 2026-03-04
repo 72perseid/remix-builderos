@@ -68,7 +68,7 @@ export default function CoachingPage() {
 
       {/* Back button */}
       {view !== 'plans' && (
-        <div className="relative z-10 px-6 mb-2">
+        <div className="relative z-10 px-6 pt-6 mb-2">
           <button
             onClick={handleBack}
             className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
@@ -208,7 +208,7 @@ export default function CoachingPage() {
 
                   <Button
                     className="mt-8 w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => window.open('https://calendly.com', '_blank')}
+                    onClick={() => setView('form')}
                   >
                     Talk to Us
                     <ArrowRight className="h-4 w-4" />
