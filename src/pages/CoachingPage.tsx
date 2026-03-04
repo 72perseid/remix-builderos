@@ -161,7 +161,7 @@ export default function CoachingPage() {
                   className="relative overflow-hidden rounded-2xl p-8 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
                   onClick={handleSelectSupportPack}
                 >
-                  <div className="space-y-6 flex-1">
+                  <div className="space-y-7 flex-1">
                     <div>
                       <h2 className="text-2xl font-extrabold text-white tracking-tight">Support Pack</h2>
                       <p className="text-sm text-blue-400 font-medium mt-1">Guided help when you need it</p>
@@ -176,23 +176,7 @@ export default function CoachingPage() {
                       {selectedTier.originalPrice && (
                         <p className="text-xs text-slate-500 line-through -mt-1">{selectedTier.originalPrice} USD</p>
                       )}
-                      <Select
-                        value={String(selectedTierIndex)}
-                        onValueChange={(val) => setSelectedTierIndex(Number(val))}
-                      >
-                        <SelectTrigger className="w-full bg-white/5 border-white/10 text-white text-sm h-9">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {pricingTiers.map((tier, i) => (
-                            <SelectItem key={tier.hours} value={String(i)}>
-                              {tier.label}{tier.discount ? ` (${tier.discount})` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
-
 
                     <ul className="space-y-3">
                       {supportFeatures.map(f => (
@@ -203,10 +187,29 @@ export default function CoachingPage() {
                       ))}
                     </ul>
                   </div>
-                  <Button className="mt-8 w-full gap-2 bg-white/10 hover:bg-white/15 text-white">
-                    Get Support
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+
+                  {/* Dropdown + Button pinned to bottom */}
+                  <div className="mt-6 space-y-3">
+                    <Select
+                      value={String(selectedTierIndex)}
+                      onValueChange={(val) => setSelectedTierIndex(Number(val))}
+                    >
+                      <SelectTrigger className="w-full bg-white/5 border-white/10 text-white text-sm h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pricingTiers.map((tier, i) => (
+                          <SelectItem key={tier.hours} value={String(i)}>
+                            {tier.label}{tier.discount ? ` (${tier.discount})` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button className="w-full gap-2 bg-white/10 hover:bg-white/15 text-white">
+                      Get Support
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </Card>
               </motion.div>
 
@@ -226,7 +229,7 @@ export default function CoachingPage() {
 
                   <div className="flex flex-col sm:flex-row gap-6 md:gap-8 flex-1">
                     {/* Content */}
-                    <div className="space-y-6 flex-1">
+                    <div className="space-y-7 flex-1">
                       <div>
                         <h2 className="text-2xl font-extrabold text-white tracking-tight">Done For You</h2>
                         <p className="text-sm text-blue-400 font-medium mt-1">We build it with you</p>
