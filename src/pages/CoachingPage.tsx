@@ -30,9 +30,9 @@ const dfyFeatures = [
 ];
 
 const pricingTiers = [
-  { hours: 10, price: 1000, originalPrice: null, label: '10 Hours', perHour: 100, discount: null },
-  { hours: 20, price: 1800, originalPrice: 2000, label: '20 Hours', perHour: 90, discount: '10% off' },
-  { hours: 40, price: 3600, originalPrice: 4000, label: '40 Hours', perHour: 90, discount: '10% off' },
+  { hours: 10, price: 1000, displayPrice: '$1K', originalPrice: null, label: '10 Hours', perHour: 100, discount: null },
+  { hours: 20, price: 1800, displayPrice: '$1.8K', originalPrice: '$2K', label: '20 Hours', perHour: 90, discount: '10% off' },
+  { hours: 40, price: 3600, displayPrice: '$3.6K', originalPrice: '$4K', label: '40 Hours', perHour: 90, discount: '10% off' },
 ];
 
 type View = 'plans' | 'form';
@@ -170,11 +170,11 @@ export default function CoachingPage() {
                     {/* Inline pricing */}
                     <div className="space-y-3">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-extrabold text-white">${selectedTier.price.toLocaleString()}</span>
+                        <span className="text-4xl font-extrabold text-white">{selectedTier.displayPrice}</span>
                         <span className="text-sm text-slate-400">USD</span>
                       </div>
                       {selectedTier.originalPrice && (
-                        <p className="text-xs text-slate-500 line-through -mt-1">${selectedTier.originalPrice.toLocaleString()} USD</p>
+                        <p className="text-xs text-slate-500 line-through -mt-1">{selectedTier.originalPrice} USD</p>
                       )}
                       <Select
                         value={String(selectedTierIndex)}
@@ -186,7 +186,7 @@ export default function CoachingPage() {
                         <SelectContent>
                           {pricingTiers.map((tier, i) => (
                             <SelectItem key={tier.hours} value={String(i)}>
-                              {tier.label} — ${tier.price.toLocaleString()}{tier.discount ? ` (${tier.discount})` : ''}
+                              {tier.label} — {tier.displayPrice}{tier.discount ? ` (${tier.discount})` : ''}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -291,7 +291,7 @@ export default function CoachingPage() {
               <Card className="rounded-2xl p-6 bg-white/[0.04] border-white/10 backdrop-blur-sm">
                 <h2 className="text-xl font-extrabold text-white mb-1">Almost there!</h2>
                 <p className="text-sm text-slate-400 mb-5">
-                  You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — ${selectedTier?.price.toLocaleString()} USD. Fill in your details and we'll reach out.
+                  You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — {selectedTier?.displayPrice} USD. Fill in your details and we'll reach out.
                 </p>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-1.5">
