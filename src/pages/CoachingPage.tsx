@@ -257,7 +257,7 @@ export default function CoachingPage() {
                     </div>
 
                     {/* Logo area — right on desktop/tablet, below on mobile */}
-                    <div className="flex items-start justify-center shrink-0 order-2 sm:order-last">
+                    <div className="flex items-end justify-center shrink-0 order-2 sm:order-last">
                       <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-[180px] md:h-[180px] rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-4 sm:p-5">
                         <img src={logoIcon} alt="Ambitious Labs" className="w-full h-full object-contain" />
                       </div>
