@@ -1,16 +1,9 @@
 import { useState } from 'react';
-import { CheckCircle2, ArrowRight, ArrowLeft, Loader2, ChevronDown } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import { z } from 'zod';
 import logoIcon from '@/assets/logo-icon.png';
 
 const supportFeatures = [
@@ -37,65 +30,14 @@ const pricingTiers = [
 
 type View = 'plans' | 'form';
 
-const leadSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100),
-  email: z.string().trim().email('Please enter a valid email').max(255),
-  message: z.string().trim().max(1000).optional(),
-});
-
 export default function CoachingPage() {
-  const { user } = useAuth();
   const [view, setView] = useState<View>('plans');
-  const [selectedTierIndex, setSelectedTierIndex] = useState(1); // default to 20 hours
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState(user?.email || '');
-  const [message, setMessage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedTierIndex, setSelectedTierIndex] = useState(1);
 
   const selectedTier = pricingTiers[selectedTierIndex];
 
-  const handleSelectSupportPack = () => {
-    setView('form');
-  };
-
-  const handleBack = () => {
-    setView('plans');
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const result = leadSchema.safeParse({ name, email, message: message || undefined });
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.errors.forEach(err => {
-        fieldErrors[err.path[0] as string] = err.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-    setErrors({});
-    setSubmitting(true);
-
-    const { error } = await supabase.from('leads' as any).insert({
-      user_id: user?.id,
-      name: result.data.name,
-      email: result.data.email,
-      package: 'support_pack',
-      hours: selectedTier?.hours,
-      message: result.data.message || null,
-    } as any);
-
-    setSubmitting(false);
-    if (error) {
-      toast.error('Something went wrong. Please try again.');
-    } else {
-      toast.success("We've received your request! We'll be in touch soon.");
-      setView('plans');
-      setName('');
-      setMessage('');
-    }
-  };
+  const handleSelectSupportPack = () => setView('form');
+  const handleBack = () => setView('plans');
 
   const slideVariants = {
     enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
@@ -112,7 +54,7 @@ export default function CoachingPage() {
       animation: 'gradient-flow 30s ease infinite',
     }}>
       <style>{`@keyframes gradient-flow { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }`}</style>
-      
+
       {/* Header */}
       <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
         <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
@@ -274,7 +216,7 @@ export default function CoachingPage() {
             </motion.div>
           )}
 
-          {/* ── Lead form view ── */}
+          {/* ── Calendly booking view ── */}
           {view === 'form' && (
             <motion.div
               key="form"
@@ -284,64 +226,22 @@ export default function CoachingPage() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.35, ease: 'easeInOut' }}
-              className="max-w-md mx-auto"
+              className="max-w-2xl mx-auto w-full"
             >
-              <Card className="rounded-2xl p-6 bg-white/[0.04] border-white/10 backdrop-blur-sm">
-                <h2 className="text-xl font-extrabold text-white mb-1">Almost there!</h2>
-                <p className="text-sm text-slate-400 mb-5">
-                  You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — {selectedTier?.displayPrice} USD. Fill in your details and we'll reach out.
-                </p>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="lead-name" className="text-slate-400 text-sm">Name</Label>
-                    <Input
-                      id="lead-name"
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      placeholder="Your name"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500"
-                      disabled={submitting}
-                    />
-                    {errors.name && <p className="text-xs text-red-400">{errors.name}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="lead-email" className="text-slate-400 text-sm">Email</Label>
-                    <Input
-                      id="lead-email"
-                      type="email"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500"
-                      disabled={submitting}
-                    />
-                    {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="lead-message" className="text-slate-400 text-sm">Message (optional)</Label>
-                    <Textarea
-                      id="lead-message"
-                      value={message}
-                      onChange={e => setMessage(e.target.value)}
-                      placeholder="Tell us about your project..."
-                      rows={3}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-blue-500 resize-none"
-                      disabled={submitting}
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white gap-2"
-                    disabled={submitting}
-                  >
-                    {submitting ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Submitting...</>
-                    ) : (
-                      <>Submit Request <ArrowRight className="h-4 w-4" /></>
-                    )}
-                  </Button>
-                </form>
-              </Card>
+              <h2 className="text-xl font-extrabold text-white mb-1 text-center">Book a Call</h2>
+              <p className="text-sm text-slate-400 mb-5 text-center">
+                You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — {selectedTier?.displayPrice} USD
+              </p>
+              <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02]">
+                <iframe
+                  src="https://calendly.com/ambitious-labs-private-coaching/tugce-private-technical-coaching"
+                  width="100%"
+                  height="650"
+                  frameBorder="0"
+                  className="w-full"
+                  title="Book a call"
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
