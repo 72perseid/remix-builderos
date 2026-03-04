@@ -241,6 +241,8 @@ export default function CoachingPage() {
                         <span className="text-4xl font-extrabold text-white">$10k</span>
                         <span className="text-sm text-slate-400">USD</span>
                       </div>
+                      {/* Spacer to align with Support Pack strikethrough when discounted tier selected */}
+                      {selectedTier.originalPrice && <div className="h-[18px]" />}
 
                       <ul className="space-y-3">
                         {dfyFeatures.map(f => (
