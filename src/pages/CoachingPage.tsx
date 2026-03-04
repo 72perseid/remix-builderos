@@ -55,14 +55,16 @@ export default function CoachingPage() {
     }}>
       <style>{`@keyframes gradient-flow { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }`}</style>
 
-      {/* Header */}
-      <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
-        <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Expert Support</h1>
-        <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
-          Whether you need guidance or a full build partner, we've got you covered.
-        </p>
-      </div>
+      {/* Header — hidden on booking view */}
+      {view === 'plans' && (
+        <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
+          <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">Expert Support</h1>
+          <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
+            Whether you need guidance or a full build partner, we've got you covered.
+          </p>
+        </div>
+      )}
 
       {/* Back button */}
       {view !== 'plans' && (
