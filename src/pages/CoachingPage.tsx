@@ -193,13 +193,13 @@ export default function CoachingPage() {
                       </Select>
                     </div>
 
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                    <p className="text-xs text-slate-400 leading-relaxed">
                       Get expert guidance to accelerate your build. Includes async reviews, technical Q&A, hourly building help and strategic advice.
                     </p>
 
                     <ul className="space-y-3">
                       {supportFeatures.map(f => (
-                        <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
+                        <li key={f} className="flex items-start gap-2.5 text-xs text-slate-200">
                           <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
                           <span>{f}</span>
                         </li>
@@ -249,13 +249,13 @@ export default function CoachingPage() {
                         <span className="text-sm text-slate-400">USD</span>
                       </div>
 
-                      <p className="text-sm text-slate-400 leading-relaxed">
+                      <p className="text-xs text-slate-400 leading-relaxed">
                         Hand off the heavy lifting. Our team takes your validated idea and builds it end-to-end alongside you.
                       </p>
 
                       <ul className="space-y-3">
                         {dfyFeatures.map(f => (
-                          <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
+                          <li key={f} className="flex items-start gap-2.5 text-xs text-slate-200">
                             <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
                             <span>{f}</span>
                           </li>
