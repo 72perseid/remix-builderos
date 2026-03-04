@@ -228,15 +228,8 @@ export default function CoachingPage() {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-6 md:gap-8 flex-1">
-                    {/* Logo area — left on desktop/tablet, below content on mobile */}
-                    <div className="flex items-start justify-center shrink-0 order-2 sm:order-first">
-                      <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-[180px] md:h-[180px] rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-4 sm:p-5">
-                        <img src={logoIcon} alt="Ambitious Labs" className="w-full h-full object-contain" />
-                      </div>
-                    </div>
-
                     {/* Content */}
-                    <div className="space-y-5 flex-1 order-1 sm:order-last">
+                    <div className="space-y-5 flex-1">
                       <div>
                         <h2 className="text-2xl font-extrabold text-white tracking-tight">Done For You</h2>
                         <p className="text-sm text-blue-400 font-medium mt-1">We build it with you</p>
@@ -261,6 +254,13 @@ export default function CoachingPage() {
                           </li>
                         ))}
                       </ul>
+                    </div>
+
+                    {/* Logo area — right on desktop/tablet, below on mobile */}
+                    <div className="flex items-start justify-center shrink-0 order-2 sm:order-last">
+                      <div className="w-24 h-24 sm:w-36 sm:h-36 md:w-[180px] md:h-[180px] rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-4 sm:p-5">
+                        <img src={logoIcon} alt="Ambitious Labs" className="w-full h-full object-contain" />
+                      </div>
                     </div>
                   </div>
 
