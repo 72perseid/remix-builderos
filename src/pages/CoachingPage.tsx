@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { CheckCircle2, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { CheckCircle2, ArrowRight, ArrowLeft, Loader2, ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,12 +30,12 @@ const dfyFeatures = [
 ];
 
 const pricingTiers = [
-  { hours: 10, price: 1000, originalPrice: null, label: '10 Hours', perHour: 100, discount: null, badge: 'Starter', popular: false },
-  { hours: 20, price: 1800, originalPrice: 2000, label: '20 Hours', perHour: 90, discount: '10% off', badge: null, popular: true },
-  { hours: 40, price: 3600, originalPrice: 4000, label: '40 Hours', perHour: 90, discount: '10% off', badge: null, popular: false },
+  { hours: 10, price: 1000, originalPrice: null, label: '10 Hours', perHour: 100, discount: null },
+  { hours: 20, price: 1800, originalPrice: 2000, label: '20 Hours', perHour: 90, discount: '10% off' },
+  { hours: 40, price: 3600, originalPrice: 4000, label: '40 Hours', perHour: 90, discount: '10% off' },
 ];
 
-type View = 'plans' | 'pricing' | 'form';
+type View = 'plans' | 'form';
 
 const leadSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100),
@@ -45,21 +46,21 @@ const leadSchema = z.object({
 export default function CoachingPage() {
   const { user } = useAuth();
   const [view, setView] = useState<View>('plans');
-  const [selectedTier, setSelectedTier] = useState<typeof pricingTiers[0] | null>(null);
+  const [selectedTierIndex, setSelectedTierIndex] = useState(1); // default to 20 hours
   const [name, setName] = useState('');
   const [email, setEmail] = useState(user?.email || '');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleSelectSupportPack = () => setView('pricing');
-  const handleSelectTier = (tier: typeof pricingTiers[0]) => {
-    setSelectedTier(tier);
+  const selectedTier = pricingTiers[selectedTierIndex];
+
+  const handleSelectSupportPack = () => {
     setView('form');
   };
+
   const handleBack = () => {
-    if (view === 'form') setView('pricing');
-    else if (view === 'pricing') setView('plans');
+    setView('plans');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,11 +94,9 @@ export default function CoachingPage() {
       setView('plans');
       setName('');
       setMessage('');
-      setSelectedTier(null);
     }
   };
 
-  // Slide direction
   const slideVariants = {
     enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
     center: { x: 0, opacity: 1 },
@@ -113,10 +112,11 @@ export default function CoachingPage() {
       animation: 'gradient-flow 30s ease infinite',
     }}>
       <style>{`@keyframes gradient-flow { 0% { background-position: 0% 0%; } 50% { background-position: 100% 100%; } 100% { background-position: 0% 0%; } }`}</style>
+      
       {/* Header */}
       <div className="relative z-10 px-6 py-10 text-center space-y-3 shrink-0">
         <img src={logoIcon} alt="Ambitious Labs" className="w-14 h-14 mx-auto" />
-        <h1 className="text-2xl font-bold text-white">Expert Support</h1>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">Expert Support</h1>
         <p className="text-slate-400 max-w-md mx-auto leading-relaxed">
           Whether you need guidance or a full build partner, we've got you covered.
         </p>
@@ -148,27 +148,56 @@ export default function CoachingPage() {
               animate="center"
               exit="exit"
               transition={{ duration: 0.35, ease: 'easeInOut' }}
-              className="max-w-3xl mx-auto grid md:grid-cols-2 gap-6"
+              className="max-w-4xl mx-auto grid md:grid-cols-5 gap-6"
             >
-              {/* Support Pack */}
+              {/* Support Pack — 2 cols */}
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: 'easeIn' }}
+                className="md:col-span-2"
               >
                 <Card
-                  className="relative overflow-hidden rounded-2xl p-6 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
+                  className="relative overflow-hidden rounded-2xl p-7 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
                   onClick={handleSelectSupportPack}
                 >
-                  <div className="space-y-4 flex-1">
+                  <div className="space-y-5 flex-1">
                     <div>
-                      <h2 className="text-xl font-bold text-white">Support Pack</h2>
-                      <p className="text-sm text-blue-400 font-medium mt-0.5">Guided help when you need it</p>
+                      <h2 className="text-2xl font-extrabold text-white tracking-tight">Support Pack</h2>
+                      <p className="text-sm text-blue-400 font-medium mt-1">Guided help when you need it</p>
                     </div>
+
+                    {/* Inline pricing */}
+                    <div className="space-y-3">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-extrabold text-white">${selectedTier.price.toLocaleString()}</span>
+                        <span className="text-sm text-slate-400">USD</span>
+                      </div>
+                      {selectedTier.originalPrice && (
+                        <p className="text-xs text-slate-500 line-through -mt-1">${selectedTier.originalPrice.toLocaleString()} USD</p>
+                      )}
+                      <Select
+                        value={String(selectedTierIndex)}
+                        onValueChange={(val) => setSelectedTierIndex(Number(val))}
+                      >
+                        <SelectTrigger className="w-full bg-white/5 border-white/10 text-white text-sm h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {pricingTiers.map((tier, i) => (
+                            <SelectItem key={tier.hours} value={String(i)}>
+                              {tier.label} — ${tier.price.toLocaleString()}{tier.discount ? ` (${tier.discount})` : ''}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <p className="text-sm text-slate-400 leading-relaxed">
                       Get expert guidance to accelerate your build. Includes async reviews, technical Q&A, hourly building help and strategic advice.
                     </p>
-                    <ul className="space-y-2.5">
+
+                    <ul className="space-y-3">
                       {supportFeatures.map(f => (
                         <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
                           <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
@@ -177,44 +206,65 @@ export default function CoachingPage() {
                       ))}
                     </ul>
                   </div>
-                  <Button className="mt-6 w-full gap-2 bg-white/10 hover:bg-white/15 text-white">
+                  <Button className="mt-8 w-full gap-2 bg-white/10 hover:bg-white/15 text-white">
                     Get Support
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Card>
               </motion.div>
 
-              {/* Done For You */}
+              {/* Done For You — 3 cols */}
               <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.15, ease: 'easeIn' }}
+                className="md:col-span-3"
               >
                 <Card
-                  className="relative overflow-hidden rounded-2xl p-6 flex flex-col backdrop-blur-sm transition-shadow duration-300 bg-blue-500/[0.08] border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)] h-full"
+                  className="relative overflow-hidden rounded-2xl p-8 flex flex-col backdrop-blur-sm transition-shadow duration-300 bg-blue-500/[0.08] border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)] h-full"
                 >
                   <div className="absolute top-3 right-3 bg-primary/20 text-primary text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
                     Popular
                   </div>
-                  <div className="space-y-4 flex-1">
-                    <div>
-                      <h2 className="text-xl font-bold text-white">Done For You</h2>
-                      <p className="text-sm text-blue-400 font-medium mt-0.5">We build it with you</p>
+
+                  <div className="flex flex-col md:flex-row gap-8 flex-1">
+                    {/* Logo area */}
+                    <div className="flex items-center justify-center shrink-0">
+                      <div className="w-[200px] h-[200px] rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-6">
+                        <img src={logoIcon} alt="Ambitious Labs" className="w-full h-full object-contain" />
+                      </div>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
-                      Hand off the heavy lifting. Our team takes your validated idea and builds it end-to-end alongside you.
-                    </p>
-                    <ul className="space-y-2.5">
-                      {dfyFeatures.map(f => (
-                        <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
-                          <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
+
+                    {/* Content */}
+                    <div className="space-y-5 flex-1">
+                      <div>
+                        <h2 className="text-2xl font-extrabold text-white tracking-tight">Done For You</h2>
+                        <p className="text-sm text-blue-400 font-medium mt-1">We build it with you</p>
+                      </div>
+
+                      {/* Price */}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-extrabold text-white">From $10k</span>
+                        <span className="text-sm text-slate-400">USD</span>
+                      </div>
+
+                      <p className="text-sm text-slate-400 leading-relaxed">
+                        Hand off the heavy lifting. Our team takes your validated idea and builds it end-to-end alongside you.
+                      </p>
+
+                      <ul className="space-y-3">
+                        {dfyFeatures.map(f => (
+                          <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
+                            <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
+                            <span>{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
+
                   <Button
-                    className="mt-6 w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                    className="mt-8 w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
                     onClick={() => window.open('https://calendly.com', '_blank')}
                   >
                     Talk to Us
@@ -222,94 +272,6 @@ export default function CoachingPage() {
                   </Button>
                 </Card>
               </motion.div>
-            </motion.div>
-          )}
-
-          {/* ── Pricing tiers view ── */}
-          {view === 'pricing' && (
-            <motion.div
-              key="pricing"
-              custom={direction}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.35, ease: 'easeInOut' }}
-              className="max-w-4xl mx-auto"
-            >
-              <h2 className="text-lg font-semibold text-white text-center mb-6">Choose your Support Pack</h2>
-              <div className="grid sm:grid-cols-3 gap-5">
-                {pricingTiers.map((tier, i) => (
-                  <motion.div
-                    key={tier.hours}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4, delay: i * 0.1, ease: 'easeIn' }}
-                  >
-                    <Card
-                      onClick={() => handleSelectTier(tier)}
-                      className={`relative overflow-hidden rounded-2xl p-6 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer h-full ${
-                        tier.popular
-                          ? 'bg-blue-500/[0.08] border-blue-400/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:shadow-[0_0_35px_rgba(59,130,246,0.3)]'
-                          : 'bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)]'
-                      }`}
-                    >
-                      {/* Badge area — always takes space for alignment */}
-                      <div className="flex items-center gap-2 mb-1 min-h-[22px]">
-                        {tier.discount && (
-                          <span className="inline-block text-xs font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
-                            {tier.discount}
-                          </span>
-                        )}
-                        {tier.badge && (
-                          <span className="inline-block text-xs font-medium text-slate-300 bg-slate-500/15 px-2 py-0.5 rounded-full">
-                            {tier.badge}
-                          </span>
-                        )}
-                      </div>
-                      {tier.popular && (
-                        <div className="absolute top-3 right-3 bg-primary/20 text-primary text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full">
-                          Popular
-                        </div>
-                      )}
-                      <div className="space-y-3 flex-1">
-                        <h3 className="text-lg font-bold text-white">{tier.label}</h3>
-                        <div className="min-h-[18px]">
-                          {tier.originalPrice && (
-                            <p className="text-xs text-slate-500 line-through">${tier.originalPrice.toLocaleString()} USD</p>
-                          )}
-                        </div>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-3xl font-bold text-white">${tier.price.toLocaleString()}</span>
-                          <span className="text-sm text-slate-400">USD</span>
-                        </div>
-                      </div>
-                      <Button
-                        className={`mt-5 w-full gap-2 ${
-                          tier.popular
-                            ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                            : 'bg-white/10 hover:bg-white/15 text-white'
-                        }`}
-                      >
-                        Select
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* DFY upsell CTA */}
-              <div className="mt-8 flex items-center justify-between gap-4 px-5 py-4 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
-                <p className="text-sm text-slate-400">Need us to handle everything? Let our team build it for you end-to-end.</p>
-                <button
-                  onClick={() => setView('plans')}
-                  className="shrink-0 inline-flex items-center gap-1.5 text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  Done For You
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </motion.div>
           )}
 
@@ -326,7 +288,7 @@ export default function CoachingPage() {
               className="max-w-md mx-auto"
             >
               <Card className="rounded-2xl p-6 bg-white/[0.04] border-white/10 backdrop-blur-sm">
-                <h2 className="text-lg font-bold text-white mb-1">Almost there!</h2>
+                <h2 className="text-xl font-extrabold text-white mb-1">Almost there!</h2>
                 <p className="text-sm text-slate-400 mb-5">
                   You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — ${selectedTier?.price.toLocaleString()} USD. Fill in your details and we'll reach out.
                 </p>
