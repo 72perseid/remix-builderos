@@ -199,7 +199,7 @@ export default function CoachingPage() {
 
                     <ul className="space-y-3">
                       {supportFeatures.map(f => (
-                        <li key={f} className="flex items-start gap-2.5 text-xs text-slate-200">
+                        <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
                           <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
                           <span>{f}</span>
                         </li>
@@ -244,7 +244,7 @@ export default function CoachingPage() {
 
                       {/* Price */}
                       <div className="flex items-baseline gap-1.5">
-                        <span className="text-sm font-medium text-slate-400">From</span>
+                        <span className="text-xs font-medium text-slate-400">From</span>
                         <span className="text-4xl font-extrabold text-white">$10k</span>
                         <span className="text-sm text-slate-400">USD</span>
                       </div>
@@ -255,7 +255,7 @@ export default function CoachingPage() {
 
                       <ul className="space-y-3">
                         {dfyFeatures.map(f => (
-                          <li key={f} className="flex items-start gap-2.5 text-xs text-slate-200">
+                          <li key={f} className="flex items-start gap-2.5 text-sm text-slate-200">
                             <CheckCircle2 className="h-4 w-4 text-green-400 mt-0.5 shrink-0" />
                             <span>{f}</span>
                           </li>
