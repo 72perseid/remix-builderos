@@ -40,6 +40,7 @@ export default function OnboardingPage() {
 
   const { user } = useAuth();
   const { refreshApps, selectApp } = useProjectContext();
+  const { isDebug } = useDebugMode();
   const {
     messages,
     isStreaming,
