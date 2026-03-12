@@ -103,7 +103,7 @@ export default function OnboardingPage() {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
           // Navigate directly — don't go through performFinalTransition
-          navigate('/artifacts', { replace: true });
+          navigate('/project-board', { replace: true });
           return 0;
         }
         return prev - 1;
