@@ -479,7 +479,7 @@ export default function OnboardingPage() {
 
           {/* Manual redirect button */}
           <Button
-            onClick={() => navigate('/artifacts')}
+            onClick={() => navigate('/project-board')}
             className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg">
 
             Go to Dashboard
