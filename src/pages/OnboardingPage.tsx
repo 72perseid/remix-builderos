@@ -9,10 +9,11 @@ import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-import { Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { Send, Loader2, Sparkles, ArrowRight, Bug } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
+import { useDebugMode } from '@/hooks/useDebugMode';
 import {
   Dialog,
   DialogContent,
