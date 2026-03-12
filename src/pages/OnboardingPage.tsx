@@ -189,7 +189,7 @@ export default function OnboardingPage() {
 
     // Step 3: ALWAYS navigate, regardless of data fetch success
     console.log('Navigating to artifacts...');
-    navigate('/artifacts', { replace: true });
+    navigate('/project-board', { replace: true });
   };
 
   // Backup navigation effect - guarantees redirect even if primary method fails
