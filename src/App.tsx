@@ -23,6 +23,7 @@ import UIUXPage from "./pages/UIUXPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
 import CoachingPage from "./pages/CoachingPage";
 import NotFound from "./pages/NotFound";
+import { DebugNav } from "./components/debug/DebugNav";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+          <DebugNav />
           <Routes>
             <Route path="/login" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
