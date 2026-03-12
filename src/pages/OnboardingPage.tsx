@@ -103,7 +103,7 @@ export default function OnboardingPage() {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
           // Navigate directly — don't go through performFinalTransition
-          navigate('/artifacts', { replace: true });
+          navigate('/project-board', { replace: true });
           return 0;
         }
         return prev - 1;
@@ -113,7 +113,7 @@ export default function OnboardingPage() {
 
   const handleSkipToBoard = () => {
     // Navigate directly — performFinalTransition is too slow/fragile for button clicks
-    navigate('/artifacts', { replace: true });
+    navigate('/project-board', { replace: true });
   };
 
   const handleSendMessage = async () => {
@@ -189,7 +189,7 @@ export default function OnboardingPage() {
 
     // Step 3: ALWAYS navigate, regardless of data fetch success
     console.log('Navigating to artifacts...');
-    navigate('/artifacts', { replace: true });
+    navigate('/project-board', { replace: true });
   };
 
   // Backup navigation effect - guarantees redirect even if primary method fails
@@ -197,7 +197,7 @@ export default function OnboardingPage() {
     if (showCompletion) {
       const backupTimer = setTimeout(() => {
         console.log('Backup navigation triggered after 30s');
-        navigate('/artifacts', { replace: true });
+        navigate('/project-board', { replace: true });
       }, 30000);
 
       return () => clearTimeout(backupTimer);
@@ -233,7 +233,7 @@ export default function OnboardingPage() {
       console.error("Skip error:", err);
     } finally {
       // CRITICAL: This MUST run to unblock the user
-      navigate('/artifacts', { replace: true });
+      navigate('/project-board', { replace: true });
       setIsSkipping(false);
     }
   };
@@ -405,7 +405,7 @@ export default function OnboardingPage() {
               <ArrowRight className="w-4 h-4" />
             </Button>
             <Button variant="ghost" onClick={handleDismissPopup} className="text-muted-foreground">
-              Continue to Artifacts
+              Continue to Project Board
             </Button>
           </div>
         </DialogContent>
@@ -479,7 +479,7 @@ export default function OnboardingPage() {
 
           {/* Manual redirect button */}
           <Button
-            onClick={() => navigate('/artifacts')}
+            onClick={() => navigate('/project-board')}
             className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg">
 
             Go to Dashboard
