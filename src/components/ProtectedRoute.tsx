@@ -80,7 +80,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // If user is on onboarding page but already onboarded, redirect to dashboard
   // Unless they're in "new app" mode (creating a second app)
   if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/project-board" replace />;
   }
 
   return <>{children}</>;
