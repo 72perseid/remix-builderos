@@ -254,17 +254,29 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
         <img src={logoHorizontal} alt="Logo" className="h-8" />
-        <Button
-          variant="ghost"
-          onClick={() => setShowSkipWarning(true)}
-          disabled={isSkipping}
-          className="text-muted-foreground hover:text-foreground">
-
-          {isSkipping ?
-          <Loader2 className="w-4 h-4 animate-spin mr-2" /> :
-          null}
-          {isNewAppMode ? 'Cancel' : 'Skip'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isDebug && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSessionComplete(true)}
+              className="text-amber-400 border-amber-400/30 hover:bg-amber-400/10 gap-1"
+            >
+              <Bug className="w-3 h-3" />
+              Test Popup
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => setShowSkipWarning(true)}
+            disabled={isSkipping}
+            className="text-muted-foreground hover:text-foreground">
+            {isSkipping ?
+            <Loader2 className="w-4 h-4 animate-spin mr-2" /> :
+            null}
+            {isNewAppMode ? 'Cancel' : 'Skip'}
+          </Button>
+        </div>
       </header>
 
 
