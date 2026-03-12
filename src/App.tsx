@@ -38,7 +38,8 @@ const App = () => (
           <BrowserRouter>
           <DebugNav />
           <Routes>
-            <Route path="/login" element={<AuthPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/onboarding" element={
               <ProtectedRoute>
