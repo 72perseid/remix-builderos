@@ -233,7 +233,7 @@ export default function OnboardingPage() {
       console.error("Skip error:", err);
     } finally {
       // CRITICAL: This MUST run to unblock the user
-      navigate('/artifacts', { replace: true });
+      navigate('/project-board', { replace: true });
       setIsSkipping(false);
     }
   };
