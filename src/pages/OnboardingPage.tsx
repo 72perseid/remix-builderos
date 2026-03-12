@@ -123,7 +123,20 @@ export default function OnboardingPage() {
     try {
       const response = await sendMessage(content, false);
 
-      if (response.sessionComplete) {
+      const isCompletionMessage = (text: string): boolean => {
+        const lower = text.toLowerCase();
+        const patterns = [
+          'onboarding is complete',
+          'onboarding for',
+          "you're all set",
+          "you've finished onboarding",
+          'everything for onboarding is complete',
+          'finished onboarding',
+        ];
+        return patterns.some(p => lower.includes(p));
+      };
+
+      if (response.sessionComplete || isCompletionMessage(response.text)) {
         // Session is complete — keep messages visible, disable input, start countdown
         setIsSessionComplete(true);
 
