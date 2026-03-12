@@ -102,7 +102,8 @@ export default function OnboardingPage() {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
-          performFinalTransition();
+          // Navigate directly — don't go through performFinalTransition
+          navigate('/artifacts', { replace: true });
           return 0;
         }
         return prev - 1;
@@ -111,7 +112,8 @@ export default function OnboardingPage() {
   };
 
   const handleSkipToBoard = () => {
-    performFinalTransition();
+    // Navigate directly — performFinalTransition is too slow/fragile for button clicks
+    navigate('/artifacts', { replace: true });
   };
 
   const handleSendMessage = async () => {
