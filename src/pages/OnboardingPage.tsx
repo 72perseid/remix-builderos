@@ -113,7 +113,7 @@ export default function OnboardingPage() {
 
   const handleSkipToBoard = () => {
     // Navigate directly — performFinalTransition is too slow/fragile for button clicks
-    navigate('/artifacts', { replace: true });
+    navigate('/project-board', { replace: true });
   };
 
   const handleSendMessage = async () => {
