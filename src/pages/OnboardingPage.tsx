@@ -9,10 +9,11 @@ import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-import { Send, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { Send, Loader2, Sparkles, ArrowRight, Bug } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
+import { useDebugMode } from '@/hooks/useDebugMode';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +40,7 @@ export default function OnboardingPage() {
 
   const { user } = useAuth();
   const { refreshApps, selectApp } = useProjectContext();
+  const { isDebug } = useDebugMode();
   const {
     messages,
     isStreaming,
@@ -100,7 +102,8 @@ export default function OnboardingPage() {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
-          performFinalTransition();
+          // Navigate directly — don't go through performFinalTransition
+          navigate('/artifacts', { replace: true });
           return 0;
         }
         return prev - 1;
@@ -109,7 +112,8 @@ export default function OnboardingPage() {
   };
 
   const handleSkipToBoard = () => {
-    performFinalTransition();
+    // Navigate directly — performFinalTransition is too slow/fragile for button clicks
+    navigate('/artifacts', { replace: true });
   };
 
   const handleSendMessage = async () => {
@@ -250,17 +254,29 @@ export default function OnboardingPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
         <img src={logoHorizontal} alt="Logo" className="h-8" />
-        <Button
-          variant="ghost"
-          onClick={() => setShowSkipWarning(true)}
-          disabled={isSkipping}
-          className="text-muted-foreground hover:text-foreground">
-
-          {isSkipping ?
-          <Loader2 className="w-4 h-4 animate-spin mr-2" /> :
-          null}
-          {isNewAppMode ? 'Cancel' : 'Skip'}
-        </Button>
+        <div className="flex items-center gap-2">
+          {isDebug && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSessionComplete(true)}
+              className="text-amber-400 border-amber-400/30 hover:bg-amber-400/10 gap-1"
+            >
+              <Bug className="w-3 h-3" />
+              Test Popup
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => setShowSkipWarning(true)}
+            disabled={isSkipping}
+            className="text-muted-foreground hover:text-foreground">
+            {isSkipping ?
+            <Loader2 className="w-4 h-4 animate-spin mr-2" /> :
+            null}
+            {isNewAppMode ? 'Cancel' : 'Skip'}
+          </Button>
+        </div>
       </header>
 
 
