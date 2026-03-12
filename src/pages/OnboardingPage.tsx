@@ -405,7 +405,7 @@ export default function OnboardingPage() {
               <ArrowRight className="w-4 h-4" />
             </Button>
             <Button variant="ghost" onClick={handleDismissPopup} className="text-muted-foreground">
-              Continue to Artifacts
+              Continue to Project Board
             </Button>
           </div>
         </DialogContent>
