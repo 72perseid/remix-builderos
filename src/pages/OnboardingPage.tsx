@@ -197,7 +197,7 @@ export default function OnboardingPage() {
     if (showCompletion) {
       const backupTimer = setTimeout(() => {
         console.log('Backup navigation triggered after 30s');
-        navigate('/artifacts', { replace: true });
+        navigate('/project-board', { replace: true });
       }, 30000);
 
       return () => clearTimeout(backupTimer);
