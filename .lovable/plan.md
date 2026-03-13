@@ -1,21 +1,77 @@
 
 
-## Plan: Remove `ux_completion` from Completion Requirements
+## BuilderOS Upsell Feature Plan
 
-### Problem
-The `ux_completion` field is included in the database trigger that fires the `generate-artifacts` webhook, but the UI/UX artifact is marked "Coming Soon" and never reaches 100%. This blocks the trigger from ever firing.
+### Overview
+Three features: (1) completion popup on onboarding finish, (2) progress indicators on artifact cards, (3) coach CTAs on output pages. All upsell links point to a placeholder URL (`/coaching`).
 
-### Changes
+---
 
-**1. Database migration — Update `check_completion_and_trigger()` function**
+### Feature 1: Completion Popup
 
-Remove `ux_completion` from both `was_full` and `is_full` checks so the trigger fires when only `bm_completion`, `pb_completion`, and `uv_completion` reach 100%.
+**Where**: `src/pages/OnboardingPage.tsx`
 
-**2. `src/components/dashboard/ArtifactsGrid.tsx` — Update master_prompt prerequisites**
+**What**: Replace the current redirect-on-completion behavior with a dismissable dialog that shows before redirecting to `/artifacts`.
 
-Remove `'ui_ux'` from the `prerequisites` array (line 99) so the master prompt card shows "ready" without needing a UI/UX artifact.
+**How**:
+- When `isSessionComplete` fires, show a new `Dialog` instead of immediately starting the countdown/redirect
+- Dialog content:
+  - Headline: "Your idea is taking shape!"
+  - Body text about Business Model, User Validation, Product Scope being ready
+  - CTA button: "Let's Build This Together" linking to `/coaching`
+  - Dismiss/close button (X or "Continue" button)
+- On dismiss: proceed with the existing `performFinalTransition()` flow (which redirects to `/artifacts` instead of `/project-board`)
+- Update the redirect target from `/project-board` to `/artifacts`
 
-**3. `src/components/dashboard/ArtifactsGrid.tsx` — Update completionMap**
+---
 
-Remove the `ui_ux` entry from `completionMap` (line 79) since it's not relevant while the feature is Coming Soon.
+### Feature 2: Artifact Card Progress Indicators
+
+**Where**: `src/components/dashboard/ArtifactsGrid.tsx` + `src/components/dashboard/ArtifactCard.tsx`
+
+**What**: Show completion percentage and status label on each planning artifact card (Business Model, Validation, Product Brief).
+
+**How**:
+- In `ArtifactsGrid`, fetch `bm_completion`, `uv_completion`, `pb_completion` from `app_ideas` table (using existing `selectedAppId` from `ProjectContext`) with a polling query
+- Map completion values to each card type: `business_model` -> `bm_completion`, `validation` -> `uv_completion`, `product_brief` -> `pb_completion`
+- Pass `completion` prop to `ArtifactCard`
+- In `ArtifactCard`, render a `Progress` bar with percentage when completion is between 0-99, and show "Complete - output generated" label at 100%. Below 100% show "Keep refining" label.
+
+---
+
+### Feature 3: Coach CTAs on Output Pages
+
+**Where**: Three pages get a subtle CTA banner:
+- `src/pages/ProjectBoardPage.tsx`: "Not sure how to prioritize this?" + "Talk to an Expert"
+- `src/pages/DatabaseDesignPage.tsx`: "Need help deploying this?" + "Talk to an Expert"
+- `src/pages/MasterPromptPage.tsx`: "Want someone to run this for you?" + "Talk to an Expert"
+
+**How**:
+- Create a reusable `CoachCTA` component (`src/components/dashboard/CoachCTA.tsx`) that accepts `message` and `ctaLabel` props
+- Renders a subtle, non-pushy banner with the message and a link/button to `/coaching`
+- Styled as a soft card with muted colors, not attention-grabbing
+- Add this component to the bottom of each output page's content area
+
+---
+
+### Placeholder Upsell Page
+
+**Where**: `src/pages/CoachingPage.tsx` + new route in `App.tsx`
+
+**What**: A minimal placeholder page at `/coaching` with a heading like "Expert Support Coming Soon" so the links don't 404. This page will later be replaced with the full funnel.
+
+---
+
+### Files to Create
+- `src/components/dashboard/CoachCTA.tsx` (reusable coach CTA component)
+- `src/pages/CoachingPage.tsx` (placeholder upsell page)
+
+### Files to Modify
+- `src/pages/OnboardingPage.tsx` (completion popup + redirect target change)
+- `src/components/dashboard/ArtifactsGrid.tsx` (fetch completion data, pass to cards)
+- `src/components/dashboard/ArtifactCard.tsx` (accept + render completion prop)
+- `src/pages/ProjectBoardPage.tsx` (add CoachCTA)
+- `src/pages/DatabaseDesignPage.tsx` (add CoachCTA)
+- `src/pages/MasterPromptPage.tsx` (add CoachCTA)
+- `src/App.tsx` (add `/coaching` route)
 
