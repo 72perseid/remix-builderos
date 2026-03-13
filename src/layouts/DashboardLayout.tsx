@@ -22,16 +22,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="min-h-screen flex w-full bg-[#0B0E14]">
           <DashboardSidebar />
           <main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
-            <div className="overflow-y-auto flex-1 flex flex-col">
-              {!hideTopNav && (
-                <>
-                  <DashboardHeader />
-                  <DashboardTabs />
-                </>
-              )}
-              <div className="flex-1">
-                {children}
+            {!hideTopNav && (
+              <div className="flex-shrink-0">
+                <DashboardHeader />
+                <DashboardTabs />
               </div>
+            )}
+            <div className="overflow-y-auto flex-1">
+              {children}
             </div>
           </main>
           
