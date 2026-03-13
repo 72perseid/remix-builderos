@@ -1,77 +1,34 @@
 
 
-## BuilderOS Upsell Feature Plan
+## Plan: Fix Tab Navigation Scrolling and Improve Scrollbar Styling
 
-### Overview
-Three features: (1) completion popup on onboarding finish, (2) progress indicators on artifact cards, (3) coach CTAs on output pages. All upsell links point to a placeholder URL (`/coaching`).
+### Problem
+The DashboardHeader and DashboardTabs scroll away with page content because they're inside the `overflow-y-auto` container. The scrollbar also doesn't match the dark theme.
 
----
+### Changes
 
-### Feature 1: Completion Popup
+**1. `src/layouts/DashboardLayout.tsx` — Make header/tabs fixed, content scrollable below**
 
-**Where**: `src/pages/OnboardingPage.tsx`
+Restructure so header and tabs are outside the scrollable area:
 
-**What**: Replace the current redirect-on-completion behavior with a dismissable dialog that shows before redirecting to `/artifacts`.
+```tsx
+<main className="flex-1 flex flex-col bg-[#0f1219] overflow-hidden">
+  {!hideTopNav && (
+    <div className="flex-shrink-0">
+      <DashboardHeader />
+      <DashboardTabs />
+    </div>
+  )}
+  <div className="overflow-y-auto flex-1">
+    {children}
+  </div>
+</main>
+```
 
-**How**:
-- When `isSessionComplete` fires, show a new `Dialog` instead of immediately starting the countdown/redirect
-- Dialog content:
-  - Headline: "Your idea is taking shape!"
-  - Body text about Business Model, User Validation, Product Scope being ready
-  - CTA button: "Let's Build This Together" linking to `/coaching`
-  - Dismiss/close button (X or "Continue" button)
-- On dismiss: proceed with the existing `performFinalTransition()` flow (which redirects to `/artifacts` instead of `/project-board`)
-- Update the redirect target from `/project-board` to `/artifacts`
+**2. `src/index.css` — Add custom scrollbar styles**
 
----
-
-### Feature 2: Artifact Card Progress Indicators
-
-**Where**: `src/components/dashboard/ArtifactsGrid.tsx` + `src/components/dashboard/ArtifactCard.tsx`
-
-**What**: Show completion percentage and status label on each planning artifact card (Business Model, Validation, Product Brief).
-
-**How**:
-- In `ArtifactsGrid`, fetch `bm_completion`, `uv_completion`, `pb_completion` from `app_ideas` table (using existing `selectedAppId` from `ProjectContext`) with a polling query
-- Map completion values to each card type: `business_model` -> `bm_completion`, `validation` -> `uv_completion`, `product_brief` -> `pb_completion`
-- Pass `completion` prop to `ArtifactCard`
-- In `ArtifactCard`, render a `Progress` bar with percentage when completion is between 0-99, and show "Complete - output generated" label at 100%. Below 100% show "Keep refining" label.
-
----
-
-### Feature 3: Coach CTAs on Output Pages
-
-**Where**: Three pages get a subtle CTA banner:
-- `src/pages/ProjectBoardPage.tsx`: "Not sure how to prioritize this?" + "Talk to an Expert"
-- `src/pages/DatabaseDesignPage.tsx`: "Need help deploying this?" + "Talk to an Expert"
-- `src/pages/MasterPromptPage.tsx`: "Want someone to run this for you?" + "Talk to an Expert"
-
-**How**:
-- Create a reusable `CoachCTA` component (`src/components/dashboard/CoachCTA.tsx`) that accepts `message` and `ctaLabel` props
-- Renders a subtle, non-pushy banner with the message and a link/button to `/coaching`
-- Styled as a soft card with muted colors, not attention-grabbing
-- Add this component to the bottom of each output page's content area
-
----
-
-### Placeholder Upsell Page
-
-**Where**: `src/pages/CoachingPage.tsx` + new route in `App.tsx`
-
-**What**: A minimal placeholder page at `/coaching` with a heading like "Expert Support Coming Soon" so the links don't 404. This page will later be replaced with the full funnel.
-
----
-
-### Files to Create
-- `src/components/dashboard/CoachCTA.tsx` (reusable coach CTA component)
-- `src/pages/CoachingPage.tsx` (placeholder upsell page)
-
-### Files to Modify
-- `src/pages/OnboardingPage.tsx` (completion popup + redirect target change)
-- `src/components/dashboard/ArtifactsGrid.tsx` (fetch completion data, pass to cards)
-- `src/components/dashboard/ArtifactCard.tsx` (accept + render completion prop)
-- `src/pages/ProjectBoardPage.tsx` (add CoachCTA)
-- `src/pages/DatabaseDesignPage.tsx` (add CoachCTA)
-- `src/pages/MasterPromptPage.tsx` (add CoachCTA)
-- `src/App.tsx` (add `/coaching` route)
+Add themed scrollbar CSS matching the dark navy palette:
+- Thin scrollbar track in `#0f1219` (matches background)
+- Thumb in `#2a3344` with hover state `#3b4a5c`
+- Uses both `::-webkit-scrollbar` and `scrollbar-color` for cross-browser support
 
