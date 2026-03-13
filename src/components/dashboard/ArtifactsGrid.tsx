@@ -79,7 +79,6 @@ export function ArtifactsGrid() {
     business_model: selectedApp?.bm_completion ?? null,
     validation: selectedApp?.uv_completion ?? null,
     product_brief: selectedApp?.pb_completion ?? null,
-    ui_ux: (selectedApp as any)?.ux_completion ?? null,
   };
   const isOnboarded = profile?.onboarded === true;
 
