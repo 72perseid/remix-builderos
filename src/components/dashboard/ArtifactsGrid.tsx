@@ -95,7 +95,7 @@ export function ArtifactsGrid() {
       if (artifact?.status === 'generating') return 'loading';
       
       // Check if all prerequisites are met
-      const prerequisites = ['business_model', 'db_design', 'validation', 'product_brief', 'ui_ux'];
+      const prerequisites = ['business_model', 'db_design', 'validation', 'product_brief'];
       const allPrerequisitesMet = prerequisites.every(
         prereq => artifacts.some(a => a.type === prereq)
       );
