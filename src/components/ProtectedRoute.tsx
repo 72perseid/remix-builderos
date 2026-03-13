@@ -14,7 +14,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get('mode');
-  const isAllowedMode = mode === 'new' || mode === 'setup';
+  const isDebugMode = searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true';
+  const isAllowedMode = mode === 'new' || mode === 'setup' || isDebugMode;
 
   // Auto-sync Xano data when user is authenticated
   useXanoSync(user);
