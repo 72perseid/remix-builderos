@@ -8,6 +8,18 @@ import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeft
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/* ─── Context-aware suggestion prompts ─── */
+
+const SUGGESTIONS: Record<string, string[]> = {
+  business_model: ["What's my revenue model?", "Analyze my competitors", "Suggest pricing tiers", "What's my cost structure?"],
+  validation: ["Who's my target user?", "What risks should I test?", "Suggest interview questions", "How do I measure traction?"],
+  product_brief: ["Summarize my MVP scope", "What are the key features?", "Suggest success metrics", "What should I cut?"],
+  ui_ux: ["Suggest a color palette", "What screens do I need?", "Recommend a layout", "Review my user flow"],
+  db_design: ["Suggest a schema", "What tables do I need?", "How should I handle auth?", "Review my relationships"],
+  master_prompt: ["Improve my prompt", "Add edge cases", "Make it more specific", "Suggest a structure"],
+  kanban: ["Break down my tasks", "Suggest sprint goals", "What should I prioritize?", "Estimate my timeline"],
+};
+
 /* ─── Memoized message bubble ─── */
 
 const CopilotMessageBubble = React.memo(({ message }: { message: CopilotMessage }) => {
