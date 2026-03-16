@@ -1,10 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
-
-const REQUEST_TIMEOUT_MS = 60000;
 
 export interface CopilotMessage {
   id: string;
@@ -18,33 +16,16 @@ interface UseCopilotChatOptions {
   onArtifactRefresh?: () => void;
 }
 
-async function fetchWithTimeout(url: string, options: RequestInit, timeout: number): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Request timed out');
-    }
-    throw error;
-  }
-}
-
 export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOptions) {
   const { user } = useAuth();
   const { selectedAppId } = useProjectContext();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  // Local-only session ID (not persisted to DB), stable per hook instance
   const [sessionId] = useState(() => crypto.randomUUID());
+
+  // Stable ref so sendMessage never depends on onArtifactRefresh identity
+  const onArtifactRefreshRef = useRef(onArtifactRefresh);
+  onArtifactRefreshRef.current = onArtifactRefresh;
 
   const sendMessage = useCallback(async (content: string) => {
     if (!user?.id || !selectedAppId) {
@@ -56,7 +37,6 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
       return;
     }
 
-    // Add user message to local state
     const userMessage: CopilotMessage = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -67,7 +47,6 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
     setIsLoading(true);
 
     try {
-      // Call the chat-action edge function
       const { data, error } = await supabase.functions.invoke('chat-action', {
         body: {
           message: content,
@@ -81,15 +60,11 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
 
       if (error) throw error;
 
-      // Extract response — handle double-stringified JSON from n8n
       let responseData = Array.isArray(data) ? data[0] : data;
       if (typeof responseData === 'string') {
         try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
       }
 
-      console.log('Copilot raw response:', JSON.stringify(responseData)?.substring(0, 500));
-
-      // n8n returns { response, session_complete } — but also handle output, message, etc.
       const aiResponse = [
         responseData?.response,
         responseData?.output,
@@ -101,7 +76,6 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         || responseData?.output
         || 'The assistant did not return a response. Please try again.';
 
-      // Add assistant message to local state (display full text)
       const assistantMessage: CopilotMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -110,11 +84,10 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
       };
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Trigger refetch after successful response (n8n updates DB directly)
-      if (onArtifactRefresh) {
-        // Small delay to ensure n8n has finished writing to DB
+      // Use ref to avoid stale closure and unstable dep
+      if (onArtifactRefreshRef.current) {
         setTimeout(() => {
-          onArtifactRefresh();
+          onArtifactRefreshRef.current?.();
         }, 500);
       }
 
@@ -131,7 +104,6 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         variant: 'destructive',
       });
 
-      // Add error message to chat
       const errorResponse: CopilotMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -142,7 +114,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, selectedAppId, context, onArtifactRefresh]);
+  }, [user?.id, selectedAppId, context, sessionId]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
