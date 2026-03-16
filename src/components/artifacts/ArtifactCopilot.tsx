@@ -182,6 +182,21 @@ const ChatContent = React.memo(function ChatContent({
             )}
           </ScrollArea>
 
+          {/* Suggestion chips */}
+          {!isLoading && (messages.length === 0 || messages[messages.length - 1]?.role === 'assistant') && (
+            <div className="flex flex-wrap gap-1.5 px-3 py-2 border-t border-slate-800/50 shrink-0">
+              {(SUGGESTIONS[context] || []).map(text => (
+                <button
+                  key={text}
+                  onClick={() => { setInputValue(''); sendMessage(text); }}
+                  className="text-xs px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition-colors cursor-pointer"
+                >
+                  {text}
+                </button>
+              ))}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800/50 shrink-0">
             <div className="flex gap-2 items-end">
               <Textarea
