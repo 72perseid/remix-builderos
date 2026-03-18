@@ -21,6 +21,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
   const { selectedAppId } = useProjectContext();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [sessionId] = useState(() => crypto.randomUUID());
 
   // Stable ref so sendMessage never depends on onArtifactRefresh identity
