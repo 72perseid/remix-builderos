@@ -76,10 +76,12 @@ const ChatContent = React.memo(function ChatContent({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const rafRef = useRef<number>(0);
-  const { messages, isLoading, sendMessage, hasApp } = useCopilotChat({
+  const { messages, isLoading, sendMessage, suggestions: dynamicSuggestions, hasApp } = useCopilotChat({
     context,
     onArtifactRefresh,
   });
+
+  const activeSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
 
   // Scroll to bottom on new messages only
   useEffect(() => {
