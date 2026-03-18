@@ -125,7 +125,7 @@ serve(async (req) => {
       hasMessage: !!data?.message,
       hasSessionComplete: !!data?.session_complete,
       hasSuggestions: Array.isArray(data?.suggestions) || (Array.isArray(data) && Array.isArray(data[0]?.suggestions)),
-      suggestionsPreview: JSON.stringify(data?.suggestions || (Array.isArray(data) ? data[0]?.suggestions : null)).substring(0, 200),
+      suggestionsPreview: (JSON.stringify(data?.suggestions || (Array.isArray(data) ? data[0]?.suggestions : null)) ?? 'undefined').substring(0, 200),
       isArray: Array.isArray(data),
       preview: JSON.stringify(data).substring(0, 500),
     });
