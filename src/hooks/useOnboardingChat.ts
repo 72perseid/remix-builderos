@@ -224,6 +224,10 @@ export function useOnboardingChat(forceNew: boolean = false) {
         // Detect session_complete flag (comes as string "true" from n8n)
         const sessionComplete = responseData?.session_complete === true || responseData?.session_complete === 'true';
 
+        // Parse dynamic suggestion chips from n8n response
+        const responseSuggestions = Array.isArray(responseData?.suggestions) ? responseData.suggestions.filter((s: unknown) => typeof s === 'string') : [];
+        setSuggestions(responseSuggestions);
+
         // n8n always returns { response, session_complete } — use response field explicitly
         const aiResponse =
           (typeof responseData?.response === 'string' && responseData.response.length > 0
