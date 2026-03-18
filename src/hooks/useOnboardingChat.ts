@@ -267,17 +267,6 @@ export function useOnboardingChat(forceNew: boolean = false) {
               .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
               .eq('id', currentSessionId);
           }
-        } else if (resolvedAppIdeaId) {
-          // App idea already existed before this exchange — just refresh completion
-          await fetchCompletion(resolvedAppIdeaId);
-
-          // Link the current session to this app_idea
-          if (currentSessionId) {
-            await supabase
-              .from('chat_sessions')
-              .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
-              .eq('id', currentSessionId);
-          }
         }
 
         return { text: aiResponse, sessionComplete };
