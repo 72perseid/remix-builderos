@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOnboardingChat } from '@/hooks/useOnboardingChat';
@@ -8,8 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 
-import { Send, Loader2, Sparkles, ArrowRight, Bug } from 'lucide-react';
+import { Send, Loader2, Sparkles, ArrowRight, Bug, Check } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
