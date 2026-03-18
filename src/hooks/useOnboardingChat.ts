@@ -221,21 +221,12 @@ export function useOnboardingChat(forceNew: boolean = false) {
         }
 
         console.log('Parsed responseData:', responseData);
-        console.log('Suggestions field:', responseData?.suggestions, 'type:', typeof responseData?.suggestions);
 
         // Detect session_complete flag (comes as string "true" from n8n)
         const sessionComplete = responseData?.session_complete === true || responseData?.session_complete === 'true';
 
-        // Parse dynamic suggestion chips — check multiple possible locations
-        const suggestionsData = responseData?.suggestions 
-          || (Array.isArray(data) && data[0]?.suggestions)
-          || data?.suggestions;
-        console.log('Suggestions extracted:', suggestionsData);
-        const responseSuggestions = Array.isArray(suggestionsData) ? suggestionsData.filter((s: unknown) => typeof s === 'string') : [];
-        setSuggestions(responseSuggestions);
-
         // n8n always returns { response, session_complete } — use response field explicitly
-        const aiResponse =
+        let aiResponse =
           (typeof responseData?.response === 'string' && responseData.response.length > 0
             ? responseData.response
             : null) ||
@@ -246,6 +237,25 @@ export function useOnboardingChat(forceNew: boolean = false) {
           (typeof responseData === 'string'
             ? responseData
             : 'Error: No message found in response');
+
+        // Parse suggestion chips embedded in the message text (e.g. suggestions: ["a", "b"])
+        let responseSuggestions: string[] = [];
+        const suggestionsMatch = aiResponse.match(/suggestions:\s*(\[.*?\])/s);
+        if (suggestionsMatch) {
+          try {
+            const parsed = JSON.parse(suggestionsMatch[1]);
+            if (Array.isArray(parsed)) {
+              responseSuggestions = parsed.filter((s: unknown) => typeof s === 'string');
+            }
+          } catch {
+            // ignore parse errors
+          }
+          // Remove the suggestions text from the displayed message
+          aiResponse = aiResponse.replace(/\s*suggestions:\s*\[.*?\]/s, '').trim();
+        }
+        console.log('Suggestions extracted from text:', responseSuggestions);
+        setSuggestions(responseSuggestions);
+
 
         // Save assistant message to DB
         await supabase.from('chat_messages').insert({
