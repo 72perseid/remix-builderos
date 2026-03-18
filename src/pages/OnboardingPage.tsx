@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useOnboardingChat } from '@/hooks/useOnboardingChat';
@@ -8,8 +8,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { OnboardingMessage } from '@/components/onboarding/OnboardingMessage';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 
-import { Send, Loader2, Sparkles, ArrowRight, Bug } from 'lucide-react';
+import { Send, Loader2, Sparkles, ArrowRight, Bug, Check } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,9 @@ export default function OnboardingPage() {
     error,
     workflowMode,
     modeLoading,
+    bmCompletion,
+    uvCompletion,
+    pbCompletion,
   } = useOnboardingChat(isNewAppMode);
 
   const [inputValue, setInputValue] = useState('');
@@ -256,6 +260,49 @@ export default function OnboardingPage() {
   "Tell our BuilderOS about your new app idea." :
   "Our BuilderOS will guide you through creating your perfect product roadmap.";
 
+  /* ─── Phase-aware suggestion chips ─── */
+  const PHASE_SUGGESTIONS: Record<string, string[]> = {
+    business_model: ["B2C SaaS", "Marketplace", "Subscription model", "Freemium + premium"],
+    validation: ["Young professionals 25-35", "Small business owners", "Students", "Enterprise teams"],
+    product_brief: ["Mobile-first app", "Web dashboard", "3-5 core features", "Launch in 3 months"],
+  };
+
+  const currentPhase = useMemo(() => {
+    if (bmCompletion < 100) return 'business_model';
+    if (uvCompletion < 100) return 'validation';
+    return 'product_brief';
+  }, [bmCompletion, uvCompletion]);
+
+  const phaseLabels = [
+    { key: 'business_model', label: 'Business Model', completion: bmCompletion },
+    { key: 'validation', label: 'Target User', completion: uvCompletion },
+    { key: 'product_brief', label: 'Product Scope', completion: pbCompletion },
+  ];
+
+  const overallProgress = Math.round((bmCompletion + uvCompletion + pbCompletion) / 3);
+  const currentStepIndex = phaseLabels.findIndex(p => p.completion < 100);
+  const currentStepNum = currentStepIndex === -1 ? 3 : currentStepIndex + 1;
+
+  const suggestions = PHASE_SUGGESTIONS[currentPhase] || [];
+  const showChips = !isStreaming && !isFinalizing && !isSessionComplete &&
+    (messages.length === 0 || messages[messages.length - 1]?.role === 'assistant');
+
+  const handleChipClick = (text: string) => {
+    setInputValue('');
+    sendMessage(text, false).then((response) => {
+      if (response.sessionComplete) {
+        setIsSessionComplete(true);
+        if (user?.id && !isNewAppMode) {
+          supabase.from('profiles').update({ onboarded: true }).eq('id', user.id);
+        }
+      }
+    }).catch(console.error);
+  };
+
+  const handleSkipQuestion = () => {
+    handleChipClick("I'd like to skip this question and move on");
+  };
+
   return (
     <div className="min-h-screen bg-[hsl(222,47%,11%)] flex flex-col relative overflow-hidden">
       {/* Background decoration */}
@@ -292,6 +339,42 @@ export default function OnboardingPage() {
         </div>
       </header>
 
+      {/* Progress Indicator */}
+      {messages.length > 0 && !isFinalizing && !showCompletion && (
+        <div className="relative z-10 px-6 py-3 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Step {currentStepNum} of 3 — {phaseLabels[currentStepNum - 1]?.label ?? 'Complete'}
+              </span>
+              <span className="text-xs text-muted-foreground">{overallProgress}%</span>
+            </div>
+            <Progress value={overallProgress} className="h-1.5 bg-slate-800" />
+            <div className="flex justify-between mt-2">
+              {phaseLabels.map((phase) => (
+                <div key={phase.key} className="flex items-center gap-1.5">
+                  <div className={cn(
+                    'w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold border',
+                    phase.completion >= 100
+                      ? 'bg-blue-500 border-blue-500 text-white'
+                      : phase.completion > 0
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-slate-600 text-slate-500'
+                  )}>
+                    {phase.completion >= 100 ? <Check className="w-2.5 h-2.5" /> : null}
+                  </div>
+                  <span className={cn(
+                    'text-xs',
+                    phase.completion >= 100 ? 'text-blue-400' : phase.completion > 0 ? 'text-foreground' : 'text-muted-foreground'
+                  )}>
+                    {phase.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Container - Hidden when finalizing to prevent flash */}
       {!isFinalizing &&
@@ -355,27 +438,50 @@ export default function OnboardingPage() {
         </main>
       }
 
-      {/* Input Area - Hidden when finalizing */}
+      {/* Suggestion Chips + Input Area - Hidden when finalizing */}
       {!isFinalizing && !isSessionComplete &&
-      <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-4">
-          <div className="max-w-3xl mx-auto flex gap-3">
-            <Textarea
-            ref={inputRef}
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            disabled={isStreaming || showCompletion}
-            rows={1}
-            className="flex-1 min-h-[48px] max-h-[160px] resize-none text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground py-3" />
+      <div className="relative z-10 border-t border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm px-4 py-3">
+          <div className="max-w-3xl mx-auto">
+            {/* Suggestion chips */}
+            {showChips && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {suggestions.map((text) => (
+                  <button
+                    key={text}
+                    onClick={() => handleChipClick(text)}
+                    className="text-xs px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/50 transition-colors cursor-pointer"
+                  >
+                    {text}
+                  </button>
+                ))}
+                <button
+                  onClick={handleSkipQuestion}
+                  className="text-xs px-3 py-1.5 rounded-full bg-transparent hover:bg-slate-800 text-muted-foreground border border-slate-600/50 transition-colors cursor-pointer"
+                >
+                  Skip this question →
+                </button>
+              </div>
+            )}
 
-            <Button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isStreaming || showCompletion}
-            className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg">
+            <div className="flex gap-3">
+              <Textarea
+              ref={inputRef}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Type your message..."
+              disabled={isStreaming || showCompletion}
+              rows={1}
+              className="flex-1 min-h-[48px] max-h-[160px] resize-none text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground py-3" />
 
-              {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-            </Button>
+              <Button
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim() || isStreaming || showCompletion}
+              className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg">
+
+                {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+              </Button>
+            </div>
           </div>
         </div>
       }
