@@ -28,6 +28,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
   const [uvCompletion, setUvCompletion] = useState(0);
   const [pbCompletion, setPbCompletion] = useState(0);
   const [appIdeaId, setAppIdeaId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // Fetch completion percentages from app_ideas
   const fetchCompletion = useCallback(async (ideaId: string) => {
