@@ -21,6 +21,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
   const { selectedAppId } = useProjectContext();
   const [messages, setMessages] = useState<CopilotMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [sessionId] = useState(() => crypto.randomUUID());
 
   // Stable ref so sendMessage never depends on onArtifactRefresh identity
@@ -65,7 +66,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
       }
 
-      const aiResponse = [
+      let aiResponse = [
         responseData?.response,
         responseData?.output,
         responseData?.message,
@@ -75,6 +76,25 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
       ].find(v => typeof v === 'string' && v.length > 0 && v !== 'No response from assistant.')
         || responseData?.output
         || 'The assistant did not return a response. Please try again.';
+
+      // Extract suggestions - prefer JSON field, fall back to text parsing
+      let responseSuggestions: string[] = [];
+      const suggestionsFromJson = responseData?.suggestions;
+      if (Array.isArray(suggestionsFromJson) && suggestionsFromJson.length > 0) {
+        responseSuggestions = suggestionsFromJson.filter((s: unknown) => typeof s === 'string');
+      } else {
+        const suggestionsMatch = aiResponse.match(/suggestions:\s*(\[.*?\])/s);
+        if (suggestionsMatch) {
+          try {
+            const parsed = JSON.parse(suggestionsMatch[1]);
+            if (Array.isArray(parsed)) {
+              responseSuggestions = parsed.filter((s: unknown) => typeof s === 'string');
+            }
+          } catch { /* ignore */ }
+          aiResponse = aiResponse.replace(/\s*suggestions:\s*\[.*?\]/s, '').trim();
+        }
+      }
+      setSuggestions(responseSuggestions);
 
       const assistantMessage: CopilotMessage = {
         id: crypto.randomUUID(),
@@ -123,6 +143,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
   return {
     messages,
     isLoading,
+    suggestions,
     sendMessage,
     clearMessages,
     hasApp: !!selectedAppId,
