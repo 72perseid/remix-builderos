@@ -335,5 +335,6 @@ export function useOnboardingChat(forceNew: boolean = false) {
     bmCompletion,
     uvCompletion,
     pbCompletion,
+    suggestions,
   };
 }
