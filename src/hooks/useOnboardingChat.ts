@@ -256,18 +256,6 @@ export function useOnboardingChat(forceNew: boolean = false) {
         console.log('Suggestions extracted from text:', responseSuggestions);
         setSuggestions(responseSuggestions);
 
-        // n8n always returns { response, session_complete } — use response field explicitly
-        const aiResponse =
-          (typeof responseData?.response === 'string' && responseData.response.length > 0
-            ? responseData.response
-            : null) ||
-          responseData?.output ||
-          responseData?.message ||
-          responseData?.text ||
-          responseData?.content ||
-          (typeof responseData === 'string'
-            ? responseData
-            : 'Error: No message found in response');
 
         // Save assistant message to DB
         await supabase.from('chat_messages').insert({
