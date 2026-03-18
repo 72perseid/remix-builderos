@@ -77,6 +77,25 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         || responseData?.output
         || 'The assistant did not return a response. Please try again.';
 
+      // Extract suggestions - prefer JSON field, fall back to text parsing
+      let responseSuggestions: string[] = [];
+      const suggestionsFromJson = responseData?.suggestions;
+      if (Array.isArray(suggestionsFromJson) && suggestionsFromJson.length > 0) {
+        responseSuggestions = suggestionsFromJson.filter((s: unknown) => typeof s === 'string');
+      } else {
+        const suggestionsMatch = aiResponse.match(/suggestions:\s*(\[.*?\])/s);
+        if (suggestionsMatch) {
+          try {
+            const parsed = JSON.parse(suggestionsMatch[1]);
+            if (Array.isArray(parsed)) {
+              responseSuggestions = parsed.filter((s: unknown) => typeof s === 'string');
+            }
+          } catch { /* ignore */ }
+          aiResponse = aiResponse.replace(/\s*suggestions:\s*\[.*?\]/s, '').trim();
+        }
+      }
+      setSuggestions(responseSuggestions);
+
       const assistantMessage: CopilotMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
