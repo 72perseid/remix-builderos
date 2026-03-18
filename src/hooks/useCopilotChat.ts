@@ -61,10 +61,15 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
 
       if (error) throw error;
 
+      console.log('[CopilotChat] Raw response from n8n:', JSON.stringify(data).substring(0, 1000));
+
       let responseData = Array.isArray(data) ? data[0] : data;
       if (typeof responseData === 'string') {
         try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
       }
+
+      console.log('[CopilotChat] Parsed responseData:', JSON.stringify(responseData).substring(0, 1000));
+      console.log('[CopilotChat] responseData.suggestions:', responseData?.suggestions);
 
       let aiResponse = [
         responseData?.response,
@@ -94,6 +99,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
           aiResponse = aiResponse.replace(/\s*suggestions:\s*\[.*?\]/s, '').trim();
         }
       }
+      console.log('[CopilotChat] Extracted suggestions:', responseSuggestions);
       setSuggestions(responseSuggestions);
 
       const assistantMessage: CopilotMessage = {
