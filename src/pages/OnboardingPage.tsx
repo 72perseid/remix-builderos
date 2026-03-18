@@ -50,6 +50,9 @@ export default function OnboardingPage() {
     error,
     workflowMode,
     modeLoading,
+    bmCompletion,
+    uvCompletion,
+    pbCompletion,
   } = useOnboardingChat(isNewAppMode);
 
   const [inputValue, setInputValue] = useState('');
