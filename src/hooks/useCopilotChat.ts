@@ -143,6 +143,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
   return {
     messages,
     isLoading,
+    suggestions,
     sendMessage,
     clearMessages,
     hasApp: !!selectedAppId,
