@@ -339,6 +339,42 @@ export default function OnboardingPage() {
         </div>
       </header>
 
+      {/* Progress Indicator */}
+      {messages.length > 0 && !isFinalizing && !showCompletion && (
+        <div className="relative z-10 px-6 py-3 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground">
+                Step {currentStepNum} of 3 — {phaseLabels[currentStepNum - 1]?.label ?? 'Complete'}
+              </span>
+              <span className="text-xs text-muted-foreground">{overallProgress}%</span>
+            </div>
+            <Progress value={overallProgress} className="h-1.5 bg-slate-800" />
+            <div className="flex justify-between mt-2">
+              {phaseLabels.map((phase) => (
+                <div key={phase.key} className="flex items-center gap-1.5">
+                  <div className={cn(
+                    'w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold border',
+                    phase.completion >= 100
+                      ? 'bg-blue-500 border-blue-500 text-white'
+                      : phase.completion > 0
+                        ? 'border-blue-500 text-blue-400'
+                        : 'border-slate-600 text-slate-500'
+                  )}>
+                    {phase.completion >= 100 ? <Check className="w-2.5 h-2.5" /> : null}
+                  </div>
+                  <span className={cn(
+                    'text-xs',
+                    phase.completion >= 100 ? 'text-blue-400' : phase.completion > 0 ? 'text-foreground' : 'text-muted-foreground'
+                  )}>
+                    {phase.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Chat Container - Hidden when finalizing to prevent flash */}
       {!isFinalizing &&
