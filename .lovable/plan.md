@@ -1,77 +1,51 @@
+## Plan: Improve Onboarding Chat Experience
 
+### Context
 
-## BuilderOS Upsell Feature Plan
+The n8n orchestrator routes messages to 3 specialists (Business Model, User Validation, Product Brief), each updating completion percentages (`bm_completion`, `uv_completion`, `pb_completion`) on `app_ideas`. The session ends when n8n returns `session_complete: true`. Currently there's no progress visibility, no quick-answer options, and every answer requires typing.
 
-### Overview
-Three features: (1) completion popup on onboarding finish, (2) progress indicators on artifact cards, (3) coach CTAs on output pages. All upsell links point to a placeholder URL (`/coaching`).
+### Changes
 
----
+**1. Suggestion Chips — `src/pages/OnboardingPage.tsx**`
 
-### Feature 1: Completion Popup
+Add context-aware quick-answer bubbles above the input (same pattern as artifact copilot):
 
-**Where**: `src/pages/OnboardingPage.tsx`
+- Map suggestions per detected phase:
+  - **Business Model phase** (`bm_completion < 100`): "B2C SaaS", "Marketplace", "Subscription model", "Freemium + premium"
+  - **User Validation phase** (`uv_completion < 100`): "Young professionals 25-35", "Small business owners", "Students", "Enterprise teams"  
+  - **Product Brief phase** (`pb_completion < 100`): "Mobile-first app", "Web dashboard", "3-5 core features", "Launch in 3 months"
+- Show chips when not streaming and last message is from assistant (or no messages yet)
+- Clicking a chip sends it as a message immediately
+- Also include a permanent "Skip this question" chip (styled differently, outline variant)
 
-**What**: Replace the current redirect-on-completion behavior with a dismissable dialog that shows before redirecting to `/artifacts`.
+**2. Skip Individual Questions —** `src/pages/OnboardingPage.tsx`
 
-**How**:
-- When `isSessionComplete` fires, show a new `Dialog` instead of immediately starting the countdown/redirect
-- Dialog content:
-  - Headline: "Your idea is taking shape!"
-  - Body text about Business Model, User Validation, Product Scope being ready
-  - CTA button: "Let's Build This Together" linking to `/coaching`
-  - Dismiss/close button (X or "Continue" button)
-- On dismiss: proceed with the existing `performFinalTransition()` flow (which redirects to `/artifacts` instead of `/project-board`)
-- Update the redirect target from `/project-board` to `/artifacts`
+- Add a "Skip this" chip that sends a special message like `"I'd like to skip this question and move on"` to n8n
+- The AI will fill in sensible defaults and proceed to the next question
+- Style it as an outline/ghost chip to differentiate from answer suggestions
 
----
+**3. Expose Completion in** `useOnboardingChat`
 
-### Feature 2: Artifact Card Progress Indicators
+The hook already tracks `bmCompletion`, `uvCompletion`, `pbCompletion` but only fetches them once on init. Add a re-fetch after each `sendMessage` response so the progress bar updates in real-time:
 
-**Where**: `src/components/dashboard/ArtifactsGrid.tsx` + `src/components/dashboard/ArtifactCard.tsx`
+- In `sendMessage`, after receiving the AI response, call `fetchCompletion(appIdeaId)` if `appIdeaId` exists
+- This is already partially done (line ~230) but only when the app idea is first detected
 
-**What**: Show completion percentage and status label on each planning artifact card (Business Model, Validation, Product Brief).
+**4. n8n Consideration (outside frontend scope)**
 
-**How**:
-- In `ArtifactsGrid`, fetch `bm_completion`, `uv_completion`, `pb_completion` from `app_ideas` table (using existing `selectedAppId` from `ProjectContext`) with a polling query
-- Map completion values to each card type: `business_model` -> `bm_completion`, `validation` -> `uv_completion`, `product_brief` -> `pb_completion`
-- Pass `completion` prop to `ArtifactCard`
-- In `ArtifactCard`, render a `Progress` bar with percentage when completion is between 0-99, and show "Complete - output generated" label at 100%. Below 100% show "Keep refining" label.
+The real bottleneck is how many questions n8n asks. You should review the n8n workflow to:
 
----
+- Batch related questions (ask 2-3 at once instead of one-by-one)
+- Accept shorter answers and infer details
+- Target 6-8 total exchanges max instead of 15+
 
-### Feature 3: Coach CTAs on Output Pages
+This is a workflow change on n8n, not a code change here.
 
-**Where**: Three pages get a subtle CTA banner:
-- `src/pages/ProjectBoardPage.tsx`: "Not sure how to prioritize this?" + "Talk to an Expert"
-- `src/pages/DatabaseDesignPage.tsx`: "Need help deploying this?" + "Talk to an Expert"
-- `src/pages/MasterPromptPage.tsx`: "Want someone to run this for you?" + "Talk to an Expert"
+### Files Modified
 
-**How**:
-- Create a reusable `CoachCTA` component (`src/components/dashboard/CoachCTA.tsx`) that accepts `message` and `ctaLabel` props
-- Renders a subtle, non-pushy banner with the message and a link/button to `/coaching`
-- Styled as a soft card with muted colors, not attention-grabbing
-- Add this component to the bottom of each output page's content area
+- `src/pages/OnboardingPage.tsx` — progress bar, suggestion chips, skip chip
+- `src/hooks/useOnboardingChat.ts` — re-fetch completion after each message
 
----
+### No database changes needed
 
-### Placeholder Upsell Page
-
-**Where**: `src/pages/CoachingPage.tsx` + new route in `App.tsx`
-
-**What**: A minimal placeholder page at `/coaching` with a heading like "Expert Support Coming Soon" so the links don't 404. This page will later be replaced with the full funnel.
-
----
-
-### Files to Create
-- `src/components/dashboard/CoachCTA.tsx` (reusable coach CTA component)
-- `src/pages/CoachingPage.tsx` (placeholder upsell page)
-
-### Files to Modify
-- `src/pages/OnboardingPage.tsx` (completion popup + redirect target change)
-- `src/components/dashboard/ArtifactsGrid.tsx` (fetch completion data, pass to cards)
-- `src/components/dashboard/ArtifactCard.tsx` (accept + render completion prop)
-- `src/pages/ProjectBoardPage.tsx` (add CoachCTA)
-- `src/pages/DatabaseDesignPage.tsx` (add CoachCTA)
-- `src/pages/MasterPromptPage.tsx` (add CoachCTA)
-- `src/App.tsx` (add `/coaching` route)
-
+Completion fields already exist on `app_ideas`. The hook already reads them.
