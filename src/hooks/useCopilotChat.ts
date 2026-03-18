@@ -66,7 +66,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
         try { responseData = JSON.parse(responseData); } catch { /* plain string */ }
       }
 
-      const aiResponse = [
+      let aiResponse = [
         responseData?.response,
         responseData?.output,
         responseData?.message,
