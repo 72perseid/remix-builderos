@@ -261,13 +261,6 @@ export default function OnboardingPage() {
   "Tell our BuilderOS about your new app idea." :
   "Our BuilderOS will guide you through creating your perfect product roadmap.";
 
-  /* ─── Phase-aware suggestion chips ─── */
-  const PHASE_SUGGESTIONS: Record<string, string[]> = {
-    business_model: ["B2C SaaS", "Marketplace", "Subscription model", "Freemium + premium"],
-    validation: ["Young professionals 25-35", "Small business owners", "Students", "Enterprise teams"],
-    product_brief: ["Mobile-first app", "Web dashboard", "3-5 core features", "Launch in 3 months"],
-  };
-
   const currentPhase = useMemo(() => {
     if (bmCompletion < 100) return 'business_model';
     if (uvCompletion < 100) return 'validation';
@@ -284,7 +277,7 @@ export default function OnboardingPage() {
   const currentStepIndex = phaseLabels.findIndex(p => p.completion < 100);
   const currentStepNum = currentStepIndex === -1 ? 3 : currentStepIndex + 1;
 
-  const suggestions = PHASE_SUGGESTIONS[currentPhase] || [];
+  const suggestions = dynamicSuggestions;
   const showChips = !isStreaming && !isFinalizing && !isSessionComplete &&
     (messages.length === 0 || messages[messages.length - 1]?.role === 'assistant');
 
