@@ -153,6 +153,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
       if (!user?.id) throw new Error('No user authenticated');
 
       setError(null);
+      setSuggestions([]);
 
       // Use forced 'new' mode if set, otherwise resolve fresh
       let resolvedMode: WorkflowMode;
