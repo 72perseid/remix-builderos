@@ -238,22 +238,30 @@ export function useOnboardingChat(forceNew: boolean = false) {
             ? responseData
             : 'Error: No message found in response');
 
-        // Parse suggestion chips embedded in the message text (e.g. suggestions: ["a", "b"])
+        // Extract suggestions - prefer JSON field, fall back to text parsing
         let responseSuggestions: string[] = [];
-        const suggestionsMatch = aiResponse.match(/suggestions:\s*(\[.*?\])/s);
-        if (suggestionsMatch) {
-          try {
-            const parsed = JSON.parse(suggestionsMatch[1]);
-            if (Array.isArray(parsed)) {
-              responseSuggestions = parsed.filter((s: unknown) => typeof s === 'string');
-            }
-          } catch {
-            // ignore parse errors
-          }
-          // Remove the suggestions text from the displayed message
-          aiResponse = aiResponse.replace(/\s*suggestions:\s*\[.*?\]/s, '').trim();
+
+        // 1. Check JSON field from n8n response
+        const suggestionsFromJson = responseData?.suggestions;
+        if (Array.isArray(suggestionsFromJson) && suggestionsFromJson.length > 0) {
+          responseSuggestions = suggestionsFromJson.filter((s: unknown) => typeof s === 'string');
         }
-        console.log('Suggestions extracted from text:', responseSuggestions);
+
+        // 2. Fall back to parsing from message text
+        if (responseSuggestions.length === 0) {
+          const suggestionsMatch = aiResponse.match(/suggestions:\s*(\[.*?\])/s);
+          if (suggestionsMatch) {
+            try {
+              const parsed = JSON.parse(suggestionsMatch[1]);
+              if (Array.isArray(parsed)) {
+                responseSuggestions = parsed.filter((s: unknown) => typeof s === 'string');
+              }
+            } catch { /* ignore */ }
+            aiResponse = aiResponse.replace(/\s*suggestions:\s*\[.*?\]/s, '').trim();
+          }
+        }
+
+        console.log('Suggestions extracted:', responseSuggestions);
         setSuggestions(responseSuggestions);
 
 
