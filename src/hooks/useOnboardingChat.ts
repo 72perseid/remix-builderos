@@ -28,6 +28,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
   const [uvCompletion, setUvCompletion] = useState(0);
   const [pbCompletion, setPbCompletion] = useState(0);
   const [appIdeaId, setAppIdeaId] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
   // Fetch completion percentages from app_ideas
   const fetchCompletion = useCallback(async (ideaId: string) => {
@@ -152,6 +153,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
       if (!user?.id) throw new Error('No user authenticated');
 
       setError(null);
+      setSuggestions([]);
 
       // Use forced 'new' mode if set, otherwise resolve fresh
       let resolvedMode: WorkflowMode;
@@ -221,6 +223,10 @@ export function useOnboardingChat(forceNew: boolean = false) {
 
         // Detect session_complete flag (comes as string "true" from n8n)
         const sessionComplete = responseData?.session_complete === true || responseData?.session_complete === 'true';
+
+        // Parse dynamic suggestion chips from n8n response
+        const responseSuggestions = Array.isArray(responseData?.suggestions) ? responseData.suggestions.filter((s: unknown) => typeof s === 'string') : [];
+        setSuggestions(responseSuggestions);
 
         // n8n always returns { response, session_complete } — use response field explicitly
         const aiResponse =
@@ -329,5 +335,6 @@ export function useOnboardingChat(forceNew: boolean = false) {
     bmCompletion,
     uvCompletion,
     pbCompletion,
+    suggestions,
   };
 }
