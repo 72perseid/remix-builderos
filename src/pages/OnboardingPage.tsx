@@ -260,6 +260,49 @@ export default function OnboardingPage() {
   "Tell our BuilderOS about your new app idea." :
   "Our BuilderOS will guide you through creating your perfect product roadmap.";
 
+  /* ─── Phase-aware suggestion chips ─── */
+  const PHASE_SUGGESTIONS: Record<string, string[]> = {
+    business_model: ["B2C SaaS", "Marketplace", "Subscription model", "Freemium + premium"],
+    validation: ["Young professionals 25-35", "Small business owners", "Students", "Enterprise teams"],
+    product_brief: ["Mobile-first app", "Web dashboard", "3-5 core features", "Launch in 3 months"],
+  };
+
+  const currentPhase = useMemo(() => {
+    if (bmCompletion < 100) return 'business_model';
+    if (uvCompletion < 100) return 'validation';
+    return 'product_brief';
+  }, [bmCompletion, uvCompletion]);
+
+  const phaseLabels = [
+    { key: 'business_model', label: 'Business Model', completion: bmCompletion },
+    { key: 'validation', label: 'Target User', completion: uvCompletion },
+    { key: 'product_brief', label: 'Product Scope', completion: pbCompletion },
+  ];
+
+  const overallProgress = Math.round((bmCompletion + uvCompletion + pbCompletion) / 3);
+  const currentStepIndex = phaseLabels.findIndex(p => p.completion < 100);
+  const currentStepNum = currentStepIndex === -1 ? 3 : currentStepIndex + 1;
+
+  const suggestions = PHASE_SUGGESTIONS[currentPhase] || [];
+  const showChips = !isStreaming && !isFinalizing && !isSessionComplete &&
+    (messages.length === 0 || messages[messages.length - 1]?.role === 'assistant');
+
+  const handleChipClick = (text: string) => {
+    setInputValue('');
+    sendMessage(text, false).then((response) => {
+      if (response.sessionComplete) {
+        setIsSessionComplete(true);
+        if (user?.id && !isNewAppMode) {
+          supabase.from('profiles').update({ onboarded: true }).eq('id', user.id);
+        }
+      }
+    }).catch(console.error);
+  };
+
+  const handleSkipQuestion = () => {
+    handleChipClick("I'd like to skip this question and move on");
+  };
+
   return (
     <div className="min-h-screen bg-[hsl(222,47%,11%)] flex flex-col relative overflow-hidden">
       {/* Background decoration */}
