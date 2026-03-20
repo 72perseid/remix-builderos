@@ -18,6 +18,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
 
   const sessionIdRef = useRef<string | null>(null);
   const forcedNewAppRef = useRef(false);
+  const preExistingAppIdsRef = useRef<Set<string>>(new Set());
 
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -60,6 +61,17 @@ export function useOnboardingChat(forceNew: boolean = false) {
           // New app mode: always create a fresh session, skip old data
           forcedNewAppRef.current = true;
           setWorkflowMode('new');
+          setBmCompletion(0);
+          setUvCompletion(0);
+          setPbCompletion(0);
+          setAppIdeaId(null);
+
+          // Snapshot all existing app IDs so we can detect the newly created one later
+          const { data: existingApps } = await supabase
+            .from('app_ideas')
+            .select('id')
+            .eq('user_id', user.id);
+          preExistingAppIdsRef.current = new Set((existingApps || []).map(a => a.id));
 
           const { data: newSession } = await supabase
             .from('chat_sessions')
@@ -280,17 +292,34 @@ export function useOnboardingChat(forceNew: boolean = false) {
         };
         setMessages((prev) => [...prev, assistantMessage]);
 
-        // Always re-check workflow mode after each exchange
+        // Re-check workflow mode after each exchange
+        const wasForcedNew = forcedNewAppRef.current;
         const latestState = await resolveWorkflowMode(user.id);
-        if (latestState.appIdeaId) {
-          // App idea exists — switch to onboarded mode
-          forcedNewAppRef.current = false;
+
+        if (wasForcedNew) {
+          // Only exit "new" mode if a genuinely NEW app was created (not pre-existing)
+          if (latestState.appIdeaId && !preExistingAppIdsRef.current.has(latestState.appIdeaId)) {
+            forcedNewAppRef.current = false;
+            setWorkflowMode('onboarded');
+            resolvedAppIdeaId = latestState.appIdeaId;
+            setAppIdeaId(latestState.appIdeaId);
+            await fetchCompletion(latestState.appIdeaId);
+
+            if (currentSessionId) {
+              await supabase
+                .from('chat_sessions')
+                .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
+                .eq('id', currentSessionId);
+            }
+          }
+          // Otherwise stay in 'new' mode — the new app hasn't been created yet
+        } else if (latestState.appIdeaId) {
+          // Normal (non-forced) flow
           setWorkflowMode('onboarded');
           resolvedAppIdeaId = latestState.appIdeaId;
           setAppIdeaId(latestState.appIdeaId);
           await fetchCompletion(latestState.appIdeaId);
 
-          // Link the current session to this app_idea
           if (currentSessionId) {
             await supabase
               .from('chat_sessions')
@@ -298,16 +327,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
               .eq('id', currentSessionId);
           }
         } else if (resolvedAppIdeaId) {
-          // App idea already existed before this exchange — just refresh completion
           await fetchCompletion(resolvedAppIdeaId);
-
-          // Link the current session to this app_idea
-          if (currentSessionId) {
-            await supabase
-              .from('chat_sessions')
-              .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
-              .eq('id', currentSessionId);
-          }
         }
 
         return { text: aiResponse, sessionComplete };
