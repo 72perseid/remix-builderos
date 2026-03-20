@@ -147,6 +147,8 @@ const ChatContent = React.memo(function ChatContent({
     });
 
     if (prevLoadingRef.current && !isLoading) {
+      // Immediately check if completion hit 100% after AI response
+      refetchCompletion();
       const timer = setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 1000);
@@ -154,7 +156,7 @@ const ChatContent = React.memo(function ChatContent({
       return () => clearTimeout(timer);
     }
     prevLoadingRef.current = isLoading;
-  }, [messages.length, isLoading]);
+  }, [messages.length, isLoading, refetchCompletion]);
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
