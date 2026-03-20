@@ -208,7 +208,7 @@ const ChatContent = React.memo(function ChatContent({
         </div>
       ) : (
         <>
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <ScrollArea className="flex-1 p-4">
             {messages.length === 0 ? (
               <div className="text-center py-8">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 text-primary" />
@@ -226,6 +226,7 @@ const ChatContent = React.memo(function ChatContent({
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
             )}
           </ScrollArea>
