@@ -23,6 +23,16 @@ const SUGGESTIONS: Record<string, string[]> = {
   kanban: ["Break down my tasks", "Suggest sprint goals", "What should I prioritize?", "Help me complete this artifact to 100%"],
 };
 
+const COMPLETION_CHIP = "Help me complete this artifact to 100%";
+
+/* ─── Map context to completion column ─── */
+const COMPLETION_KEY: Record<string, string> = {
+  business_model: 'bm_completion',
+  validation: 'uv_completion',
+  product_brief: 'pb_completion',
+  ui_ux: 'ux_completion',
+};
+
 /* ─── Memoized message bubble ─── */
 
 const CopilotMessageBubble = React.memo(({ message }: { message: CopilotMessage }) => {
