@@ -71,8 +71,12 @@ export function ArtifactsGrid() {
     loading
   } = useArtifacts();
   const { profile } = useProfile();
-  const { selectedApp } = useProjectContext();
+  const { selectedApp, refreshApps } = useProjectContext();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    refreshApps();
+  }, [refreshApps]);
 
   // Completion mapping from app_ideas fields
   const completionMap: Partial<Record<ArtifactType, number | null>> = {
