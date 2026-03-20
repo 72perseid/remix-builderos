@@ -380,5 +380,6 @@ export function useOnboardingChat(forceNew: boolean = false) {
     uvCompletion,
     pbCompletion,
     suggestions,
+    appIdeaId,
   };
 }
