@@ -83,12 +83,15 @@ const ChatContent = React.memo(function ChatContent({
 
   const activeSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
 
-  // Scroll to bottom on new messages only
+  // Scroll to bottom on new messages and when loading finishes (suggestions appear)
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const el = scrollRef.current;
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollTop = el.scrollHeight;
+      });
     }
-  }, [messages.length]);
+  }, [messages.length, isLoading]);
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
