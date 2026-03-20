@@ -7,8 +7,17 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen, PartyPopper, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Context-aware suggestion prompts ─── */
