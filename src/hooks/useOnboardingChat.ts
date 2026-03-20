@@ -61,6 +61,17 @@ export function useOnboardingChat(forceNew: boolean = false) {
           // New app mode: always create a fresh session, skip old data
           forcedNewAppRef.current = true;
           setWorkflowMode('new');
+          setBmCompletion(0);
+          setUvCompletion(0);
+          setPbCompletion(0);
+          setAppIdeaId(null);
+
+          // Snapshot all existing app IDs so we can detect the newly created one later
+          const { data: existingApps } = await supabase
+            .from('app_ideas')
+            .select('id')
+            .eq('user_id', user.id);
+          preExistingAppIdsRef.current = new Set((existingApps || []).map(a => a.id));
 
           const { data: newSession } = await supabase
             .from('chat_sessions')
