@@ -7,8 +7,17 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen, PartyPopper, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Context-aware suggestion prompts ─── */
@@ -114,6 +123,16 @@ const ChatContent = React.memo(function ChatContent({
   });
 
   const isComplete = completionData === 100;
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const prevCompleteRef = useRef(false);
+
+  // Show popup when completion transitions to 100%
+  useEffect(() => {
+    if (isComplete && !prevCompleteRef.current) {
+      setShowCompletionPopup(true);
+    }
+    prevCompleteRef.current = isComplete;
+  }, [isComplete]);
 
   const rawSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
   const activeSuggestions = isComplete
@@ -270,6 +289,50 @@ const ChatContent = React.memo(function ChatContent({
           </form>
         </>
       )}
+
+      {/* Completion popup */}
+      <AlertDialog open={showCompletionPopup} onOpenChange={setShowCompletionPopup}>
+        <AlertDialogContent className="bg-slate-950 border-slate-800 text-foreground max-w-md">
+          <AlertDialogHeader className="items-center text-center">
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20">
+              <PartyPopper className="h-6 w-6 text-primary" />
+            </div>
+            <AlertDialogTitle className="text-lg font-semibold text-white">
+              🎉 Artifact 100% Complete!
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm text-slate-300 text-left">
+                <p>
+                  Great work! This artifact is now fully complete. You can close it and head back to your Project Board.
+                </p>
+                <p className="font-medium text-white">What happens next:</p>
+                <ul className="space-y-2 list-none pl-0">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Your <strong>Project Board</strong> will be generated</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Your <strong>Database Design</strong> will be created</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                    <span>Your <strong>Master Prompt</strong> will be generated</span>
+                  </li>
+                </ul>
+                <p className="text-xs text-slate-400 italic">
+                  💡 Tip: Check each generated artifact one by one to review and confirm the outputs.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction className="bg-primary hover:bg-primary/90 text-primary-foreground">
+              Got it!
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 });
