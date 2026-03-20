@@ -292,17 +292,34 @@ export function useOnboardingChat(forceNew: boolean = false) {
         };
         setMessages((prev) => [...prev, assistantMessage]);
 
-        // Always re-check workflow mode after each exchange
+        // Re-check workflow mode after each exchange
+        const wasForcedNew = forcedNewAppRef.current;
         const latestState = await resolveWorkflowMode(user.id);
-        if (latestState.appIdeaId) {
-          // App idea exists — switch to onboarded mode
-          forcedNewAppRef.current = false;
+
+        if (wasForcedNew) {
+          // Only exit "new" mode if a genuinely NEW app was created (not pre-existing)
+          if (latestState.appIdeaId && !preExistingAppIdsRef.current.has(latestState.appIdeaId)) {
+            forcedNewAppRef.current = false;
+            setWorkflowMode('onboarded');
+            resolvedAppIdeaId = latestState.appIdeaId;
+            setAppIdeaId(latestState.appIdeaId);
+            await fetchCompletion(latestState.appIdeaId);
+
+            if (currentSessionId) {
+              await supabase
+                .from('chat_sessions')
+                .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
+                .eq('id', currentSessionId);
+            }
+          }
+          // Otherwise stay in 'new' mode — the new app hasn't been created yet
+        } else if (latestState.appIdeaId) {
+          // Normal (non-forced) flow
           setWorkflowMode('onboarded');
           resolvedAppIdeaId = latestState.appIdeaId;
           setAppIdeaId(latestState.appIdeaId);
           await fetchCompletion(latestState.appIdeaId);
 
-          // Link the current session to this app_idea
           if (currentSessionId) {
             await supabase
               .from('chat_sessions')
@@ -310,16 +327,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
               .eq('id', currentSessionId);
           }
         } else if (resolvedAppIdeaId) {
-          // App idea already existed before this exchange — just refresh completion
           await fetchCompletion(resolvedAppIdeaId);
-
-          // Link the current session to this app_idea
-          if (currentSessionId) {
-            await supabase
-              .from('chat_sessions')
-              .update({ app_idea_id: latestState.appIdeaId, workflow_mode: 'onboarded' })
-              .eq('id', currentSessionId);
-          }
         }
 
         return { text: aiResponse, sessionComplete };
