@@ -106,7 +106,7 @@ const ChatContent = React.memo(function ChatContent({
         .select(completionKey)
         .eq('id', selectedAppId)
         .single();
-      return (data as Record<string, number> | null)?.[completionKey] ?? 0;
+      return (data as unknown as Record<string, number> | null)?.[completionKey] ?? 0;
     },
     enabled: !!selectedAppId && !!completionKey,
     refetchInterval: 10000,
