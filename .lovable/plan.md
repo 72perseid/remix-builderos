@@ -1,26 +1,26 @@
 
 
-## Fix: 100% completion popup not triggering during live chat session
+## Bug Fix: Auto-select newly created app after onboarding completion
 
 ### Problem
 
-The `completionData` query in `ChatContent` fetches once on mount and never again. When the copilot chat updates `bm_completion` (or similar) from 85 to 100 in the database mid-conversation, the cached query still holds `85`, so `isComplete` remains `false` and the popup never appears.
+When completing onboarding for a new app, the completion popup navigates to `/project-board` without updating the project selector. The `handleDismissPopup` and coaching button just call `navigate()` directly, skipping the `selectApp()` call. The `performFinalTransition` function does select the latest app, but none of the popup buttons use it.
 
-It only works when you open the page with completion already at 100% because the initial fetch returns 100.
+Meanwhile, `useOnboardingChat` already tracks the new app's ID in its `appIdeaId` state and exposes it — but the OnboardingPage never uses it to update the ProjectContext.
 
-### Fix — `src/components/artifacts/ArtifactCopilot.tsx`
+### Fix — `src/pages/OnboardingPage.tsx`
 
-Add a `refetchInterval: 10000` (10s polling) to the completion query so it picks up database changes made by the backend during the chat session. This matches the same polling pattern already used on the Product Brief page (line 56 of `ProductBriefPage.tsx`).
+1. **Read `appIdeaId` from the onboarding hook** — it's already returned but not destructured in OnboardingPage. Extract it alongside the other values.
 
-Additionally, trigger an immediate refetch when `isLoading` transitions from `true` to `false` (i.e., after each AI response), since that's the exact moment completion is most likely to have changed.
+2. **Before every navigation to `/project-board`, call `selectApp(appIdeaId)`** if available. Apply this to:
+   - `handleDismissPopup` (the "Continue to Project Board" button / countdown)
+   - `handleSkipToBoard`
+   - The coaching button's onClick (navigate to `/coaching`)
+   - The backup navigation timeout
 
-| Change | Detail |
-|--------|--------|
-| Add `refetchInterval: 10000` to the completion `useQuery` | Catches background updates within 10s |
-| Capture the `refetch` function from the query | To trigger on-demand refetch |
-| After `isLoading` goes false, call `refetch()` | Immediate check right after AI responds |
+This ensures the ProjectContext switches to the newly created app before the dashboard renders.
 
 ### Scope
-- **1 file**: `src/components/artifacts/ArtifactCopilot.tsx`
-- ~5 lines changed
+- **1 file**: `src/pages/OnboardingPage.tsx`
+- ~8 lines changed
 
