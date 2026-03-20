@@ -1,33 +1,26 @@
 
 
-## Fix: Stale completion percentages on Artifacts dashboard
+## Fix: 100% completion popup not triggering during live chat session
 
-### Root Cause
+### Problem
 
-The Artifacts grid reads completion from `selectedApp?.bm_completion` (line 78-82 of `ArtifactsGrid.tsx`), which comes from the `ProjectContext`'s `apps` array. This array is fetched **once on mount** and never refreshed when completion values change in the database.
+The `completionData` query in `ChatContent` fetches once on mount and never again. When the copilot chat updates `bm_completion` (or similar) from 85 to 100 in the database mid-conversation, the cached query still holds `85`, so `isComplete` remains `false` and the popup never appears.
 
-The individual artifact pages (e.g. Business Model) show the correct 100% because they have their own `useQuery` that fetches directly from `app_ideas`.
+It only works when you open the page with completion already at 100% because the initial fetch returns 100.
 
-The DB currently has all completions at 100%, but the dashboard still shows 80/90/68 — the values from when `ProjectContext` last loaded.
+### Fix — `src/components/artifacts/ArtifactCopilot.tsx`
 
-### Fix
+Add a `refetchInterval: 10000` (10s polling) to the completion query so it picks up database changes made by the backend during the chat session. This matches the same polling pattern already used on the Product Brief page (line 56 of `ProductBriefPage.tsx`).
 
-**File: `src/contexts/ProjectContext.tsx`**
+Additionally, trigger an immediate refetch when `isLoading` transitions from `true` to `false` (i.e., after each AI response), since that's the exact moment completion is most likely to have changed.
 
-The `selectedApp` is derived from `apps.find(...)` (line 138). When navigating back to the dashboard, the stale cached array is used. Two options:
+| Change | Detail |
+|--------|--------|
+| Add `refetchInterval: 10000` to the completion `useQuery` | Catches background updates within 10s |
+| Capture the `refetch` function from the query | To trigger on-demand refetch |
+| After `isLoading` goes false, call `refetch()` | Immediate check right after AI responds |
 
-**Option A (Simple — recommended):** Call `refreshApps()` when the Artifacts grid mounts, so it always gets fresh data from the DB.
-
-- In `ArtifactsGrid.tsx`, add a `useEffect` that calls `refreshApps()` on mount
-- This ensures completion values are current whenever the user visits the dashboard
-
-**Option B (Reactive):** Subscribe to Supabase realtime changes on `app_ideas` table to auto-update. More complex, higher cost.
-
-### Changes
-
-| File | Change |
-|------|--------|
-| `src/components/dashboard/ArtifactsGrid.tsx` | Add `refreshApps` from `useProjectContext()`, call it in a `useEffect` on mount to refresh stale completion data |
-
-One line added to imports, ~4 lines for the effect. No other files need changes.
+### Scope
+- **1 file**: `src/components/artifacts/ArtifactCopilot.tsx`
+- ~5 lines changed
 
