@@ -54,6 +54,7 @@ export default function OnboardingPage() {
     uvCompletion,
     pbCompletion,
     suggestions: dynamicSuggestions,
+    appIdeaId,
   } = useOnboardingChat(isNewAppMode);
 
   const [inputValue, setInputValue] = useState('');
