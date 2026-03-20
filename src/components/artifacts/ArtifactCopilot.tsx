@@ -107,7 +107,7 @@ const ChatContent = React.memo(function ChatContent({
   const { selectedAppId } = useProjectContext();
   const completionKey = COMPLETION_KEY[context];
 
-  const { data: completionData } = useQuery({
+  const { data: completionData, refetch: refetchCompletion } = useQuery({
     queryKey: ['copilot-completion', selectedAppId, completionKey],
     queryFn: async () => {
       if (!selectedAppId || !completionKey) return null;
@@ -120,6 +120,7 @@ const ChatContent = React.memo(function ChatContent({
     },
     enabled: !!selectedAppId && !!completionKey,
     refetchOnWindowFocus: false,
+    refetchInterval: 10000,
   });
 
   const isComplete = completionData === 100;
