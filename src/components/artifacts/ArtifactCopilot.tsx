@@ -4,6 +4,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCopilotChat, CopilotMessage } from '@/hooks/useCopilotChat';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useProjectContext } from '@/contexts/ProjectContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +21,16 @@ const SUGGESTIONS: Record<string, string[]> = {
   db_design: ["Suggest a schema", "What tables do I need?", "How should I handle auth?", "Help me complete this artifact to 100%"],
   master_prompt: ["Improve my prompt", "Add edge cases", "Make it more specific", "Help me complete this artifact to 100%"],
   kanban: ["Break down my tasks", "Suggest sprint goals", "What should I prioritize?", "Help me complete this artifact to 100%"],
+};
+
+const COMPLETION_CHIP = "Help me complete this artifact to 100%";
+
+/* ─── Map context to completion column ─── */
+const COMPLETION_KEY: Record<string, string> = {
+  business_model: 'bm_completion',
+  validation: 'uv_completion',
+  product_brief: 'pb_completion',
+  ui_ux: 'ux_completion',
 };
 
 /* ─── Memoized message bubble ─── */
@@ -81,7 +94,30 @@ const ChatContent = React.memo(function ChatContent({
     onArtifactRefresh,
   });
 
-  const activeSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
+  const { selectedAppId } = useProjectContext();
+  const completionKey = COMPLETION_KEY[context];
+
+  const { data: completionData } = useQuery({
+    queryKey: ['copilot-completion', selectedAppId, completionKey],
+    queryFn: async () => {
+      if (!selectedAppId || !completionKey) return null;
+      const { data } = await supabase
+        .from('app_ideas')
+        .select(completionKey)
+        .eq('id', selectedAppId)
+        .single();
+      return (data as unknown as Record<string, number> | null)?.[completionKey] ?? 0;
+    },
+    enabled: !!selectedAppId && !!completionKey,
+    refetchInterval: 10000,
+  });
+
+  const isComplete = completionData === 100;
+
+  const rawSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
+  const activeSuggestions = isComplete
+    ? rawSuggestions.filter(s => s !== COMPLETION_CHIP)
+    : rawSuggestions;
 
   // Scroll to bottom on new messages and when loading finishes (suggestions appear)
   useEffect(() => {
