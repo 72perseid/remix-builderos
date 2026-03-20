@@ -18,6 +18,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
 
   const sessionIdRef = useRef<string | null>(null);
   const forcedNewAppRef = useRef(false);
+  const preExistingAppIdsRef = useRef<Set<string>>(new Set());
 
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
