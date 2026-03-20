@@ -297,6 +297,7 @@ export default function OnboardingPage() {
 
   const suggestions = dynamicSuggestions;
   const showChips = !isStreaming && !isFinalizing && !isSessionComplete &&
+    suggestions.length > 0 &&
     (messages.length === 0 || messages[messages.length - 1]?.role === 'assistant');
 
   const handleChipClick = (text: string) => {
