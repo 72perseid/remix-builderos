@@ -94,17 +94,30 @@ const ChatContent = React.memo(function ChatContent({
     onArtifactRefresh,
   });
 
-  const activeSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
+  const { selectedAppId } = useProjectContext();
+  const completionKey = COMPLETION_KEY[context];
 
-  // Scroll to bottom on new messages and when loading finishes (suggestions appear)
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (el) {
-      requestAnimationFrame(() => {
-        el.scrollTop = el.scrollHeight;
-      });
-    }
-  }, [messages.length, isLoading]);
+  const { data: completionData } = useQuery({
+    queryKey: ['copilot-completion', selectedAppId, completionKey],
+    queryFn: async () => {
+      if (!selectedAppId || !completionKey) return null;
+      const { data } = await supabase
+        .from('app_ideas')
+        .select(completionKey)
+        .eq('id', selectedAppId)
+        .single();
+      return (data as Record<string, number> | null)?.[completionKey] ?? 0;
+    },
+    enabled: !!selectedAppId && !!completionKey,
+    refetchInterval: 10000,
+  });
+
+  const isComplete = completionData === 100;
+
+  const rawSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
+  const activeSuggestions = isComplete
+    ? rawSuggestions.filter(s => s !== COMPLETION_CHIP)
+    : rawSuggestions;
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
