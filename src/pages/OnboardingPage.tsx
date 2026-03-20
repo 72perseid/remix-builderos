@@ -92,6 +92,20 @@ export default function OnboardingPage() {
     }
   }, [isStreaming, showCompletion]);
 
+  // Auto-resize input up to 7 lines
+  useEffect(() => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = 'auto';
+
+    const computedLineHeight = Number.parseFloat(window.getComputedStyle(textarea).lineHeight || '24') || 24;
+    const maxHeight = computedLineHeight * MAX_INPUT_LINES;
+
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [inputValue, MAX_INPUT_LINES]);
+
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
 
   // Show completion popup when session is complete (replaces immediate countdown)
