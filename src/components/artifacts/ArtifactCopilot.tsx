@@ -107,7 +107,7 @@ const ChatContent = React.memo(function ChatContent({
   const { selectedAppId } = useProjectContext();
   const completionKey = COMPLETION_KEY[context];
 
-  const { data: completionData } = useQuery({
+  const { data: completionData, refetch: refetchCompletion } = useQuery({
     queryKey: ['copilot-completion', selectedAppId, completionKey],
     queryFn: async () => {
       if (!selectedAppId || !completionKey) return null;
@@ -120,6 +120,7 @@ const ChatContent = React.memo(function ChatContent({
     },
     enabled: !!selectedAppId && !!completionKey,
     refetchOnWindowFocus: false,
+    refetchInterval: 10000,
   });
 
   const isComplete = completionData === 100;
@@ -146,6 +147,8 @@ const ChatContent = React.memo(function ChatContent({
     });
 
     if (prevLoadingRef.current && !isLoading) {
+      // Immediately check if completion hit 100% after AI response
+      refetchCompletion();
       const timer = setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 1000);
@@ -153,7 +156,7 @@ const ChatContent = React.memo(function ChatContent({
       return () => clearTimeout(timer);
     }
     prevLoadingRef.current = isLoading;
-  }, [messages.length, isLoading]);
+  }, [messages.length, isLoading, refetchCompletion]);
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
