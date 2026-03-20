@@ -1,28 +1,42 @@
 
 
-## Plan: Add "Continue / Complete" Chip to Default Suggestions
+## Plan: Fix scroll-to-bottom after suggestion chips appear + investigate refresh
 
-### Change
+### Problem
+The `requestAnimationFrame` scroll fires too early — before the suggestion chips have actually rendered and taken up space. The ScrollArea content height hasn't updated yet, so it scrolls to a position that's still too high.
 
-**`src/components/artifacts/ArtifactCopilot.tsx`** — Add a completion-focused chip to each entry in the static `SUGGESTIONS` map (lines 13-21).
+### Fix — `src/components/artifacts/ArtifactCopilot.tsx`
 
-Each context array gets a new last item: `"Help me complete this artifact to 100%"`
+**1. Add a delayed scroll after loading finishes (suggestions render)**
 
-Updated map:
+Replace the current scroll `useEffect` (lines 122-130) with one that:
+- Scrolls immediately on new messages (as before)
+- When `isLoading` transitions from `true` → `false`, adds a **1-second delayed scroll** to catch the suggestion chips layout shift
+
 ```typescript
-const SUGGESTIONS: Record<string, string[]> = {
-  business_model: ["What's my revenue model?", "Analyze my competitors", "Suggest pricing tiers", "Help me complete this artifact to 100%"],
-  validation: ["Who's my target user?", "What risks should I test?", "Suggest interview questions", "Help me complete this artifact to 100%"],
-  product_brief: ["Summarize my MVP scope", "What are the key features?", "Suggest success metrics", "Help me complete this artifact to 100%"],
-  ui_ux: ["Suggest a color palette", "What screens do I need?", "Recommend a layout", "Help me complete this artifact to 100%"],
-  db_design: ["Suggest a schema", "What tables do I need?", "How should I handle auth?", "Help me complete this artifact to 100%"],
-  master_prompt: ["Improve my prompt", "Add edge cases", "Make it more specific", "Help me complete this artifact to 100%"],
-  kanban: ["Break down my tasks", "Suggest sprint goals", "What should I prioritize?", "Help me complete this artifact to 100%"],
-};
+const prevLoadingRef = useRef(false);
+
+useEffect(() => {
+  const el = scrollRef.current;
+  if (!el) return;
+
+  // Always scroll on new messages
+  requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+
+  // Extra delayed scroll when loading just finished (suggestions appeared)
+  if (prevLoadingRef.current && !isLoading) {
+    const timer = setTimeout(() => {
+      el.scrollTop = el.scrollHeight;
+    }, 1000);
+    prevLoadingRef.current = isLoading;
+    return () => clearTimeout(timer);
+  }
+  prevLoadingRef.current = isLoading;
+}, [messages.length, isLoading]);
 ```
 
-Each context drops its 4th niche chip to keep the count at 4, replaced by the universal completion chip. One file, one change.
+**2. Random refresh — likely caused by `refetchInterval: 10000`** on the completion query triggering React state updates. Will change to `refetchOnWindowFocus: false` to reduce unnecessary refetches, and ensure the query doesn't cause component-level re-renders by using `select` to stabilize the return value.
 
 ### Files Modified
-- `src/components/artifacts/ArtifactCopilot.tsx` — update static `SUGGESTIONS` map
+- `src/components/artifacts/ArtifactCopilot.tsx` — improved scroll timing + stabilize completion query
 
