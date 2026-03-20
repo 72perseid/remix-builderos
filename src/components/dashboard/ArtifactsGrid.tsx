@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Palette, Type, Instagram, CreditCard } from 'lucide-react';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
