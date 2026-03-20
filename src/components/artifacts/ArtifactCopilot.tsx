@@ -122,16 +122,13 @@ const ChatContent = React.memo(function ChatContent({
 
   // Scroll to bottom on new messages and when loading finishes (suggestions appear)
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
 
-    // Always scroll on new messages
-    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-
-    // Extra delayed scroll when loading just finished (suggestions appeared)
     if (prevLoadingRef.current && !isLoading) {
       const timer = setTimeout(() => {
-        el.scrollTop = el.scrollHeight;
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 1000);
       prevLoadingRef.current = isLoading;
       return () => clearTimeout(timer);
