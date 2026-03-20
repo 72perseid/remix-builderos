@@ -115,6 +115,11 @@ export function ArtifactsGrid() {
     if (!artifact) return 'locked';
     if (artifact.status === 'completed') return 'completed';
     if (artifact.status === 'generating') return 'loading';
+
+    // If completion metric is 100%, treat as completed even if artifact status lags
+    const completion = completionMap[type];
+    if (completion != null && completion >= 100) return 'completed';
+
     return 'available';
   };
 
