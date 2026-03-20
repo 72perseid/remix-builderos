@@ -96,6 +96,7 @@ const ChatContent = React.memo(function ChatContent({
   onClose,
   closeIcon = 'x',
 }: ChatContentProps) {
+  const navigate = useNavigate();
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
