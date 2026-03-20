@@ -110,7 +110,7 @@ const ChatContent = React.memo(function ChatContent({
       return (data as unknown as Record<string, number> | null)?.[completionKey] ?? 0;
     },
     enabled: !!selectedAppId && !!completionKey,
-    refetchInterval: 10000,
+    refetchOnWindowFocus: false,
   });
 
   const isComplete = completionData === 100;
