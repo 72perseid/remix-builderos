@@ -119,13 +119,13 @@ export default function OnboardingPage() {
 
   const handleDismissPopup = () => {
     setShowCompletionPopup(false);
+    if (appIdeaId) selectApp(appIdeaId);
     // Start countdown after dismissing
     setCountdown(5);
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
-          // Navigate directly — don't go through performFinalTransition
           navigate('/project-board', { replace: true });
           return 0;
         }
