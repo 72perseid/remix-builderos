@@ -99,8 +99,10 @@ export default function OnboardingPage() {
 
     textarea.style.height = 'auto';
 
-    const computedLineHeight = Number.parseFloat(window.getComputedStyle(textarea).lineHeight || '24') || 24;
-    const maxHeight = computedLineHeight * MAX_INPUT_LINES;
+    const styles = window.getComputedStyle(textarea);
+    const computedLineHeight = Number.parseFloat(styles.lineHeight || '24') || 24;
+    const verticalPadding = (Number.parseFloat(styles.paddingTop || '0') || 0) + (Number.parseFloat(styles.paddingBottom || '0') || 0);
+    const maxHeight = (computedLineHeight * MAX_INPUT_LINES) + verticalPadding;
 
     textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
     textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
