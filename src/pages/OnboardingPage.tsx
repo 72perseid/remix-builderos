@@ -529,7 +529,7 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-3 pt-2">
             <p className="text-sm text-muted-foreground">Still unsure about the path forward?</p>
             <Button
-              onClick={() => navigate('/coaching')}
+              onClick={() => { if (appIdeaId) selectApp(appIdeaId); navigate('/coaching'); }}
               className="gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
             >
               Let's Build This Together
