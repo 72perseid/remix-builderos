@@ -331,9 +331,15 @@ const ChatContent = React.memo(function ChatContent({
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="sm:justify-center">
-            <AlertDialogAction className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              Got it!
+          <AlertDialogFooter className="sm:justify-center gap-2">
+            <AlertDialogCancel className="bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white">
+              Close
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => navigate('/master-prompt')}
+            >
+              Check it out
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
