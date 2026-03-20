@@ -86,7 +86,7 @@ const ChatContent = React.memo(function ChatContent({
   closeIcon = 'x',
 }: ChatContentProps) {
   const [inputValue, setInputValue] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const rafRef = useRef<number>(0);
   const prevLoadingRef = useRef(false);
@@ -122,16 +122,13 @@ const ChatContent = React.memo(function ChatContent({
 
   // Scroll to bottom on new messages and when loading finishes (suggestions appear)
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    });
 
-    // Always scroll on new messages
-    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
-
-    // Extra delayed scroll when loading just finished (suggestions appeared)
     if (prevLoadingRef.current && !isLoading) {
       const timer = setTimeout(() => {
-        el.scrollTop = el.scrollHeight;
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 1000);
       prevLoadingRef.current = isLoading;
       return () => clearTimeout(timer);
@@ -211,7 +208,7 @@ const ChatContent = React.memo(function ChatContent({
         </div>
       ) : (
         <>
-          <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <ScrollArea className="flex-1 p-4">
             {messages.length === 0 ? (
               <div className="text-center py-8">
                 <MessageSquare className="h-8 w-8 mx-auto mb-2 text-primary" />
@@ -229,6 +226,7 @@ const ChatContent = React.memo(function ChatContent({
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
             )}
           </ScrollArea>
