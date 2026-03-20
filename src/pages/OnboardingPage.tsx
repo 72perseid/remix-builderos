@@ -54,6 +54,7 @@ export default function OnboardingPage() {
     uvCompletion,
     pbCompletion,
     suggestions: dynamicSuggestions,
+    appIdeaId,
   } = useOnboardingChat(isNewAppMode);
 
   const [inputValue, setInputValue] = useState('');
@@ -118,13 +119,13 @@ export default function OnboardingPage() {
 
   const handleDismissPopup = () => {
     setShowCompletionPopup(false);
+    if (appIdeaId) selectApp(appIdeaId);
     // Start countdown after dismissing
     setCountdown(5);
     const interval = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
           clearInterval(interval);
-          // Navigate directly — don't go through performFinalTransition
           navigate('/project-board', { replace: true });
           return 0;
         }
@@ -134,7 +135,7 @@ export default function OnboardingPage() {
   };
 
   const handleSkipToBoard = () => {
-    // Navigate directly — performFinalTransition is too slow/fragile for button clicks
+    if (appIdeaId) selectApp(appIdeaId);
     navigate('/project-board', { replace: true });
   };
 
@@ -528,7 +529,7 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-3 pt-2">
             <p className="text-sm text-muted-foreground">Still unsure about the path forward?</p>
             <Button
-              onClick={() => navigate('/coaching')}
+              onClick={() => { if (appIdeaId) selectApp(appIdeaId); navigate('/coaching'); }}
               className="gap-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600"
             >
               Let's Build This Together
