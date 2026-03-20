@@ -119,6 +119,16 @@ const ChatContent = React.memo(function ChatContent({
     ? rawSuggestions.filter(s => s !== COMPLETION_CHIP)
     : rawSuggestions;
 
+  // Scroll to bottom on new messages and when loading finishes (suggestions appear)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (el) {
+      requestAnimationFrame(() => {
+        el.scrollTop = el.scrollHeight;
+      });
+    }
+  }, [messages.length, isLoading]);
+
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!inputValue.trim() || isLoading) return;
