@@ -66,6 +66,7 @@ export default function OnboardingPage() {
   const [showSkipWarning, setShowSkipWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const MAX_INPUT_LINES = 7;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -90,6 +91,22 @@ export default function OnboardingPage() {
       inputRef.current?.focus();
     }
   }, [isStreaming, showCompletion]);
+
+  // Auto-resize input up to 7 lines
+  useEffect(() => {
+    const textarea = inputRef.current;
+    if (!textarea) return;
+
+    textarea.style.height = 'auto';
+
+    const styles = window.getComputedStyle(textarea);
+    const computedLineHeight = Number.parseFloat(styles.lineHeight || '24') || 24;
+    const verticalPadding = (Number.parseFloat(styles.paddingTop || '0') || 0) + (Number.parseFloat(styles.paddingBottom || '0') || 0);
+    const maxHeight = (computedLineHeight * MAX_INPUT_LINES) + verticalPadding;
+
+    textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`;
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [inputValue, MAX_INPUT_LINES]);
 
   const [showCompletionPopup, setShowCompletionPopup] = useState(false);
 
