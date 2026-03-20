@@ -1,50 +1,33 @@
 
 
-## Fix: Copilot chat not scrolling to show AI reply after suggestion chips appear
+## Fix: Stale completion percentages on Artifacts dashboard
 
 ### Root Cause
 
-The onboarding page works because it uses a plain `div` with `overflow-y-auto` and a sentinel `<div ref={messagesEndRef} />` at the bottom, calling `scrollIntoView({ behavior: 'smooth' })`.
+The Artifacts grid reads completion from `selectedApp?.bm_completion` (line 78-82 of `ArtifactsGrid.tsx`), which comes from the `ProjectContext`'s `apps` array. This array is fetched **once on mount** and never refreshed when completion values change in the database.
 
-The copilot chat uses Radix `<ScrollArea>` with `ref={scrollRef}` on the **Root** element. But `scrollTop`/`scrollHeight` don't work on the Radix Root — the actual scrollable element is the **Viewport** nested inside. So `el.scrollTop = el.scrollHeight` silently does nothing.
+The individual artifact pages (e.g. Business Model) show the correct 100% because they have their own `useQuery` that fetches directly from `app_ideas`.
 
-### Fix — `src/components/artifacts/ArtifactCopilot.tsx`
+The DB currently has all completions at 100%, but the dashboard still shows 80/90/68 — the values from when `ProjectContext` last loaded.
 
-**Adopt the same pattern as onboarding:**
+### Fix
 
-1. Add a `messagesEndRef = useRef<HTMLDivElement>(null)` sentinel div at the bottom of the message list (inside the ScrollArea, after the last message/loading indicator).
+**File: `src/contexts/ProjectContext.tsx`**
 
-2. Replace the `scrollTop` manipulation with `messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })` — this works regardless of the scroll container implementation.
+The `selectedApp` is derived from `apps.find(...)` (line 138). When navigating back to the dashboard, the stale cached array is used. Two options:
 
-3. Keep the two-phase scroll logic:
-   - **Immediate scroll** on new messages via `requestAnimationFrame`
-   - **Delayed 1s scroll** when `isLoading` transitions false → catches suggestion chip layout shift
+**Option A (Simple — recommended):** Call `refreshApps()` when the Artifacts grid mounts, so it always gets fresh data from the DB.
 
-**Changes (~8 lines):**
+- In `ArtifactsGrid.tsx`, add a `useEffect` that calls `refreshApps()` on mount
+- This ensures completion values are current whenever the user visits the dashboard
 
-```tsx
-const messagesEndRef = useRef<HTMLDivElement>(null);
+**Option B (Reactive):** Subscribe to Supabase realtime changes on `app_ideas` table to auto-update. More complex, higher cost.
 
-// Replace scroll useEffect:
-useEffect(() => {
-  requestAnimationFrame(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  });
+### Changes
 
-  if (prevLoadingRef.current && !isLoading) {
-    const timer = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 1000);
-    prevLoadingRef.current = isLoading;
-    return () => clearTimeout(timer);
-  }
-  prevLoadingRef.current = isLoading;
-}, [messages.length, isLoading]);
+| File | Change |
+|------|--------|
+| `src/components/dashboard/ArtifactsGrid.tsx` | Add `refreshApps` from `useProjectContext()`, call it in a `useEffect` on mount to refresh stale completion data |
 
-// Inside ScrollArea, after loading spinner:
-<div ref={messagesEndRef} />
-```
-
-### Files Modified
-- `src/components/artifacts/ArtifactCopilot.tsx` — switch from broken `scrollTop` to `scrollIntoView` with sentinel div
+One line added to imports, ~4 lines for the effect. No other files need changes.
 
