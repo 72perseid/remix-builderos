@@ -66,6 +66,7 @@ export default function OnboardingPage() {
   const [showSkipWarning, setShowSkipWarning] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const MAX_INPUT_LINES = 7;
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
