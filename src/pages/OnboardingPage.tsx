@@ -466,7 +466,7 @@ export default function OnboardingPage() {
               placeholder="Type your message..."
               disabled={isStreaming || showCompletion}
               rows={1}
-              className="flex-1 min-h-[48px] max-h-[160px] resize-none text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground py-3" />
+              className="flex-1 min-h-[48px] max-h-[calc(7*1.5em+1.5rem)] resize-none text-base bg-[#293445] border-border/50 focus-visible:ring-blue-500 text-white placeholder:text-muted-foreground py-3" />
 
               <Button
               onClick={handleSendMessage}
