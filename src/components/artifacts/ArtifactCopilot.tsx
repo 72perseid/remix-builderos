@@ -123,6 +123,16 @@ const ChatContent = React.memo(function ChatContent({
   });
 
   const isComplete = completionData === 100;
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const prevCompleteRef = useRef(false);
+
+  // Show popup when completion transitions to 100%
+  useEffect(() => {
+    if (isComplete && !prevCompleteRef.current) {
+      setShowCompletionPopup(true);
+    }
+    prevCompleteRef.current = isComplete;
+  }, [isComplete]);
 
   const rawSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : (SUGGESTIONS[context] || []);
   const activeSuggestions = isComplete
