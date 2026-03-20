@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Palette, Type, Instagram, CreditCard } from 'lucide-react';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
@@ -71,8 +72,12 @@ export function ArtifactsGrid() {
     loading
   } = useArtifacts();
   const { profile } = useProfile();
-  const { selectedApp } = useProjectContext();
+  const { selectedApp, refreshApps } = useProjectContext();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    refreshApps();
+  }, [refreshApps]);
 
   // Completion mapping from app_ideas fields
   const completionMap: Partial<Record<ArtifactType, number | null>> = {
