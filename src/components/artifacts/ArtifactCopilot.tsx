@@ -89,6 +89,7 @@ const ChatContent = React.memo(function ChatContent({
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const rafRef = useRef<number>(0);
+  const prevLoadingRef = useRef(false);
   const { messages, isLoading, sendMessage, suggestions: dynamicSuggestions, hasApp } = useCopilotChat({
     context,
     onArtifactRefresh,
@@ -109,7 +110,7 @@ const ChatContent = React.memo(function ChatContent({
       return (data as unknown as Record<string, number> | null)?.[completionKey] ?? 0;
     },
     enabled: !!selectedAppId && !!completionKey,
-    refetchInterval: 10000,
+    refetchOnWindowFocus: false,
   });
 
   const isComplete = completionData === 100;
@@ -122,11 +123,20 @@ const ChatContent = React.memo(function ChatContent({
   // Scroll to bottom on new messages and when loading finishes (suggestions appear)
   useEffect(() => {
     const el = scrollRef.current;
-    if (el) {
-      requestAnimationFrame(() => {
+    if (!el) return;
+
+    // Always scroll on new messages
+    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+
+    // Extra delayed scroll when loading just finished (suggestions appeared)
+    if (prevLoadingRef.current && !isLoading) {
+      const timer = setTimeout(() => {
         el.scrollTop = el.scrollHeight;
-      });
+      }, 1000);
+      prevLoadingRef.current = isLoading;
+      return () => clearTimeout(timer);
     }
+    prevLoadingRef.current = isLoading;
   }, [messages.length, isLoading]);
 
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
