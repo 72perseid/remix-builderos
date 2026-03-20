@@ -334,7 +334,7 @@ export default function OnboardingPage() {
       </header>
 
       {/* Progress Indicator */}
-      {messages.length > 0 && !isFinalizing && !showCompletion && (
+      {isDebug && messages.length > 0 && !isFinalizing && !showCompletion && (
         <div className="relative z-10 px-6 py-3 border-b border-slate-700/50 bg-[hsl(222,47%,11%)]/80 backdrop-blur-sm">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center justify-between mb-2">
