@@ -169,15 +169,23 @@ export default function UIUXPage() {
                   </BusinessCard>
                 )}
 
-                {typography && (
+                {typography && (Array.isArray(typography) ? typography.length > 0 : true) && (
                   <BusinessCard title="Typography" icon={Type} iconColor="text-green-500">
-                    {typeof typography === 'string' ? (
+                    {Array.isArray(typography) ? (
+                      <ul className="space-y-1.5">
+                        {typography.map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-green-500 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof typography === 'string' ? (
                       <p>{typography}</p>
                     ) : (
                       <div className="space-y-2">
-                        {typography.headingFont && <p><span className="text-muted-foreground">Heading:</span> {typography.headingFont}</p>}
-                        {typography.bodyFont && <p><span className="text-muted-foreground">Body:</span> {typography.bodyFont}</p>}
-                        {typography.scale && <p><span className="text-muted-foreground">Scale:</span> {typography.scale}</p>}
+                        {Object.entries(typography).map(([key, value]) => (
+                          <p key={key}><span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span> {String(value)}</p>
+                        ))}
                       </div>
                     )}
                   </BusinessCard>
