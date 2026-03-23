@@ -143,8 +143,16 @@ export default function UIUXPage() {
                   <BusinessCard title="Color Palette" icon={Palette} iconColor="text-blue-500" colSpan={2}>
                     <div className="flex flex-wrap gap-3">
                       {colorPalette.map((color: any, i: number) => {
-                        const hex = typeof color === 'string' ? color : color?.hex || color?.value;
-                        const name = typeof color === 'string' ? color : color?.name || color?.label;
+                        let hex: string | undefined;
+                        let name: string;
+                        if (typeof color === 'string') {
+                          const hexMatch = color.match(/#[0-9A-Fa-f]{3,8}/);
+                          hex = hexMatch?.[0];
+                          name = hex ? color.replace(hex, '').replace(/^\s*for\s*/i, '').trim() : color;
+                        } else {
+                          hex = color?.hex || color?.value;
+                          name = color?.name || color?.label || '';
+                        }
                         return (
                           <div key={i} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-2">
                             {hex && (
@@ -153,7 +161,7 @@ export default function UIUXPage() {
                                 style={{ backgroundColor: hex }}
                               />
                             )}
-                            <span className="text-sm text-foreground">{name}</span>
+                            <span className="text-sm text-foreground">{name || hex}</span>
                           </div>
                         );
                       })}
