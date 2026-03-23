@@ -66,7 +66,7 @@ const getCardIcon = (title: string): ReactNode => {
 };
 
 export function ArtifactCard({ title, description, status, completion, onClick, className }: ArtifactCardProps) {
-  const isClickable = status === "available" || status === "completed" || status === "ready";
+  const isClickable = status === "available" || status === "completed" || status === "ready" || status === "locked";
   const config = statusConfig[status];
 
   return (
