@@ -61,9 +61,9 @@ export default function UIUXPage() {
   // Normalize fields flexibly
   const colorPalette = content?.color_palette || content?.colorPalette || content?.colors || [];
   const typography = content?.typography || content?.fonts || null;
-  const spacing = content?.spacing || null;
-  const componentStyle = content?.component_style || content?.componentStyle || content?.components || null;
-  const designPrinciples = content?.design_principles || content?.designPrinciples || [];
+  const spacing = content?.spacing_and_layout || content?.spacing || null;
+  const componentStyle = content?.key_ui_components || content?.component_style || content?.componentStyle || content?.components || null;
+  const designPrinciples = content?.ui_vibe_and_style || content?.design_principles || content?.designPrinciples || [];
   const brandTone = content?.brand_tone || content?.brandTone || content?.tone || null;
 
   if (artifactLoading) {
