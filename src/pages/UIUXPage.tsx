@@ -191,15 +191,23 @@ export default function UIUXPage() {
                   </BusinessCard>
                 )}
 
-                {spacing && (
+                {spacing && (Array.isArray(spacing) ? spacing.length > 0 : true) && (
                   <BusinessCard title="Spacing & Layout" icon={Layout} iconColor="text-orange-500">
-                    {typeof spacing === 'string' ? (
+                    {Array.isArray(spacing) ? (
+                      <ul className="space-y-1.5">
+                        {spacing.map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-orange-500 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof spacing === 'string' ? (
                       <p>{spacing}</p>
                     ) : (
                       <div className="space-y-2">
-                        {spacing.unit && <p><span className="text-muted-foreground">Base unit:</span> {spacing.unit}</p>}
-                        {spacing.grid && <p><span className="text-muted-foreground">Grid:</span> {spacing.grid}</p>}
-                        {spacing.borderRadius && <p><span className="text-muted-foreground">Border radius:</span> {spacing.borderRadius}</p>}
+                        {Object.entries(spacing).map(([key, value]) => (
+                          <p key={key}><span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span> {String(value)}</p>
+                        ))}
                       </div>
                     )}
                   </BusinessCard>
