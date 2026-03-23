@@ -213,16 +213,23 @@ export default function UIUXPage() {
                   </BusinessCard>
                 )}
 
-                {componentStyle && (
-                  <BusinessCard title="Component Style" icon={Layers} iconColor="text-cyan-500" colSpan={2}>
-                    {typeof componentStyle === 'string' ? (
+                {componentStyle && (Array.isArray(componentStyle) ? componentStyle.length > 0 : true) && (
+                  <BusinessCard title="Key UI Components" icon={Layers} iconColor="text-cyan-500" colSpan={2}>
+                    {Array.isArray(componentStyle) ? (
+                      <ul className="space-y-1.5">
+                        {componentStyle.map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-cyan-500 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof componentStyle === 'string' ? (
                       <p>{componentStyle}</p>
                     ) : (
                       <div className="space-y-2">
-                        {componentStyle.buttons && <p><span className="text-muted-foreground">Buttons:</span> {componentStyle.buttons}</p>}
-                        {componentStyle.inputs && <p><span className="text-muted-foreground">Inputs:</span> {componentStyle.inputs}</p>}
-                        {componentStyle.cards && <p><span className="text-muted-foreground">Cards:</span> {componentStyle.cards}</p>}
-                        {componentStyle.style && <p>{componentStyle.style}</p>}
+                        {Object.entries(componentStyle).map(([key, value]) => (
+                          <p key={key}><span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span> {String(value)}</p>
+                        ))}
                       </div>
                     )}
                   </BusinessCard>
