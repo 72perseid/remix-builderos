@@ -1,39 +1,68 @@
 
 
-## Activate UI/UX Design Artifact
+## Fix: UIUXPage rendering to match actual n8n data structure
 
-### What exists already
-- `UIUXPage.tsx` — fully built page with CopilotPanel, breadcrumb, completion polling, and content rendering (color palette, typography, spacing, components, design principles, brand tone)
-- `ui_ux` enum value in `artifact_type`, `ux_completion` column in `app_ideas`
-- Route `/ui-ux` registered in `App.tsx`
-- CopilotPanel already has `ui_ux` suggestions and completion key mapping
-- The DB trigger (`check_completion_and_trigger`) only checks bm/uv/pb — UI/UX is already excluded, so board/db-design/master-prompt generation works independently
+### Problem
 
-### What needs to change
+The actual artifact content uses these keys and formats:
+- `typography` → **array of strings** (e.g., `["Roboto for clean body text", ...]`)
+- `color_palette` → **array of strings** with embedded hex (e.g., `["#4A90E2 for primary buttons and links", ...]`)
+- `spacing_and_layout` → **array of strings**
+- `ui_vibe_and_style` → **array of strings**
+- `key_ui_components` → **array** (currently empty)
 
-**1. Remove "Coming Soon" flag from ArtifactsGrid** (`src/components/dashboard/ArtifactsGrid.tsx`)
-- Remove `comingSoon: true` from the `ui_ux` card config (line 43)
-- Add `ux_completion` to the `completionMap` (currently only maps bm, uv, pb)
-- The card will then render as a normal `ArtifactCard` with status/completion tracking like the other three
+But the page expects:
+- `typography` as an object with `headingFont`, `bodyFont`, `scale`
+- `color_palette` as array of objects with `hex`/`name` fields
+- `spacing` as an object with `unit`, `grid`, `borderRadius`
+- `designPrinciples` / `brandTone` — keys that don't exist in the data
 
-**2. Add completion to ArtifactsGrid completionMap** (`src/components/dashboard/ArtifactsGrid.tsx`)
-- Add `ui_ux: selectedApp?.ux_completion ?? null` to the `completionMap` object
+### Changes — `src/pages/UIUXPage.tsx`
 
-That's it. Everything else (the page, copilot integration, routing, DB schema, completion polling) is already wired up. The n8n backend just needs a `Sandro_UX` specialist tool configured separately to handle the `artifact_type: "ui_ux"` context — but the frontend will be ready.
+**1. Update field extraction (lines 62-67)** to match actual keys:
 
-### Flow (same as other artifacts)
-1. User clicks UI/UX Design card on Artifacts grid
-2. Opens `/ui-ux` with CopilotPanel (heading: "UX Designer")
-3. User chats → n8n receives `artifact_type: "ui_ux"`, `workflowMode: "chat"`
-4. n8n updates `ux_completion` in `app_ideas` and writes to `artifacts` table
-5. Page polls completion every 10s, shows progress bar, triggers 100% popup
-6. Content renders as design system cards (colors, typography, spacing, etc.)
-7. Board/DB design/Master Prompt generation remains independent — only requires bm+uv+pb at 100%
+| Current key | Actual key in data | Format |
+|---|---|---|
+| `designPrinciples` | `ui_vibe_and_style` | string[] |
+| `spacing` | `spacing_and_layout` | string[] |
+| `componentStyle` | `key_ui_components` | string[] |
+| `brandTone` | (not in data) | keep fallback |
 
-### Files changed
-| File | Change |
-|------|--------|
-| `src/components/dashboard/ArtifactsGrid.tsx` | Remove `comingSoon: true`, add `ui_ux` to `completionMap` |
+**2. Fix color palette rendering** — extract hex from strings like `"#4A90E2 for primary buttons"` using regex `/#[0-9A-Fa-f]{3,8}/`, use the remainder as the label.
 
-~2 lines changed total.
+**3. Fix typography rendering** — when it's an array of strings, render as a bullet list (same as design principles), not as an object with `headingFont`/`bodyFont`.
+
+**4. Fix spacing rendering** — when it's an array of strings, render as a bullet list.
+
+**5. Fix component style rendering** — same array-of-strings treatment; show empty state if array is empty.
+
+### Technical detail
+
+All rendering sections get this pattern:
+```tsx
+{Array.isArray(data) ? (
+  <ul className="space-y-1.5">
+    {data.map((item, i) => (
+      <li key={i} className="flex items-start gap-2">
+        <span className="...">•</span>{item}
+      </li>
+    ))}
+  </ul>
+) : typeof data === 'string' ? (
+  <p>{data}</p>
+) : (
+  // existing object rendering as fallback
+)}
+```
+
+For colors specifically:
+```tsx
+const hexMatch = colorStr.match(/#[0-9A-Fa-f]{3,8}/);
+const hex = hexMatch?.[0];
+const label = colorStr.replace(hex, '').trim();
+```
+
+### Scope
+- **1 file**: `src/pages/UIUXPage.tsx`
+- ~50 lines changed
 
