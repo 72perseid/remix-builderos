@@ -61,9 +61,9 @@ export default function UIUXPage() {
   // Normalize fields flexibly
   const colorPalette = content?.color_palette || content?.colorPalette || content?.colors || [];
   const typography = content?.typography || content?.fonts || null;
-  const spacing = content?.spacing || null;
-  const componentStyle = content?.component_style || content?.componentStyle || content?.components || null;
-  const designPrinciples = content?.design_principles || content?.designPrinciples || [];
+  const spacing = content?.spacing_and_layout || content?.spacing || null;
+  const componentStyle = content?.key_ui_components || content?.component_style || content?.componentStyle || content?.components || null;
+  const designPrinciples = content?.ui_vibe_and_style || content?.design_principles || content?.designPrinciples || [];
   const brandTone = content?.brand_tone || content?.brandTone || content?.tone || null;
 
   if (artifactLoading) {
@@ -143,8 +143,16 @@ export default function UIUXPage() {
                   <BusinessCard title="Color Palette" icon={Palette} iconColor="text-blue-500" colSpan={2}>
                     <div className="flex flex-wrap gap-3">
                       {colorPalette.map((color: any, i: number) => {
-                        const hex = typeof color === 'string' ? color : color?.hex || color?.value;
-                        const name = typeof color === 'string' ? color : color?.name || color?.label;
+                        let hex: string | undefined;
+                        let name: string;
+                        if (typeof color === 'string') {
+                          const hexMatch = color.match(/#[0-9A-Fa-f]{3,8}/);
+                          hex = hexMatch?.[0];
+                          name = hex ? color.replace(hex, '').replace(/^\s*for\s*/i, '').trim() : color;
+                        } else {
+                          hex = color?.hex || color?.value;
+                          name = color?.name || color?.label || '';
+                        }
                         return (
                           <div key={i} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-2">
                             {hex && (
@@ -153,7 +161,7 @@ export default function UIUXPage() {
                                 style={{ backgroundColor: hex }}
                               />
                             )}
-                            <span className="text-sm text-foreground">{name}</span>
+                            <span className="text-sm text-foreground">{name || hex}</span>
                           </div>
                         );
                       })}
@@ -161,44 +169,67 @@ export default function UIUXPage() {
                   </BusinessCard>
                 )}
 
-                {typography && (
+                {typography && (Array.isArray(typography) ? typography.length > 0 : true) && (
                   <BusinessCard title="Typography" icon={Type} iconColor="text-green-500">
-                    {typeof typography === 'string' ? (
+                    {Array.isArray(typography) ? (
+                      <ul className="space-y-1.5">
+                        {typography.map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-green-500 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof typography === 'string' ? (
                       <p>{typography}</p>
                     ) : (
                       <div className="space-y-2">
-                        {typography.headingFont && <p><span className="text-muted-foreground">Heading:</span> {typography.headingFont}</p>}
-                        {typography.bodyFont && <p><span className="text-muted-foreground">Body:</span> {typography.bodyFont}</p>}
-                        {typography.scale && <p><span className="text-muted-foreground">Scale:</span> {typography.scale}</p>}
+                        {Object.entries(typography).map(([key, value]) => (
+                          <p key={key}><span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span> {String(value)}</p>
+                        ))}
                       </div>
                     )}
                   </BusinessCard>
                 )}
 
-                {spacing && (
+                {spacing && (Array.isArray(spacing) ? spacing.length > 0 : true) && (
                   <BusinessCard title="Spacing & Layout" icon={Layout} iconColor="text-orange-500">
-                    {typeof spacing === 'string' ? (
+                    {Array.isArray(spacing) ? (
+                      <ul className="space-y-1.5">
+                        {spacing.map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-orange-500 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof spacing === 'string' ? (
                       <p>{spacing}</p>
                     ) : (
                       <div className="space-y-2">
-                        {spacing.unit && <p><span className="text-muted-foreground">Base unit:</span> {spacing.unit}</p>}
-                        {spacing.grid && <p><span className="text-muted-foreground">Grid:</span> {spacing.grid}</p>}
-                        {spacing.borderRadius && <p><span className="text-muted-foreground">Border radius:</span> {spacing.borderRadius}</p>}
+                        {Object.entries(spacing).map(([key, value]) => (
+                          <p key={key}><span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span> {String(value)}</p>
+                        ))}
                       </div>
                     )}
                   </BusinessCard>
                 )}
 
-                {componentStyle && (
-                  <BusinessCard title="Component Style" icon={Layers} iconColor="text-cyan-500" colSpan={2}>
-                    {typeof componentStyle === 'string' ? (
+                {componentStyle && (Array.isArray(componentStyle) ? componentStyle.length > 0 : true) && (
+                  <BusinessCard title="Key UI Components" icon={Layers} iconColor="text-cyan-500" colSpan={2}>
+                    {Array.isArray(componentStyle) ? (
+                      <ul className="space-y-1.5">
+                        {componentStyle.map((item: string, i: number) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-cyan-500 mt-0.5">•</span>{item}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : typeof componentStyle === 'string' ? (
                       <p>{componentStyle}</p>
                     ) : (
                       <div className="space-y-2">
-                        {componentStyle.buttons && <p><span className="text-muted-foreground">Buttons:</span> {componentStyle.buttons}</p>}
-                        {componentStyle.inputs && <p><span className="text-muted-foreground">Inputs:</span> {componentStyle.inputs}</p>}
-                        {componentStyle.cards && <p><span className="text-muted-foreground">Cards:</span> {componentStyle.cards}</p>}
-                        {componentStyle.style && <p>{componentStyle.style}</p>}
+                        {Object.entries(componentStyle).map(([key, value]) => (
+                          <p key={key}><span className="text-muted-foreground capitalize">{key.replace(/_/g, ' ')}:</span> {String(value)}</p>
+                        ))}
                       </div>
                     )}
                   </BusinessCard>
