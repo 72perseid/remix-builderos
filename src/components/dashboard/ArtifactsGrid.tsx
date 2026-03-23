@@ -40,7 +40,7 @@ const artifactCards: ArtifactCardConfig[] = [{
   description: 'Color palette, typography, and component style guide.',
   route: '/ui-ux',
   category: 'planning',
-  comingSoon: true,
+  
 }, {
   type: 'db_design',
   title: 'DB Design',
@@ -84,6 +84,7 @@ export function ArtifactsGrid() {
     business_model: selectedApp?.bm_completion ?? null,
     validation: selectedApp?.uv_completion ?? null,
     product_brief: selectedApp?.pb_completion ?? null,
+    ui_ux: selectedApp?.ux_completion ?? null,
   };
   const isOnboarded = profile?.onboarded === true;
 
