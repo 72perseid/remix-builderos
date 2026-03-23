@@ -40,7 +40,7 @@ const artifactCards: ArtifactCardConfig[] = [{
   description: 'Color palette, typography, and component style guide.',
   route: '/ui-ux',
   category: 'planning',
-  comingSoon: true,
+  
 }, {
   type: 'db_design',
   title: 'DB Design',
