@@ -148,10 +148,18 @@ serve(async (req) => {
       );
     }
 
+    // Ensure the user can only sync their own data
+    if (authenticatedEmail && email.toLowerCase() !== authenticatedEmail.toLowerCase()) {
+      console.error(`Email mismatch: authenticated=${authenticatedEmail}, requested=${email}`);
+      return new Response(
+        JSON.stringify({ error: "You can only sync your own data" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     console.log(`Starting sync for email: ${email}`);
 
     // Initialize Supabase client with service role for admin access
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
