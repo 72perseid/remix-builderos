@@ -4,11 +4,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
 
+export interface CopilotAttachment {
+  type: 'image' | 'markdown';
+  name: string;
+  data: string; // base64 data-url for images, raw text for markdown
+}
+
 export interface CopilotMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  attachments?: CopilotAttachment[];
 }
 
 interface UseCopilotChatOptions {
@@ -28,7 +35,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
   const onArtifactRefreshRef = useRef(onArtifactRefresh);
   onArtifactRefreshRef.current = onArtifactRefresh;
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, attachments?: CopilotAttachment[]) => {
     if (!user?.id || !selectedAppId) {
       toast({
         title: 'Error',
@@ -43,6 +50,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
       role: 'user',
       content,
       timestamp: new Date(),
+      attachments,
     };
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
@@ -56,6 +64,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
           app_idea_id: selectedAppId,
           workflowMode: 'chat',
           artifact_type: context,
+          ...(attachments && attachments.length > 0 ? { attachments } : {}),
         },
       });
 

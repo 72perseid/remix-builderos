@@ -72,12 +72,14 @@ serve(async (req) => {
       workflowMode,
       app_idea_id,
       artifact_type,
+      attachments,
     } = body as {
       message?: string;
       session_id?: string;
       workflowMode?: string;
       app_idea_id?: string | null;
       artifact_type?: string | null;
+      attachments?: Array<{ type: string; name: string; data: string }>;
     };
 
     // Use the authenticated user_id, ignoring any user_id from the body
@@ -101,6 +103,7 @@ serve(async (req) => {
         workflowMode,
         app_idea_id,
         artifact_type,
+        ...(attachments && attachments.length > 0 ? { attachments } : {}),
       }),
     });
 
