@@ -90,6 +90,8 @@ serve(async (req) => {
       app_idea_id,
       artifact_type,
       hasMessage: !!message,
+      hasAttachments: Array.isArray(attachments) && attachments.length > 0,
+      attachmentCount: attachments?.length ?? 0,
       user_id,
     });
 
