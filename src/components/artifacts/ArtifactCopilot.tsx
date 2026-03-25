@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen, PartyPopper, CheckCircle2, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogContent,
