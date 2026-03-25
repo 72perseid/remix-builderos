@@ -53,6 +53,19 @@ const CopilotMessageBubble = React.memo(({ message }: { message: CopilotMessage 
   return (
     <div className={cn('flex w-full mb-3', isUser ? 'justify-end' : 'justify-start')}>
       <div className={cn('max-w-[85%] rounded-lg px-3 py-2 text-sm', isUser ? 'bg-primary text-primary-foreground' : 'bg-slate-800 text-slate-100')}>
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
+            {message.attachments.map((att, i) => (
+              att.type === 'image' ? (
+                <img key={i} src={att.data} alt={att.name} className="h-16 w-16 rounded object-cover border border-white/20" />
+              ) : (
+                <span key={i} className="inline-flex items-center gap-1 text-xs bg-white/10 rounded px-2 py-1">
+                  <FileText className="h-3 w-3" /> {att.name}
+                </span>
+              )
+            ))}
+          </div>
+        )}
         <p className="whitespace-pre-wrap break-words">{message.content}</p>
       </div>
     </div>
@@ -100,14 +113,17 @@ const ChatContent = React.memo(function ChatContent({
 }: ChatContentProps) {
   const navigate = useNavigate();
   const [inputValue, setInputValue] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<CopilotAttachment[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const rafRef = useRef<number>(0);
   const prevLoadingRef = useRef(false);
   const { messages, isLoading, sendMessage, suggestions: dynamicSuggestions, hasApp } = useCopilotChat({
     context,
     onArtifactRefresh,
   });
+  const supportsAttachments = context === 'ui_ux';
 
   const { selectedAppId } = useProjectContext();
   const completionKey = COMPLETION_KEY[context];
@@ -163,16 +179,58 @@ const ChatContent = React.memo(function ChatContent({
     prevLoadingRef.current = isLoading;
   }, [messages.length, isLoading, refetchCompletion]);
 
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_ATTACHMENTS = 3;
+  const ACCEPTED_TYPES = 'image/png,image/jpeg,image/webp,.md,.markdown';
+
+  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+
+    for (const file of files) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({ title: 'File too large', description: `"${file.name}" exceeds 5MB limit.`, variant: 'destructive' });
+        continue;
+      }
+      setPendingAttachments(prev => {
+        if (prev.length >= MAX_ATTACHMENTS) {
+          toast({ title: 'Limit reached', description: `Max ${MAX_ATTACHMENTS} attachments per message.`, variant: 'destructive' });
+          return prev;
+        }
+        const reader = new FileReader();
+        const isMarkdown = file.name.endsWith('.md') || file.name.endsWith('.markdown');
+        if (isMarkdown) {
+          reader.onload = () => {
+            setPendingAttachments(p => [...p, { type: 'markdown', name: file.name, data: reader.result as string }]);
+          };
+          reader.readAsText(file);
+        } else {
+          reader.onload = () => {
+            setPendingAttachments(p => [...p, { type: 'image', name: file.name, data: reader.result as string }]);
+          };
+          reader.readAsDataURL(file);
+        }
+        return prev;
+      });
+    }
+  }, []);
+
+  const removeAttachment = useCallback((index: number) => {
+    setPendingAttachments(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
   const handleSubmit = useCallback(async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
-    const message = inputValue.trim();
+    if ((!inputValue.trim() && pendingAttachments.length === 0) || isLoading) return;
+    const message = inputValue.trim() || (pendingAttachments.length > 0 ? 'Analyze these attachments' : '');
     setInputValue('');
+    const atts = pendingAttachments.length > 0 ? [...pendingAttachments] : undefined;
+    setPendingAttachments([]);
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
-    await sendMessage(message);
-  }, [inputValue, isLoading, sendMessage]);
+    await sendMessage(message, atts);
+  }, [inputValue, isLoading, sendMessage, pendingAttachments]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -273,8 +331,63 @@ const ChatContent = React.memo(function ChatContent({
             </div>
           )}
 
+          {/* Attachment previews */}
+          {supportsAttachments && pendingAttachments.length > 0 && (
+            <div className="px-3 pt-2 border-t border-slate-800/50 shrink-0">
+              <div className="flex flex-wrap gap-2 mb-1">
+                {pendingAttachments.map((att, i) => (
+                  <div key={i} className="relative group">
+                    {att.type === 'image' ? (
+                      <img src={att.data} alt={att.name} className="h-12 w-12 rounded object-cover border border-slate-700" />
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs bg-slate-800 rounded px-2 py-1.5 border border-slate-700">
+                        <FileText className="h-3 w-3 text-slate-400" /> <span className="text-slate-300 max-w-[80px] truncate">{att.name}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => removeAttachment(i)}
+                      className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-foreground">PNG, JPG, WEBP, or Markdown • Max 5MB each</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="p-3 border-t border-slate-800/50 shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_TYPES}
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+            />
             <div className="flex gap-2 items-end">
+              {supportsAttachments && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="shrink-0 h-[38px] w-[38px] text-muted-foreground hover:text-foreground"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isLoading || pendingAttachments.length >= MAX_ATTACHMENTS}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Attach image or .md file (max 5MB, up to 3)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               <Textarea
                 ref={textareaRef}
                 value={inputValue}
@@ -288,7 +401,7 @@ const ChatContent = React.memo(function ChatContent({
               <Button
                 type="submit"
                 size="icon"
-                disabled={!inputValue.trim() || isLoading}
+                disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isLoading}
                 className="shrink-0 bg-primary hover:bg-primary/90"
               >
                 <Send className="h-4 w-4" />
