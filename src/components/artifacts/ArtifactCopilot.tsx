@@ -30,7 +30,7 @@ const SUGGESTIONS: Record<string, string[]> = {
   business_model: ["What's my revenue model?", "Analyze my competitors", "Suggest pricing tiers", "Help me complete this artifact to 100%"],
   validation: ["Who's my target user?", "What risks should I test?", "Suggest interview questions", "Help me complete this artifact to 100%"],
   product_brief: ["Summarize my MVP scope", "What are the key features?", "Suggest success metrics", "Help me complete this artifact to 100%"],
-  ui_ux: ["Suggest a color palette", "What screens do I need?", "Recommend a layout", "Help me complete this artifact to 100%"],
+  ui_ux: ["Suggest a color palette", "What screens do I need?", "Import Stitch AI design", "Recommend a layout", "Help me complete this artifact to 100%"],
   db_design: ["Suggest a schema", "What tables do I need?", "How should I handle auth?", "Help me complete this artifact to 100%"],
   master_prompt: ["Improve my prompt", "Add edge cases", "Make it more specific", "Help me complete this artifact to 100%"],
   kanban: ["Break down my tasks", "Suggest sprint goals", "What should I prioritize?", "Help me complete this artifact to 100%"],
