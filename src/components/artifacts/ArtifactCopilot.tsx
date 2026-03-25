@@ -2,14 +2,15 @@ import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useCopilotChat, CopilotMessage } from '@/hooks/useCopilotChat';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { useCopilotChat, CopilotMessage, CopilotAttachment } from '@/hooks/useCopilotChat';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen, PartyPopper, CheckCircle2 } from 'lucide-react';
+import { MessageSquare, Send, Loader2, X, AlertCircle, PanelLeftClose, PanelLeftOpen, PartyPopper, CheckCircle2, Paperclip, FileText, Image as ImageIcon } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
   AlertDialogContent,
