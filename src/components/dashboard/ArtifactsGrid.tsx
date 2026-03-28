@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Palette, Type, Instagram, CreditCard } from 'lucide-react';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
+import { ProgressDashboard } from "./ProgressDashboard";
+import { ArtifactExportButton } from "./ArtifactExportButton";
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
 import { useProjectContext } from '@/contexts/ProjectContext';
@@ -138,6 +140,11 @@ export function ArtifactsGrid() {
       {!isOnboarded && (
         <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
       )}
+
+      {/* Progress Dashboard */}
+      <div className="max-w-3xl">
+        <ProgressDashboard />
+      </div>
 
       {/* Single column layout with Feature Planning and Launching */}
       <div className="grid grid-cols-1 gap-6 max-w-3xl">

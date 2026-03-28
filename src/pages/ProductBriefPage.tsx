@@ -86,7 +86,7 @@ export default function ProductBriefPage() {
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
       <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
-        <ArtifactBreadcrumb currentPage="Product Brief" />
+        <ArtifactBreadcrumb currentPage="Product Brief" artifactType="product_brief" />
       </div>
       <div className="flex flex-1 overflow-hidden">
         <CopilotPanel context="product_brief" heading="Product Strategist" onArtifactRefresh={refetchArtifact} />
