@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { BusinessCard } from '@/components/ui/business-card';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
-import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
+
 import { useLandingPage } from '@/hooks/useLandingPage';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useProjectContext } from '@/contexts/ProjectContext';
@@ -156,9 +156,6 @@ export default function LandingPageGeneratorPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Copilot Panel */}
-        <CopilotPanel context="business_model" heading="Landing Page Architect" onArtifactRefresh={refetch} />
-
         {/* Main Content */}
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-full space-y-6">
