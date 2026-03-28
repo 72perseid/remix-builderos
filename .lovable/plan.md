@@ -1,74 +1,39 @@
 
 
-## Revised Plan: Image Upload & Stitch AI Import for UX Designer Chat
+# Improved PDF Export with Design-Preserving Options
 
-### Overview
+## Problem
+The current PDF export converts artifact JSON to plain markdown-style text, losing the card-based visual design users see on screen.
 
-Two features for the UX Designer copilot chat:
-1. **Image upload** — Attach screenshots/photos for visual context
-2. **Stitch AI import** — Paste a design template (screenshot or MD file) to extract design details
+## Approach: Two PDF Export Methods
 
-### UI Hints for Limits
+### Option 1 — "Styled PDF" (enhanced current approach)
+Rebuild `generatePdfHtml` to produce HTML that mirrors the card-based layout of the artifact pages — colored section headers with icons (as emoji/unicode), rounded card containers, badges rendered as styled spans, and a branded header with app name and export date. This keeps text selectable and produces small file sizes.
 
-Yes — the UI will show clear hints:
+### Option 2 — "Screenshot PDF" (new, using html2canvas + jsPDF)
+Capture the actual rendered artifact content area as an image and embed it into a PDF. This preserves the exact on-screen design — dark theme, cards, badges, icons — pixel-perfectly. Trade-off: text is not selectable in the PDF.
 
-- **File size limit toast**: If a file exceeds 5MB, a toast appears: "File too large. Max 5MB per file."
-- **Attachment count**: If user tries to add a 4th file, toast: "Max 3 attachments per message."
-- **Tooltip on paperclip button**: "Attach image or .md file (max 5MB, up to 3)"
-- **Accepted formats hint**: Small helper text below the attachment preview area: "PNG, JPG, WEBP, or Markdown • Max 5MB each"
+## Implementation Plan
 
-### n8n Backend Changes Required
+### 1. Install dependencies
+- Add `html2canvas` and `jspdf` packages
 
-The frontend sends a new `attachments` array in the payload to the Edge Function, which forwards it to n8n. Here's what needs to happen on the n8n side:
+### 2. Rewrite `ArtifactExportButton.tsx`
+- **Three export options**: Markdown, Styled PDF, Visual PDF (screenshot)
+- **Styled PDF**: Redesign `generatePdfHtml` to use card-like containers with colored left borders, section icons as unicode characters, badge-style spans for tags/metrics, a branded header bar, and proper print CSS
+- **Visual PDF**: Add a new handler that uses `html2canvas` to capture a target DOM element (the artifact content area), then embeds the canvas into a jsPDF document and triggers download — no print dialog needed
 
-**1. Updated payload structure received by n8n:**
-```json
-{
-  "message": "Use this color palette from my Stitch design",
-  "user_id": "...",
-  "session_id": "...",
-  "workflowMode": "chat",
-  "app_idea_id": "...",
-  "artifact_type": "ui_ux",
-  "attachments": [
-    {
-      "type": "image",
-      "name": "stitch-export.png",
-      "data": "data:image/png;base64,iVBOR..."
-    },
-    {
-      "type": "markdown",
-      "name": "design-system.md",
-      "data": "# Design System\n## Colors\n- Primary: #4A90E2..."
-    }
-  ]
-}
-```
+### 3. Add capture target refs to artifact pages
+- Each artifact page (BusinessModel, ProductBrief, Validation, UIUX) needs to expose a ref or a known DOM id (e.g., `id="artifact-content"`) on the scrollable content area so the screenshot export can target it
+- Minor change: wrap the content grid in a div with `id="artifact-export-area"`
 
-**2. n8n AI Agent / Sandro_UX tool updates:**
+### 4. Update dropdown menu
+- Three items: "Markdown (.md)", "Styled PDF", "Visual PDF (screenshot)"
+- Visual PDF option shows a brief loading state while capturing
 
-- **Add an input check** in the Sandro_UX tool node: if `attachments` exists and is non-empty, include them in the AI prompt context
-- **For images** (`type: "image"`): Pass the base64 data as an image input to the AI model (GPT-4o / Claude support vision). The system prompt should instruct: *"Analyze the attached image for colors, typography, spacing, layout patterns, and component styles. Extract these into the design system."*
-- **For markdown** (`type: "markdown"`): Inject the raw text directly into the prompt context with instructions: *"The user has provided a Stitch AI design template. Parse the design details (colors, fonts, spacing, components) and incorporate them into the current design system artifact."*
-- **Updated system prompt addition for Sandro_UX**:
-  ```
-  When the user attaches images or markdown files:
-  - Extract color hex codes, font names, spacing values, and component patterns
-  - Merge extracted details with the existing design system in the artifact
-  - Confirm what was extracted and incorporated in your response
-  ```
-
-**3. No new n8n nodes needed** — the existing webhook receives the expanded payload, and the Sandro_UX tool just needs its prompt updated to handle the `attachments` field. If using GPT-4o vision, ensure the image is passed as a `image_url` content block in the messages array.
-
-### Files to Change (Frontend)
-
-| File | Change |
-|------|--------|
-| `src/hooks/useCopilotChat.ts` | Add `Attachment` type, update `sendMessage` to accept attachments, include in payload |
-| `src/components/artifacts/ArtifactCopilot.tsx` | Paperclip button (ui_ux only), file input, preview chips, validation toasts, tooltips, limit hints |
-| `supabase/functions/chat-action/index.ts` | Extract and forward `attachments` array to n8n webhook |
-
-### Scope
-- **3 frontend files** modified (~120 lines)
-- **n8n**: Update Sandro_UX tool system prompt + handle `attachments` field in input
+## Technical Details
+- `html2canvas` renders the DOM element to a canvas at 2x scale for quality
+- `jsPDF` creates an A4 document and fits the captured image proportionally
+- The styled PDF uses a light theme for print readability (white background, dark text, colored accents matching each section's icon color)
+- No backend or Supabase edge function needed — everything runs client-side
 
