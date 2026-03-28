@@ -8,6 +8,8 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ArtifactExportButton } from "./ArtifactExportButton";
+import { ShareDialog } from "@/components/sharing/ShareDialog";
+import { useArtifact } from "@/hooks/useArtifact";
 import type { Database } from '@/integrations/supabase/types';
 
 type ArtifactType = Database['public']['Enums']['artifact_type'];
@@ -19,6 +21,7 @@ interface ArtifactBreadcrumbProps {
 
 export function ArtifactBreadcrumb({ currentPage, artifactType }: ArtifactBreadcrumbProps) {
   const navigate = useNavigate();
+  const { data: artifact } = useArtifact(artifactType || 'business_model');
 
   return (
     <div className="flex items-center justify-between w-full">
@@ -38,7 +41,10 @@ export function ArtifactBreadcrumb({ currentPage, artifactType }: ArtifactBreadc
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      {artifactType && <ArtifactExportButton artifactType={artifactType} />}
+      <div className="flex items-center gap-2">
+        {artifactType && <ShareDialog artifactId={artifact?.id} />}
+        {artifactType && <ArtifactExportButton artifactType={artifactType} />}
+      </div>
     </div>
   );
 }

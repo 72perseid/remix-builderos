@@ -103,6 +103,7 @@ const App = () => (
                 <DashboardLayout><CoachingPage /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/shared/:token" element={<SharedArtifactPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
