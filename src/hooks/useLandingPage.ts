@@ -17,6 +17,12 @@ export interface LandingPage {
   secondary_color: string | null;
   logo_url: string | null;
   is_published: boolean;
+  hero_image_url: string | null;
+  problem_statement: string | null;
+  target_audience: string | null;
+  social_proof_text: string | null;
+  how_it_works: { step: string; description: string }[];
+  value_proposition: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +86,12 @@ export function useLandingPage() {
       cta_text: string;
       primary_color: string;
       secondary_color: string;
+      hero_image_url?: string;
+      problem_statement?: string;
+      target_audience?: string;
+      social_proof_text?: string;
+      how_it_works?: { step: string; description: string }[];
+      value_proposition?: string;
     }) => {
       if (!user?.id || !selectedAppId || !selectedApp) throw new Error('Missing context');
 
@@ -97,9 +109,14 @@ export function useLandingPage() {
         secondary_color: content.secondary_color,
         logo_url: selectedApp.logo || null,
         is_published: false,
+        hero_image_url: content.hero_image_url || null,
+        problem_statement: content.problem_statement || null,
+        target_audience: content.target_audience || null,
+        social_proof_text: content.social_proof_text || null,
+        how_it_works: content.how_it_works || [],
+        value_proposition: content.value_proposition || null,
       };
 
-      // Upsert
       const existing = landingPageQuery.data;
       if (existing) {
         const { data, error } = await (supabase as any)
