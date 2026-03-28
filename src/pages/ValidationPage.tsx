@@ -63,7 +63,7 @@ export default function ValidationPage() {
   return (
     <div className="h-dvh flex flex-col overflow-hidden">
       <div className="px-6 pt-4 pb-2 shrink-0 border-b border-slate-800/50">
-        <ArtifactBreadcrumb currentPage="Validation Strategy" />
+        <ArtifactBreadcrumb currentPage="Validation Strategy" artifactType="validation" />
       </div>
       <div className="flex flex-1 overflow-hidden">
         <CopilotPanel context="validation" heading="User Researcher" onArtifactRefresh={refetchArtifact} />
