@@ -156,9 +156,6 @@ export default function LandingPageGeneratorPage() {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Copilot Panel */}
-        <CopilotPanel context="business_model" heading="Landing Page Architect" onArtifactRefresh={refetch} />
-
         {/* Main Content */}
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-full space-y-6">
