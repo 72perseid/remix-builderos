@@ -105,6 +105,7 @@ export default function ValidationPage() {
               </Card>
             ) : (
               <motion.div 
+                id="artifact-export-area"
                 className="space-y-6"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
