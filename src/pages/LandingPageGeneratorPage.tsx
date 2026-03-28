@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { BusinessCard } from '@/components/ui/business-card';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
-import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
+
 import { useLandingPage } from '@/hooks/useLandingPage';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useProjectContext } from '@/contexts/ProjectContext';
