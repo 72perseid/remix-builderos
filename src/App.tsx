@@ -24,6 +24,8 @@ import UIUXPage from "./pages/UIUXPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
 import CoachingPage from "./pages/CoachingPage";
 import SharedArtifactPage from "./pages/SharedArtifactPage";
+import LandingPageGeneratorPage from "./pages/LandingPageGeneratorPage";
+import PublicLandingPage from "./pages/PublicLandingPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
 
