@@ -141,6 +141,11 @@ export function ArtifactsGrid() {
         <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
       )}
 
+      {/* Progress Dashboard */}
+      <div className="max-w-3xl">
+        <ProgressDashboard />
+      </div>
+
       {/* Single column layout with Feature Planning and Launching */}
       <div className="grid grid-cols-1 gap-6 max-w-3xl">
         {/* Feature Planning Section */}
