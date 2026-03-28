@@ -11,6 +11,9 @@ export interface ArtifactComment {
   created_at: string;
 }
 
+// Use untyped client to access tables not yet in generated types
+const db = supabase as any;
+
 export function useArtifactComments(artifactId: string | undefined) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -19,13 +22,13 @@ export function useArtifactComments(artifactId: string | undefined) {
     queryKey: ['artifact-comments', artifactId],
     queryFn: async () => {
       if (!artifactId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('artifact_comments')
         .select('*')
         .eq('artifact_id', artifactId)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return data as ArtifactComment[];
+      return (data ?? []) as ArtifactComment[];
     },
     enabled: !!artifactId,
   });
@@ -39,7 +42,7 @@ export function useArtifactComments(artifactId: string | undefined) {
       } else {
         payload.guest_name = guestName || 'Anonymous';
       }
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('artifact_comments')
         .insert(payload)
         .select()
@@ -52,7 +55,7 @@ export function useArtifactComments(artifactId: string | undefined) {
 
   const deleteComment = useMutation({
     mutationFn: async (commentId: string) => {
-      const { error } = await supabase.from('artifact_comments').delete().eq('id', commentId);
+      const { error } = await db.from('artifact_comments').delete().eq('id', commentId);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['artifact-comments', artifactId] }),

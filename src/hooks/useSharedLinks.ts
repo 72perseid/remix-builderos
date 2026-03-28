@@ -12,6 +12,9 @@ interface SharedLink {
   created_at: string;
 }
 
+// Use untyped client to access tables not yet in generated types
+const db = supabase as any;
+
 export function useSharedLinks(artifactId: string | undefined) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -20,14 +23,14 @@ export function useSharedLinks(artifactId: string | undefined) {
     queryKey: ['shared-links', artifactId],
     queryFn: async () => {
       if (!artifactId || !user?.id) return [];
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('shared_links')
         .select('*')
         .eq('artifact_id', artifactId)
         .eq('created_by', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as SharedLink[];
+      return (data ?? []) as SharedLink[];
     },
     enabled: !!artifactId && !!user?.id,
   });
@@ -38,7 +41,7 @@ export function useSharedLinks(artifactId: string | undefined) {
       const expires_at = expiresInDays
         ? new Date(Date.now() + expiresInDays * 86400000).toISOString()
         : null;
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('shared_links')
         .insert({ artifact_id: artifactId, created_by: user.id, permission, expires_at })
         .select()
@@ -51,7 +54,7 @@ export function useSharedLinks(artifactId: string | undefined) {
 
   const deleteLink = useMutation({
     mutationFn: async (linkId: string) => {
-      const { error } = await supabase.from('shared_links').delete().eq('id', linkId);
+      const { error } = await db.from('shared_links').delete().eq('id', linkId);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['shared-links', artifactId] }),
@@ -65,15 +68,16 @@ export function useSharedLinkByToken(token: string | undefined) {
     queryKey: ['shared-link-token', token],
     queryFn: async () => {
       if (!token) return null;
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('shared_links')
         .select('*')
         .eq('token', token)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
-      if (data.expires_at && new Date(data.expires_at) < new Date()) return null;
-      return data as SharedLink;
+      const link = data as SharedLink;
+      if (link.expires_at && new Date(link.expires_at) < new Date()) return null;
+      return link;
     },
     enabled: !!token,
   });
