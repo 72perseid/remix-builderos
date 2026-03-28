@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket, Eye, EyeOff, Globe, Mail, Users, Sparkles, Copy, Check, ExternalLink,
   Loader2, Plus, Trash2, Palette, Type, MousePointerClick, BarChart3, TrendingUp,
-  Layout, Zap, Target, Calendar
+  Layout, Zap, Target, Calendar, Image, AlertTriangle, MessageSquare, ListOrdered
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -40,6 +40,7 @@ export default function LandingPageGeneratorPage() {
   const { landingPage, loading, signups, generate, isGenerating, togglePublish, refetch } = useLandingPage();
   const { data: bmArtifact } = useArtifact('business_model');
   const { data: uiArtifact } = useArtifact('ui_ux');
+  const { data: pbArtifact } = useArtifact('product_brief');
 
   const [headline, setHeadline] = useState('');
   const [subheadline, setSubheadline] = useState('');
@@ -47,6 +48,12 @@ export default function LandingPageGeneratorPage() {
   const [primaryColor, setPrimaryColor] = useState('#3B82F6');
   const [secondaryColor, setSecondaryColor] = useState('#0F172A');
   const [features, setFeatures] = useState<{ title: string; description: string }[]>([]);
+  const [heroImageUrl, setHeroImageUrl] = useState('');
+  const [problemStatement, setProblemStatement] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [socialProofText, setSocialProofText] = useState('');
+  const [howItWorks, setHowItWorks] = useState<{ step: string; description: string }[]>([]);
+  const [valueProposition, setValueProposition] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'editor' | 'signups'>('editor');
@@ -60,24 +67,59 @@ export default function LandingPageGeneratorPage() {
       setPrimaryColor(landingPage.primary_color || '#3B82F6');
       setSecondaryColor(landingPage.secondary_color || '#0F172A');
       setFeatures(Array.isArray(landingPage.features) ? landingPage.features : []);
+      setHeroImageUrl(landingPage.hero_image_url || '');
+      setProblemStatement(landingPage.problem_statement || '');
+      setTargetAudience(landingPage.target_audience || '');
+      setSocialProofText(landingPage.social_proof_text || '');
+      setHowItWorks(Array.isArray(landingPage.how_it_works) ? landingPage.how_it_works : []);
+      setValueProposition(landingPage.value_proposition || '');
     }
   }, [landingPage]);
 
   const autoGenerate = () => {
     const bm = parseArtifactContent(bmArtifact?.content);
     const uiux = parseArtifactContent(uiArtifact?.content);
+    const pb = parseArtifactContent(pbArtifact?.content);
     const appName = selectedApp?.app_name || 'Your App';
-    const vp = bm?.value_proposition || bm?.valueProposition || selectedApp?.one_liner || '';
+    const vp = bm?.value_proposition || bm?.valueProposition || pb?.core_value_proposition || pb?.elevator_pitch || selectedApp?.one_liner || '';
     const desc = selectedApp?.app_description || '';
 
     setHeadline(vp || `${appName} — The Future is Here`);
     setSubheadline(desc || `Discover what ${appName} can do for you.`);
 
+    // Value proposition
+    setValueProposition(vp || `${appName} helps you achieve more with less effort.`);
+
+    // Problem statement from product brief
+    const problem = pb?.problem_statement || '';
+    setProblemStatement(problem || `Users struggle with outdated, fragmented solutions that waste time and money.`);
+
+    // Target audience from business model customer segments
     const segments = bm?.customer_segments || bm?.customerSegments || [];
+    const audience = Array.isArray(segments) ? segments.slice(0, 3).join(', ') : '';
+    const appFor = selectedApp?.app_for || '';
+    setTargetAudience(audience || appFor || 'Professionals and teams looking for a better way');
+
+    // How it works from v1_features
+    const v1Features = pb?.v1_features || [];
+    if (Array.isArray(v1Features) && v1Features.length > 0) {
+      const steps = v1Features.slice(0, 4).map((f: any) => ({
+        step: typeof f === 'string' ? f : (f.feature || f.title || 'Step'),
+        description: typeof f === 'string' ? '' : (f.description || ''),
+      }));
+      setHowItWorks(steps);
+    } else {
+      setHowItWorks([
+        { step: 'Sign Up', description: 'Create your account in seconds' },
+        { step: 'Configure', description: 'Set up your workspace' },
+        { step: 'Launch', description: 'Start using the product right away' },
+      ]);
+    }
+
+    // Features from business model
     const resources = bm?.keyResources || bm?.key_resources || [];
     const channels = bm?.marketing_channels || [];
     const combined = [...segments.slice(0, 2), ...resources.slice(0, 1), ...channels.slice(0, 1)];
-
     const autoFeatures = combined.length > 0
       ? combined.map((s: string, i: number) => ({ title: `Feature ${i + 1}`, description: String(s) }))
       : [
@@ -87,6 +129,13 @@ export default function LandingPageGeneratorPage() {
         ];
     setFeatures(autoFeatures);
 
+    // Social proof
+    setSocialProofText('Join hundreds of early adopters already on the waitlist');
+
+    // Hero image from logo
+    setHeroImageUrl(selectedApp?.logo || '');
+
+    // Colors from UI/UX
     if (uiux?.color_palette) {
       const hexMatch = JSON.stringify(uiux.color_palette).match(/#[0-9A-Fa-f]{6}/);
       if (hexMatch) setPrimaryColor(hexMatch[0]);
@@ -107,6 +156,12 @@ export default function LandingPageGeneratorPage() {
       cta_text: ctaText,
       primary_color: primaryColor,
       secondary_color: secondaryColor,
+      hero_image_url: heroImageUrl || undefined,
+      problem_statement: problemStatement || undefined,
+      target_audience: targetAudience || undefined,
+      social_proof_text: socialProofText || undefined,
+      how_it_works: howItWorks.length > 0 ? howItWorks : undefined,
+      value_proposition: valueProposition || undefined,
     });
   };
 
@@ -129,6 +184,14 @@ export default function LandingPageGeneratorPage() {
     const updated = [...features];
     updated[i] = { ...updated[i], [field]: value };
     setFeatures(updated);
+  };
+
+  const addStep = () => setHowItWorks([...howItWorks, { step: '', description: '' }]);
+  const removeStep = (i: number) => setHowItWorks(howItWorks.filter((_, idx) => idx !== i));
+  const updateStep = (i: number, field: 'step' | 'description', value: string) => {
+    const updated = [...howItWorks];
+    updated[i] = { ...updated[i], [field]: value };
+    setHowItWorks(updated);
   };
 
   // Stats
@@ -339,7 +402,7 @@ export default function LandingPageGeneratorPage() {
                         </div>
                         <h3 className="text-xl font-semibold mb-2 text-foreground">Create Your Landing Page</h3>
                         <p className="text-muted-foreground text-sm max-w-md mx-auto mb-6">
-                          Generate a professional landing page from your Business Model and UI/UX artifacts to validate demand before building.
+                          Generate a professional landing page from your Business Model, Product Brief, and UI/UX artifacts to validate demand before building.
                         </p>
                         <div className="flex gap-3 justify-center">
                           <Button onClick={autoGenerate} className="gap-2">
@@ -368,7 +431,7 @@ export default function LandingPageGeneratorPage() {
                             className="w-full border-dashed border-primary/30 text-primary hover:bg-primary/5"
                           >
                             <Sparkles className="w-4 h-4 mr-2" />
-                            Auto-fill from Business Model & UI/UX Artifacts
+                            Auto-fill from All Artifacts
                           </Button>
                           <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -403,20 +466,46 @@ export default function LandingPageGeneratorPage() {
                         </div>
                       </BusinessCard>
 
+                      {/* Hero Image */}
+                      <BusinessCard title="Hero Image" icon={Image} iconColor="text-cyan-500">
+                        <div className="space-y-3">
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground text-xs uppercase tracking-wider">Image URL</Label>
+                            <Input
+                              value={heroImageUrl}
+                              onChange={(e) => setHeroImageUrl(e.target.value)}
+                              placeholder="https://... or leave empty"
+                              className="bg-secondary/50 border-border"
+                            />
+                          </div>
+                          {heroImageUrl && (
+                            <div className="rounded-lg overflow-hidden border border-border bg-secondary/30">
+                              <img
+                                src={heroImageUrl}
+                                alt="Hero preview"
+                                className="w-full h-32 object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Tip: Use a product screenshot or mockup. Falls back to your app logo if empty.
+                          </p>
+                        </div>
+                      </BusinessCard>
+
                       {/* Branding Section */}
                       <BusinessCard title="Branding & Colors" icon={Palette} iconColor="text-purple-500">
                         <div className="space-y-4">
                           <div className="space-y-2">
                             <Label className="text-muted-foreground text-xs uppercase tracking-wider">Primary Color</Label>
                             <div className="flex items-center gap-3">
-                              <div className="relative">
-                                <input
-                                  type="color"
-                                  value={primaryColor}
-                                  onChange={(e) => setPrimaryColor(e.target.value)}
-                                  className="w-10 h-10 rounded-lg cursor-pointer border-2 border-border"
-                                />
-                              </div>
+                              <input
+                                type="color"
+                                value={primaryColor}
+                                onChange={(e) => setPrimaryColor(e.target.value)}
+                                className="w-10 h-10 rounded-lg cursor-pointer border-2 border-border"
+                              />
                               <Input
                                 value={primaryColor}
                                 onChange={(e) => setPrimaryColor(e.target.value)}
@@ -457,12 +546,113 @@ export default function LandingPageGeneratorPage() {
                         </div>
                       </BusinessCard>
 
+                      {/* Problem & Solution */}
+                      <BusinessCard title="Problem & Solution" icon={AlertTriangle} iconColor="text-red-500" colSpan={2}>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground text-xs uppercase tracking-wider">Problem Statement</Label>
+                            <Textarea
+                              value={problemStatement}
+                              onChange={(e) => setProblemStatement(e.target.value)}
+                              placeholder="What problem does your product solve?"
+                              rows={3}
+                              className="bg-secondary/50 border-border resize-none"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground text-xs uppercase tracking-wider">Value Proposition</Label>
+                            <Textarea
+                              value={valueProposition}
+                              onChange={(e) => setValueProposition(e.target.value)}
+                              placeholder="How does your product solve it better?"
+                              rows={3}
+                              className="bg-secondary/50 border-border resize-none"
+                            />
+                          </div>
+                        </div>
+                      </BusinessCard>
+
+                      {/* Target Audience */}
+                      <BusinessCard title="Target Audience" icon={Users} iconColor="text-emerald-500">
+                        <div className="space-y-2">
+                          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Who is this for?</Label>
+                          <Input
+                            value={targetAudience}
+                            onChange={(e) => setTargetAudience(e.target.value)}
+                            placeholder="e.g., Startup founders, freelance designers..."
+                            className="bg-secondary/50 border-border"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Auto-filled from your Business Model customer segments
+                          </p>
+                        </div>
+                      </BusinessCard>
+
+                      {/* Social Proof */}
+                      <BusinessCard title="Social Proof" icon={MessageSquare} iconColor="text-yellow-500">
+                        <div className="space-y-2">
+                          <Label className="text-muted-foreground text-xs uppercase tracking-wider">Trust Line</Label>
+                          <Input
+                            value={socialProofText}
+                            onChange={(e) => setSocialProofText(e.target.value)}
+                            placeholder="e.g., Trusted by 500+ early adopters"
+                            className="bg-secondary/50 border-border"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Shown below the hero CTA to build credibility
+                          </p>
+                        </div>
+                      </BusinessCard>
+
+                      {/* How It Works */}
+                      <BusinessCard title="How It Works" icon={ListOrdered} iconColor="text-indigo-500" colSpan={2}>
+                        <div className="space-y-3">
+                          {howItWorks.map((s, i) => (
+                            <div key={i} className="flex gap-3 items-start group">
+                              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-sm font-bold shrink-0 mt-1">
+                                {i + 1}
+                              </div>
+                              <div className="flex-1 grid md:grid-cols-2 gap-2">
+                                <Input
+                                  value={s.step}
+                                  onChange={(e) => updateStep(i, 'step', e.target.value)}
+                                  placeholder="Step name"
+                                  className="text-sm bg-secondary/50 border-border h-8"
+                                />
+                                <Input
+                                  value={s.description}
+                                  onChange={(e) => updateStep(i, 'description', e.target.value)}
+                                  placeholder="Brief description"
+                                  className="text-sm bg-secondary/50 border-border h-8"
+                                />
+                              </div>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => removeStep(i)}
+                                className="shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                              >
+                                <Trash2 className="w-3 h-3 text-destructive" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={addStep}
+                            className="w-full border-dashed border-border"
+                          >
+                            <Plus className="w-3 h-3 mr-1" /> Add Step
+                          </Button>
+                        </div>
+                      </BusinessCard>
+
                       {/* Features Section */}
-                      <BusinessCard title="Key Features" icon={Zap} iconColor="text-amber-500">
+                      <BusinessCard title="Key Features" icon={Zap} iconColor="text-amber-500" colSpan={2}>
                         <div className="space-y-3">
                           {features.map((f, i) => (
                             <div key={i} className="flex gap-2 items-start group">
-                              <div className="flex-1 space-y-1.5">
+                              <div className="flex-1 grid md:grid-cols-2 gap-2">
                                 <Input
                                   value={f.title}
                                   onChange={(e) => updateFeature(i, 'title', e.target.value)}
@@ -549,47 +739,90 @@ export default function LandingPageGeneratorPage() {
                           <CardContent className="p-0 mt-3">
                             <div
                               style={{ backgroundColor: secondaryColor }}
-                              className="p-16 text-center min-h-[450px] flex flex-col items-center justify-center"
+                              className="text-center"
                             >
-                              {selectedApp?.logo && (
-                                <img
-                                  src={selectedApp.logo}
-                                  alt="Logo"
-                                  className="w-14 h-14 rounded-xl object-cover mb-6"
-                                />
-                              )}
-                              <h1 className="text-5xl font-bold mb-5 leading-tight" style={{ color: '#ffffff' }}>
-                                {headline || 'Your Headline Here'}
-                              </h1>
-                              <p className="text-xl mb-10 max-w-2xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                                {subheadline || 'Your compelling subheadline will appear here'}
-                              </p>
-                              <div className="flex gap-3 items-center mb-16">
-                                <div className="flex items-center gap-2 bg-white/10 rounded-lg px-4 py-3 border border-white/20 w-64">
-                                  <Mail className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
-                                  <span style={{ color: 'rgba(255,255,255,0.4)' }} className="text-sm">
-                                    Enter your email
-                                  </span>
+                              {/* Preview Hero */}
+                              <div className="p-12 flex flex-col items-center justify-center">
+                                {selectedApp?.logo && (
+                                  <img src={selectedApp.logo} alt="Logo" className="w-12 h-12 rounded-xl object-cover mb-6" />
+                                )}
+                                <h1 className="text-4xl font-bold mb-4 leading-tight" style={{ color: '#ffffff' }}>
+                                  {headline || 'Your Headline Here'}
+                                </h1>
+                                <p className="text-lg mb-8 max-w-2xl leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                                  {subheadline || 'Your compelling subheadline'}
+                                </p>
+                                <div className="flex gap-3 items-center mb-4">
+                                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-4 py-3 border border-white/20 w-56">
+                                    <Mail className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                                    <span style={{ color: 'rgba(255,255,255,0.4)' }} className="text-sm">Enter your email</span>
+                                  </div>
+                                  <button
+                                    className="px-6 py-3 rounded-xl font-semibold text-sm"
+                                    style={{ backgroundColor: primaryColor, color: '#ffffff' }}
+                                  >
+                                    {ctaText || 'Join the Waitlist'}
+                                  </button>
                                 </div>
-                                <button
-                                  className="px-6 py-3 rounded-lg font-semibold text-sm transition-all"
-                                  style={{ backgroundColor: primaryColor, color: '#ffffff' }}
-                                >
-                                  {ctaText || 'Join the Waitlist'}
-                                </button>
+                                {socialProofText && (
+                                  <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                    {socialProofText}
+                                  </p>
+                                )}
                               </div>
+
+                              {/* Preview Problem */}
+                              {problemStatement && (
+                                <div className="p-10 border-t border-white/5" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                                  <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(239,68,68,0.1)', color: 'rgb(239,68,68)' }}>The Problem</span>
+                                  <p className="text-xl font-semibold mt-4 max-w-2xl mx-auto" style={{ color: '#ffffff' }}>{problemStatement}</p>
+                                  {targetAudience && (
+                                    <p className="text-sm mt-3" style={{ color: 'rgba(255,255,255,0.5)' }}>Built for {targetAudience}</p>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Preview Value Prop */}
+                              {valueProposition && (
+                                <div className="p-10 border-t border-white/5">
+                                  <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.1)', color: 'rgb(34,197,94)' }}>The Solution</span>
+                                  <p className="text-xl font-semibold mt-4 max-w-2xl mx-auto" style={{ color: '#ffffff' }}>{valueProposition}</p>
+                                </div>
+                              )}
+
+                              {/* Preview How It Works */}
+                              {howItWorks.length > 0 && (
+                                <div className="p-10 border-t border-white/5" style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+                                  <h3 className="text-xl font-bold mb-6" style={{ color: '#ffffff' }}>How It Works</h3>
+                                  <div className="flex gap-6 justify-center flex-wrap max-w-3xl mx-auto">
+                                    {howItWorks.map((s, i) => (
+                                      <div key={i} className="flex flex-col items-center max-w-[180px]">
+                                        <div
+                                          className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-sm mb-3"
+                                          style={{ backgroundColor: primaryColor }}
+                                        >
+                                          {i + 1}
+                                        </div>
+                                        <p className="text-sm font-medium" style={{ color: '#ffffff' }}>{s.step || 'Step'}</p>
+                                        <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{s.description}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Preview Features */}
                               {features.length > 0 && (
-                                <div className={`grid gap-6 max-w-4xl w-full ${features.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                                  {features.map((f, i) => (
-                                    <div key={i} className="text-left bg-white/5 rounded-xl p-6 border border-white/10">
-                                      <h3 className="font-semibold mb-2" style={{ color: '#ffffff' }}>
-                                        {f.title || 'Feature'}
-                                      </h3>
-                                      <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                                        {f.description || 'Description'}
-                                      </p>
-                                    </div>
-                                  ))}
+                                <div className="p-10 border-t border-white/5">
+                                  <h3 className="text-xl font-bold mb-6" style={{ color: '#ffffff' }}>Features</h3>
+                                  <div className={`grid gap-4 max-w-3xl mx-auto ${features.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                    {features.map((f, i) => (
+                                      <div key={i} className="text-left bg-white/5 rounded-xl p-5 border border-white/10">
+                                        <h4 className="font-semibold mb-1.5 text-sm" style={{ color: '#ffffff' }}>{f.title || 'Feature'}</h4>
+                                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>{f.description}</p>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -617,15 +850,10 @@ export default function LandingPageGeneratorPage() {
                         </div>
                         <h3 className="text-lg font-semibold text-foreground mb-2">No Signups Yet</h3>
                         <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                          Publish your landing page and share the link to start collecting email signups from potential users.
+                          Publish your landing page and share the link to start collecting email signups.
                         </p>
                         {!landingPage?.is_published && landingPage && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="mt-4"
-                            onClick={() => togglePublish(true)}
-                          >
+                          <Button variant="outline" size="sm" className="mt-4" onClick={() => togglePublish(true)}>
                             <Globe className="w-4 h-4 mr-2" /> Publish Now
                           </Button>
                         )}
