@@ -23,6 +23,7 @@ import MasterPromptPage from "./pages/MasterPromptPage";
 import UIUXPage from "./pages/UIUXPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
 import CoachingPage from "./pages/CoachingPage";
+import SharedArtifactPage from "./pages/SharedArtifactPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
 
@@ -102,6 +103,7 @@ const App = () => (
                 <DashboardLayout><CoachingPage /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/shared/:token" element={<SharedArtifactPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
