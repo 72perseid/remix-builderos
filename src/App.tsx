@@ -106,6 +106,12 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/shared/:token" element={<SharedArtifactPage />} />
+            <Route path="/lp/:slug" element={<PublicLandingPage />} />
+            <Route path="/landing-page" element={
+              <ProtectedRoute>
+                <DashboardLayout><LandingPageGeneratorPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
