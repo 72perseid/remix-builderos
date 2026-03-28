@@ -239,6 +239,7 @@ export default function BusinessModelPage() {
             {/* Generated Business Model Canvas */}
             {content && (
               <motion.div 
+                id="artifact-export-area"
                 className="grid md:grid-cols-2 gap-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

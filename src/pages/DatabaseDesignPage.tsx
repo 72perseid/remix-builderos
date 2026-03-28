@@ -83,6 +83,7 @@ export default function DatabaseDesignPage() {
           {/* Schema Visualizer */}
           {tables.length > 0 && (
             <motion.div
+              id="artifact-export-area"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
