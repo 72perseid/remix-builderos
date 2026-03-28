@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Palette, Type, Instagram, CreditCard } from 'lucide-react';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
-import { ProgressDashboard } from "./ProgressDashboard";
 import { ArtifactExportButton } from "./ArtifactExportButton";
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
