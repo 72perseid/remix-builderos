@@ -117,6 +117,7 @@ export function useLandingPage() {
         social_proof_text: content.social_proof_text || null,
         how_it_works: content.how_it_works || [],
         value_proposition: content.value_proposition || null,
+        theme: content.theme || 'modern',
       };
 
       const existing = landingPageQuery.data;
