@@ -23,6 +23,7 @@ export interface LandingPage {
   social_proof_text: string | null;
   how_it_works: { step: string; description: string }[];
   value_proposition: string | null;
+  theme: string | null;
   created_at: string;
   updated_at: string;
 }
