@@ -20,6 +20,11 @@ const mainNavItems = [{
   url: "/coaching",
   icon: Sparkles,
   routes: ['/coaching'],
+}, {
+  title: "1‑on‑1 Coaching",
+  url: "/1on1-coaching",
+  icon: Users,
+  routes: ['/1on1-coaching'],
 }];
 
 export function DashboardSidebar() {
