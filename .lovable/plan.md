@@ -1,56 +1,45 @@
 
 
-# Add Landing Page Theme/Template Selector
+# 1-on-1 Coaching Page
 
 ## Summary
-Add a theme selector to the Page Builder tab that lets users choose from 6 distinct landing page templates. Each theme controls the visual layout and styling of the public landing page (`/lp/:slug`). The selected theme is stored in the database and applied at render time.
+Create a new `/1on1-coaching` page that fetches coaches from the existing `coaches` table and displays them as cards (styled like the "Done For You" card on `/coaching`). Each card shows the coach's image, name, description, skills, languages, rate, and what they can help with. Clicking a card opens the Stripe payment link; on successful return, the user is redirected to the coach's booking URL.
 
-## Database Change
-Add a `theme` column to `landing_pages`:
-```sql
-ALTER TABLE public.landing_pages
-  ADD COLUMN IF NOT EXISTS theme text DEFAULT 'modern';
-```
+## Coaches Table Schema (existing)
+- `id`, `name`, `image`, `description`, `book_for` (JSON string array), `skills` (JSON string array), `languages` (JSON string array), `rate_per_hour`, `booking_url`, `proceed_to_payment` (Stripe payment link), `created_at`, `updated_at`
 
-## Themes (6 templates)
+## New Files
 
-| Theme | Description | Visual Style |
-|-------|-------------|-------------|
-| **Modern** (default) | Current design — dark bg, gradient accents, glass cards | Dark background, radial gradients, rounded-2xl cards |
-| **Minimalist** | Clean, lots of whitespace, light background, simple typography | White/light bg, thin borders, no gradients, serif headings |
-| **Bold** | Large typography, vibrant colors, full-width sections, strong contrast | Oversized headings, bold color blocks, no rounded corners |
-| **Startup** | Gradient hero with floating shapes, animated feel, tech-forward | Purple-blue gradients, floating blob shapes, pill buttons |
-| **Professional** | Corporate/enterprise look, structured grid, muted palette | Gray tones, structured layout, subtle shadows, square cards |
-| **Ecommerce** | Product-focused with prominent CTA, trust badges, pricing-style layout | White bg, product card style, prominent buttons, trust icons |
+### 1. `src/pages/OneOnOneCoachingPage.tsx`
+- Dark gradient background matching the existing coaching page aesthetic
+- Header with logo, title "1-on-1 Coaching", subtitle
+- Fetches coaches from Supabase: `supabase.from('coaches').select('*')`
+- Renders a responsive grid of coach cards (1 col mobile, 2 cols md, 3 cols lg)
+- Each card styled like the "Done For You" card: `bg-blue-500/[0.08] border-blue-400/30`, rounded-2xl, backdrop-blur
+- Card layout:
+  - Coach image (rounded, ~120x120) at top or side
+  - Name (text-2xl font-extrabold)
+  - Description (text-sm text-slate-300)
+  - "Book for" tags as small badges
+  - Skills as pill badges
+  - Languages shown inline
+  - Rate: `$XX/hr` prominent pricing
+  - CTA button: "Book Session" — opens `proceed_to_payment` (Stripe link) in new tab with `?success_url` pointing back to a redirect handler
+- Loading skeleton state while fetching
 
-## What Changes
+### 2. Payment Flow
+- The `proceed_to_payment` field contains Stripe Payment Links (e.g., `https://buy.stripe.com/...`)
+- On click, open the Stripe payment link in a new tab
+- After payment, Stripe redirects to a success URL — we'll append `?success_url=` to the payment link pointing to our app with the booking URL as a param
+- Create a small success handler: when the page loads with `?booking_url=` query param, auto-redirect to the coach's booking URL (Calendly/Discord)
 
-### 1. `useLandingPage.ts`
-- Add `theme` field to `LandingPage` interface
-- Include `theme` in generate mutation payload
+**Note**: Stripe Payment Links support `?client_reference_id` and redirect to a success URL. We'll construct the link as: `{proceed_to_payment}?success_url={encodeURIComponent(booking_url)}`
 
-### 2. `LandingPageGeneratorPage.tsx`
-- Add `theme` state variable (default: `'modern'`)
-- Add a **"Page Theme"** `BusinessCard` section at the top of the editor grid (before Content & Copy)
-- Display 6 clickable theme cards in a 3x2 grid, each showing:
-  - A small visual preview thumbnail (CSS-rendered mini layout)
-  - Theme name and short description
-  - Selected state with primary border highlight
-- Pass `theme` to the generate mutation
-- Populate from existing `landingPage.theme` on load
-
-### 3. `PublicLandingPage.tsx`
-- Read `page.theme` (fallback to `'modern'`)
-- Create a `themeConfig` object per theme defining: background colors, text colors, border radius, font styles, section spacing, card styles, hero layout variant
-- Apply theme config throughout all sections instead of hardcoded styles
-- Each theme changes: background (light vs dark), typography scale, card shapes (rounded vs sharp), hero layout (split vs centered vs full-width), section backgrounds, button styles, overall color temperature
-
-### Theme Preview Cards (in editor)
-Each card is a tiny CSS-only representation (~120x80px) showing a miniature layout silhouette (nav bar, hero block, feature grid) styled per theme, so users can visually compare before selecting.
+### 3. Route Registration in `App.tsx`
+- Add `/1on1-coaching` route, wrapped in `ProtectedRoute` + `DashboardLayout`
 
 ## Files Modified
-1. `supabase/migrations/` — new migration for `theme` column
-2. `src/hooks/useLandingPage.ts` — add theme to interface and mutation
-3. `src/pages/LandingPageGeneratorPage.tsx` — theme selector UI in editor
-4. `src/pages/PublicLandingPage.tsx` — theme-aware rendering with 6 distinct visual styles
+1. **`src/pages/OneOnOneCoachingPage.tsx`** — new page component
+2. **`src/App.tsx`** — add route
+3. **`src/integrations/supabase/types.ts`** — add `coaches` table type definition
 
