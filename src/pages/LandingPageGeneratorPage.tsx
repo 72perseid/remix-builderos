@@ -77,6 +77,7 @@ export default function LandingPageGeneratorPage() {
       setSocialProofText(landingPage.social_proof_text || '');
       setHowItWorks(Array.isArray(landingPage.how_it_works) ? landingPage.how_it_works : []);
       setValueProposition(landingPage.value_proposition || '');
+      setTheme((landingPage.theme as LandingThemeId) || 'modern');
     }
   }, [landingPage]);
 
