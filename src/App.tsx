@@ -26,6 +26,8 @@ import CoachingPage from "./pages/CoachingPage";
 import SharedArtifactPage from "./pages/SharedArtifactPage";
 import LandingPageGeneratorPage from "./pages/LandingPageGeneratorPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
+import OneOnOneCoachingPage from "./pages/OneOnOneCoachingPage";
+import BookingSuccessPage from "./pages/BookingSuccessPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
 
