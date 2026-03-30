@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { LandingThemeId } from '@/lib/landingPageThemes';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,8 +19,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket, Eye, EyeOff, Globe, Mail, Users, Sparkles, Copy, Check, ExternalLink,
   Loader2, Plus, Trash2, Palette, Type, MousePointerClick, BarChart3, TrendingUp,
-  Layout, Zap, Target, Calendar, Image, AlertTriangle, MessageSquare, ListOrdered
+  Layout, Zap, Target, Calendar, Image, AlertTriangle, MessageSquare, ListOrdered,
+  Paintbrush
 } from 'lucide-react';
+import ThemeSelector from '@/components/landing/ThemeSelector';
 import { toast } from 'sonner';
 
 function parseArtifactContent(raw: unknown): any {
@@ -57,6 +60,7 @@ export default function LandingPageGeneratorPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'editor' | 'signups'>('editor');
+  const [theme, setTheme] = useState<LandingThemeId>('modern');
 
   // Populate fields from existing landing page
   useEffect(() => {
@@ -73,6 +77,7 @@ export default function LandingPageGeneratorPage() {
       setSocialProofText(landingPage.social_proof_text || '');
       setHowItWorks(Array.isArray(landingPage.how_it_works) ? landingPage.how_it_works : []);
       setValueProposition(landingPage.value_proposition || '');
+      setTheme((landingPage.theme as LandingThemeId) || 'modern');
     }
   }, [landingPage]);
 
@@ -162,6 +167,7 @@ export default function LandingPageGeneratorPage() {
       social_proof_text: socialProofText || undefined,
       how_it_works: howItWorks.length > 0 ? howItWorks : undefined,
       value_proposition: valueProposition || undefined,
+      theme,
     });
   };
 
@@ -421,6 +427,11 @@ export default function LandingPageGeneratorPage() {
                   {/* Editor Grid */}
                   {(landingPage || headline) && (
                     <div className="grid md:grid-cols-2 gap-4">
+                      {/* Theme Selector */}
+                      <BusinessCard title="Page Theme" icon={Paintbrush} iconColor="text-pink-500" colSpan={2}>
+                        <ThemeSelector value={theme} onChange={setTheme} />
+                      </BusinessCard>
+
                       {/* Content Section */}
                       <BusinessCard title="Content & Copy" icon={Type} iconColor="text-blue-500" colSpan={2}>
                         <div className="space-y-4">

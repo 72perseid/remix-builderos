@@ -23,6 +23,7 @@ export interface LandingPage {
   social_proof_text: string | null;
   how_it_works: { step: string; description: string }[];
   value_proposition: string | null;
+  theme: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -92,6 +93,7 @@ export function useLandingPage() {
       social_proof_text?: string;
       how_it_works?: { step: string; description: string }[];
       value_proposition?: string;
+      theme?: string;
     }) => {
       if (!user?.id || !selectedAppId || !selectedApp) throw new Error('Missing context');
 
@@ -115,6 +117,7 @@ export function useLandingPage() {
         social_proof_text: content.social_proof_text || null,
         how_it_works: content.how_it_works || [],
         value_proposition: content.value_proposition || null,
+        theme: content.theme || 'modern',
       };
 
       const existing = landingPageQuery.data;
