@@ -60,6 +60,7 @@ export default function LandingPageGeneratorPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'editor' | 'signups'>('editor');
+  const [theme, setTheme] = useState<LandingThemeId>('modern');
 
   // Populate fields from existing landing page
   useEffect(() => {
