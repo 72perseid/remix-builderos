@@ -114,6 +114,12 @@ const App = () => (
                 <DashboardLayout><LandingPageGeneratorPage /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/1on1-coaching" element={
+              <ProtectedRoute>
+                <DashboardLayout><OneOnOneCoachingPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/booking-success" element={<BookingSuccessPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
