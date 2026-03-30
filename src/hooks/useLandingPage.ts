@@ -93,6 +93,7 @@ export function useLandingPage() {
       social_proof_text?: string;
       how_it_works?: { step: string; description: string }[];
       value_proposition?: string;
+      theme?: string;
     }) => {
       if (!user?.id || !selectedAppId || !selectedApp) throw new Error('Missing context');
 
