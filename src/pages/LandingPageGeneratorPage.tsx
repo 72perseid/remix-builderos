@@ -167,6 +167,7 @@ export default function LandingPageGeneratorPage() {
       social_proof_text: socialProofText || undefined,
       how_it_works: howItWorks.length > 0 ? howItWorks : undefined,
       value_proposition: valueProposition || undefined,
+      theme,
     });
   };
 
