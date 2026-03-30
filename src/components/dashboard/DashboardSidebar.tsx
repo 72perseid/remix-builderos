@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles } from "lucide-react";
+import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,11 @@ const mainNavItems = [{
   url: "/coaching",
   icon: Sparkles,
   routes: ['/coaching'],
+}, {
+  title: "1‑on‑1 Coaching",
+  url: "/1on1-coaching",
+  icon: Users,
+  routes: ['/1on1-coaching'],
 }];
 
 export function DashboardSidebar() {
