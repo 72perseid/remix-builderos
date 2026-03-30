@@ -26,6 +26,8 @@ import CoachingPage from "./pages/CoachingPage";
 import SharedArtifactPage from "./pages/SharedArtifactPage";
 import LandingPageGeneratorPage from "./pages/LandingPageGeneratorPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
+import OneOnOneCoachingPage from "./pages/OneOnOneCoachingPage";
+import BookingSuccessPage from "./pages/BookingSuccessPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
 
@@ -112,6 +114,12 @@ const App = () => (
                 <DashboardLayout><LandingPageGeneratorPage /></DashboardLayout>
               </ProtectedRoute>
             } />
+            <Route path="/1on1-coaching" element={
+              <ProtectedRoute>
+                <DashboardLayout><OneOnOneCoachingPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/booking-success" element={<BookingSuccessPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
