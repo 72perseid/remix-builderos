@@ -427,6 +427,11 @@ export default function LandingPageGeneratorPage() {
                   {/* Editor Grid */}
                   {(landingPage || headline) && (
                     <div className="grid md:grid-cols-2 gap-4">
+                      {/* Theme Selector */}
+                      <BusinessCard title="Page Theme" icon={Paintbrush} iconColor="text-pink-500" colSpan={2}>
+                        <ThemeSelector value={theme} onChange={setTheme} />
+                      </BusinessCard>
+
                       {/* Content Section */}
                       <BusinessCard title="Content & Copy" icon={Type} iconColor="text-blue-500" colSpan={2}>
                         <div className="space-y-4">
