@@ -19,8 +19,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Rocket, Eye, EyeOff, Globe, Mail, Users, Sparkles, Copy, Check, ExternalLink,
   Loader2, Plus, Trash2, Palette, Type, MousePointerClick, BarChart3, TrendingUp,
-  Layout, Zap, Target, Calendar, Image, AlertTriangle, MessageSquare, ListOrdered
+  Layout, Zap, Target, Calendar, Image, AlertTriangle, MessageSquare, ListOrdered,
+  Paintbrush
 } from 'lucide-react';
+import ThemeSelector from '@/components/landing/ThemeSelector';
 import { toast } from 'sonner';
 
 function parseArtifactContent(raw: unknown): any {
