@@ -197,8 +197,38 @@ export function ArtifactsGrid() {
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Landing Copy — linked to Landing Page Generator */}
+            {(() => {
+              const lpStatus = landingPageLoading ? 'loading' : !landingPage ? 'needs_setup' : landingPage.is_published ? 'live' : 'draft';
+              const badgeMap = {
+                loading: { label: '...', className: 'bg-muted/50 text-muted-foreground' },
+                needs_setup: { label: 'Needs Setup', className: 'bg-orange-500/20 text-orange-400' },
+                draft: { label: 'Draft', className: 'bg-yellow-500/20 text-yellow-400' },
+                live: { label: 'Live', className: 'bg-green-500/20 text-green-400' },
+              };
+              const badge = badgeMap[lpStatus];
+              return (
+                <div
+                  onClick={() => navigate('/landing-page')}
+                  className={`relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 p-5 pt-10 min-h-[180px] flex flex-col cursor-pointer hover:border-primary/40 transition-colors ${lpStatus === 'needs_setup' ? 'opacity-80' : ''}`}
+                >
+                  <div className={`absolute top-3 right-3 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${badge.className}`}>
+                    {badge.label}
+                  </div>
+                  <div className="mb-3">
+                    <div className="relative inline-flex">
+                      <div className="relative flex items-center justify-center w-12 h-12 rounded-xl border bg-primary/10 border-primary/20">
+                        <Type className="w-7 h-7 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-base font-semibold text-foreground mb-1.5 mt-auto">Landing Copy</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">Generate compelling landing page copy for your product.</p>
+                </div>
+              );
+            })()}
+            {/* Coming Soon cards */}
             {[
-              { title: 'Landing Copy', description: 'Generate compelling landing page copy for your product.', icon: <Type className="w-7 h-7 text-white" /> },
               { title: 'Social Content', description: 'Instagram content aligned with your brand.', icon: <Instagram className="w-7 h-7 text-white" /> },
               { title: 'Paywall Prompts', description: 'Craft high-converting paywall prompts for subscriptions.', icon: <CreditCard className="w-7 h-7 text-white" /> },
             ].map((card) => (
