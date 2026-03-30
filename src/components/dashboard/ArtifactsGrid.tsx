@@ -76,6 +76,7 @@ export function ArtifactsGrid() {
   const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
   const navigate = useNavigate();
+  const { landingPage, loading: landingPageLoading } = useLandingPage();
 
   useEffect(() => {
     refreshApps();
