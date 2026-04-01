@@ -22,7 +22,7 @@ export default function LandingPageGeneratorPage() {
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
   const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
   const { sendMessage, isLoading: isGenerating } = useCopilotChat({
-    context: 'master_prompt',
+    context: 'landing_page',
   });
   const [copied, setCopied] = useState(false);
 
