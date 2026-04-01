@@ -1,45 +1,44 @@
 
 
-# 1-on-1 Coaching Page
+# Convert Landing Page Generator to Prompt Builder
 
-## Summary
-Create a new `/1on1-coaching` page that fetches coaches from the existing `coaches` table and displays them as cards (styled like the "Done For You" card on `/coaching`). Each card shows the coach's image, name, description, skills, languages, rate, and what they can help with. Clicking a card opens the Stripe payment link; on successful return, the user is redirected to the coach's booking URL.
+## What Changes
+Replace the current full landing page editor/hosting system with a simple prompt builder (same pattern as Master Prompt page). Instead of building and hosting a landing page inside BuilderOS, it will generate a comprehensive prompt users can copy into Cursor, Bolt, Replit, or any AI coding tool to build a landing page with proper SEO.
 
-## Coaches Table Schema (existing)
-- `id`, `name`, `image`, `description`, `book_for` (JSON string array), `skills` (JSON string array), `languages` (JSON string array), `rate_per_hour`, `booking_url`, `proceed_to_payment` (Stripe payment link), `created_at`, `updated_at`
+## How It Works
 
-## New Files
+1. User clicks "Generate Landing Page Prompt"
+2. The copilot AI combines data from existing artifacts (Business Model, Product Brief, UI/UX) into a detailed landing page prompt
+3. The prompt includes: headline, subheadline, features, problem statement, target audience, how-it-works steps, CTA text, color palette, theme preference, and SEO metadata
+4. User copies the prompt and pastes it into their preferred coding tool
 
-### 1. `src/pages/OneOnOneCoachingPage.tsx`
-- Dark gradient background matching the existing coaching page aesthetic
-- Header with logo, title "1-on-1 Coaching", subtitle
-- Fetches coaches from Supabase: `supabase.from('coaches').select('*')`
-- Renders a responsive grid of coach cards (1 col mobile, 2 cols md, 3 cols lg)
-- Each card styled like the "Done For You" card: `bg-blue-500/[0.08] border-blue-400/30`, rounded-2xl, backdrop-blur
-- Card layout:
-  - Coach image (rounded, ~120x120) at top or side
-  - Name (text-2xl font-extrabold)
-  - Description (text-sm text-slate-300)
-  - "Book for" tags as small badges
-  - Skills as pill badges
-  - Languages shown inline
-  - Rate: `$XX/hr` prominent pricing
-  - CTA button: "Book Session" — opens `proceed_to_payment` (Stripe link) in new tab with `?success_url` pointing back to a redirect handler
-- Loading skeleton state while fetching
+## Technical Plan
 
-### 2. Payment Flow
-- The `proceed_to_payment` field contains Stripe Payment Links (e.g., `https://buy.stripe.com/...`)
-- On click, open the Stripe payment link in a new tab
-- After payment, Stripe redirects to a success URL — we'll append `?success_url=` to the payment link pointing to our app with the booking URL as a param
-- Create a small success handler: when the page loads with `?booking_url=` query param, auto-redirect to the coach's booking URL (Calendly/Discord)
+### File: `src/pages/LandingPageGeneratorPage.tsx` — Full Rewrite
+- Replace the 964-line editor/publisher with a ~150-line prompt builder following `MasterPromptPage.tsx` pattern
+- Same structure: prerequisites check → generate button → rendered prompt with copy button
+- Prerequisites: `business_model` and `product_brief` (same as master prompt minus db_design/validation since those aren't needed for a landing page)
+- Uses `useCopilotChat` with `context: 'landing_page'` to generate the prompt
+- Uses `useArtifact('landing_page')` to store/retrieve the generated prompt
+- Remove all landing page form state, theme selector, signups tab, publish toggle, stats row, preview panel
 
-**Note**: Stripe Payment Links support `?client_reference_id` and redirect to a success URL. We'll construct the link as: `{proceed_to_payment}?success_url={encodeURIComponent(booking_url)}`
+### File: `src/hooks/useLandingPage.ts` — Can be kept or removed
+- The hook won't be imported by the page anymore; can remove the import but keep the file for now (no breaking changes)
 
-### 3. Route Registration in `App.tsx`
-- Add `/1on1-coaching` route, wrapped in `ProtectedRoute` + `DashboardLayout`
+### Files NOT changed
+- `src/lib/landingPageThemes.ts` — no longer used by the page, but harmless to keep
+- `src/components/landing/ThemeSelector.tsx` — same
+- Database tables (`landing_pages`, `landing_page_signups`) — unchanged, just unused by this page going forward
+- `src/pages/PublicLandingPage.tsx` — kept as-is (existing published pages still accessible)
 
-## Files Modified
-1. **`src/pages/OneOnOneCoachingPage.tsx`** — new page component
-2. **`src/App.tsx`** — add route
-3. **`src/integrations/supabase/types.ts`** — add `coaches` table type definition
+### Artifact type
+- Uses the existing `landing_page` artifact type in the `artifacts` table to store the generated prompt (same pattern as `master_prompt`)
+
+### UI Structure (matching MasterPromptPage)
+1. Title: "Landing Page Prompt" with Rocket icon
+2. Subtitle: "Generate a prompt to build a conversion-optimized landing page with any AI coding tool"
+3. Prerequisites card (if business_model or product_brief missing)
+4. Generate button (if unlocked, no prompt yet)
+5. Prompt display with copy button (once generated)
+6. CoachCTA at bottom
 
