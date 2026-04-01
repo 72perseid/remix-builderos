@@ -32,9 +32,9 @@ export default function LandingPageGeneratorPage() {
   const isUnlocked = missingArtifacts.length === 0;
 
   const handleCopy = async () => {
-    if (!promptContent) return;
+    if (!generatedPrompt) return;
     try {
-      await navigator.clipboard.writeText(promptContent);
+      await navigator.clipboard.writeText(generatedPrompt);
       setCopied(true);
       toast.success('Copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
@@ -44,10 +44,13 @@ export default function LandingPageGeneratorPage() {
   };
 
   const handleGenerate = async () => {
-    await sendMessage('Generate a detailed landing page prompt using my project artifacts. Include SEO metadata, headline, subheadline, hero section, problem statement, features, how-it-works steps, social proof, CTA, color palette, and responsive design instructions.');
+    const response = await sendMessage('Generate a detailed landing page prompt using my project artifacts. Include SEO metadata, headline, subheadline, hero section, problem statement, features, how-it-works steps, social proof, CTA, color palette, and responsive design instructions.');
+    if (response) {
+      setGeneratedPrompt(response);
+    }
   };
 
-  if (artifactLoading || artifactsLoading) {
+  if (artifactsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
