@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useCopilotChat } from '@/hooks/useCopilotChat';
-import { useAuth } from '@/hooks/useAuth';
-import { useProjectContext } from '@/contexts/ProjectContext';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Rocket, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -21,71 +17,12 @@ const ARTIFACT_LABELS: Record<string, { label: string; route: string }> = {
   product_brief: { label: 'Product Brief', route: '/product-brief' },
 };
 
-function parsePromptContent(rawContent: unknown): string | null {
-  if (!rawContent) return null;
-
-  if (typeof rawContent === 'string') {
-    const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
-    if (jsonMatch && jsonMatch[1]) {
-      try {
-        const parsed = JSON.parse(jsonMatch[1]);
-        return parsed.prompt || parsed.landingPagePrompt || parsed.content || JSON.stringify(parsed, null, 2);
-      } catch {
-        return rawContent;
-      }
-    }
-    try {
-      const parsed = JSON.parse(rawContent);
-      return parsed.prompt || parsed.landingPagePrompt || parsed.content || JSON.stringify(parsed, null, 2);
-    } catch {
-      return rawContent;
-    }
-  }
-
-  if (typeof rawContent === 'object' && rawContent !== null) {
-    const obj = rawContent as Record<string, unknown>;
-    if (typeof obj.prompt === 'string') return obj.prompt;
-    if (typeof obj.landingPagePrompt === 'string') return obj.landingPagePrompt;
-    if (typeof obj.content === 'string') return obj.content;
-    return JSON.stringify(rawContent, null, 2);
-  }
-
-  return null;
-}
-
-function useLandingPageArtifact() {
-  const { user } = useAuth();
-  const { selectedAppId } = useProjectContext();
-
-  const query = useQuery({
-    queryKey: ['artifact', 'landing_page', user?.id, selectedAppId],
-    queryFn: async () => {
-      if (!user?.id || !selectedAppId) return null;
-      const { data, error } = await (supabase as any)
-        .from('artifacts')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('app_idea_id', selectedAppId)
-        .eq('type', 'landing_page')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id && !!selectedAppId,
-  });
-
-  return { data: query.data, loading: query.isLoading, refetch: query.refetch };
-}
-
 export default function LandingPageGeneratorPage() {
   const navigate = useNavigate();
-  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useLandingPageArtifact();
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
+  const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
   const { sendMessage, isLoading: isGenerating } = useCopilotChat({
     context: 'landing_page',
-    onArtifactRefresh: refetchArtifact,
   });
   const [copied, setCopied] = useState(false);
 
@@ -93,12 +30,11 @@ export default function LandingPageGeneratorPage() {
     (type) => !allArtifacts.some((a) => a.type === type)
   );
   const isUnlocked = missingArtifacts.length === 0;
-  const promptContent = parsePromptContent(artifact?.content);
 
   const handleCopy = async () => {
-    if (!promptContent) return;
+    if (!generatedPrompt) return;
     try {
-      await navigator.clipboard.writeText(promptContent);
+      await navigator.clipboard.writeText(generatedPrompt);
       setCopied(true);
       toast.success('Copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
@@ -108,10 +44,13 @@ export default function LandingPageGeneratorPage() {
   };
 
   const handleGenerate = async () => {
-    await sendMessage('Generate a detailed landing page prompt using my project artifacts. Include SEO metadata, headline, subheadline, hero section, problem statement, features, how-it-works steps, social proof, CTA, color palette, and responsive design instructions.');
+    const response = await sendMessage('Generate a detailed landing page prompt using my project artifacts. Include SEO metadata, headline, subheadline, hero section, problem statement, features, how-it-works steps, social proof, CTA, color palette, and responsive design instructions.');
+    if (response) {
+      setGeneratedPrompt(response);
+    }
   };
 
-  if (artifactLoading || artifactsLoading) {
+  if (artifactsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -163,7 +102,7 @@ export default function LandingPageGeneratorPage() {
         )}
 
         {/* Ready to Generate */}
-        {isUnlocked && !promptContent && (
+        {isUnlocked && !generatedPrompt && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -216,7 +155,7 @@ export default function LandingPageGeneratorPage() {
         )}
 
         {/* Prompt Generated */}
-        {isUnlocked && promptContent && (
+        {isUnlocked && generatedPrompt && (
           <motion.div
             className="space-y-4"
             initial={{ opacity: 0 }}
@@ -269,7 +208,7 @@ export default function LandingPageGeneratorPage() {
               </div>
 
               <pre className="bg-slate-900 border border-slate-800 rounded-xl p-6 overflow-auto max-h-[60vh] text-sm text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">
-                {promptContent}
+                {generatedPrompt}
               </pre>
             </div>
 
