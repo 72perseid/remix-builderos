@@ -102,7 +102,7 @@ export default function LandingPageGeneratorPage() {
         )}
 
         {/* Ready to Generate */}
-        {isUnlocked && !promptContent && (
+        {isUnlocked && !generatedPrompt && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -155,7 +155,7 @@ export default function LandingPageGeneratorPage() {
         )}
 
         {/* Prompt Generated */}
-        {isUnlocked && promptContent && (
+        {isUnlocked && generatedPrompt && (
           <motion.div
             className="space-y-4"
             initial={{ opacity: 0 }}
@@ -208,7 +208,7 @@ export default function LandingPageGeneratorPage() {
               </div>
 
               <pre className="bg-slate-900 border border-slate-800 rounded-xl p-6 overflow-auto max-h-[60vh] text-sm text-slate-300 font-mono whitespace-pre-wrap leading-relaxed">
-                {promptContent}
+                {generatedPrompt}
               </pre>
             </div>
 
