@@ -44,7 +44,9 @@ export default function LandingPageGeneratorPage() {
   };
 
   const handleGenerate = async () => {
-    const response = await sendMessage('Generate a detailed landing page prompt using my project artifacts. Include SEO metadata, headline, subheadline, hero section, problem statement, features, how-it-works steps, social proof, CTA, color palette, and responsive design instructions.');
+    const response = await sendMessage(
+      'Generate a detailed landing page prompt using my project artifacts. Include SEO metadata, headline, subheadline, hero section, problem statement, features, how-it-works steps, social proof, CTA, color palette, and responsive design instructions.'
+    );
     if (response) {
       setGeneratedPrompt(response);
     }
