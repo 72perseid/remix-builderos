@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useArtifact } from '@/hooks/useArtifact';
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useCopilotChat } from '@/hooks/useCopilotChat';
+import { useAuth } from '@/hooks/useAuth';
+import { useProjectContext } from '@/contexts/ProjectContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Rocket, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -50,9 +53,35 @@ function parsePromptContent(rawContent: unknown): string | null {
   return null;
 }
 
+function useLandingPageArtifact() {
+  const { user } = useAuth();
+  const { selectedAppId } = useProjectContext();
+
+  const query = useQuery({
+    queryKey: ['artifact', 'landing_page', user?.id, selectedAppId],
+    queryFn: async () => {
+      if (!user?.id || !selectedAppId) return null;
+      const { data, error } = await (supabase as any)
+        .from('artifacts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('app_idea_id', selectedAppId)
+        .eq('type', 'landing_page')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id && !!selectedAppId,
+  });
+
+  return { data: query.data, loading: query.isLoading, refetch: query.refetch };
+}
+
 export default function LandingPageGeneratorPage() {
   const navigate = useNavigate();
-  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('ui_ux');
+  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useLandingPageArtifact();
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
   const { sendMessage, isLoading: isGenerating } = useCopilotChat({
     context: 'landing_page',
