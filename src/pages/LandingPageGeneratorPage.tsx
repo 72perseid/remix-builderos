@@ -52,7 +52,7 @@ function parsePromptContent(rawContent: unknown): string | null {
 
 export default function LandingPageGeneratorPage() {
   const navigate = useNavigate();
-  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('landing_page');
+  const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('ui_ux');
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();
   const { sendMessage, isLoading: isGenerating } = useCopilotChat({
     context: 'landing_page',
