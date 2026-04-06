@@ -38,6 +38,7 @@ export default function OneOnOneCoachingPage() {
     supabase
       .from('coaches' as any)
       .select('*')
+      .order('order_index' as any, { ascending: true })
       .then(({ data, error }) => {
         if (!error && data) setCoaches(data as unknown as Coach[]);
         setLoading(false);
