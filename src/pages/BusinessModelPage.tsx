@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { BusinessCard } from '@/components/ui/business-card';
-import { useAppIdea } from '@/hooks/useAppIdea';
-import { useBusinessModel } from '@/hooks/useBusinessModel';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,36 +11,7 @@ import { CopilotPanel } from '@/components/artifacts/ArtifactCopilot';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 
-interface BusinessModel {
-  targetMarket: string;
-  competitiveAdvantage: string;
-  generatedModel?: any;
-}
 
-interface AppIdea {
-  appDescription: string;
-}
-
-interface Artifact {
-  content: any;
-}
-
-// Helper function to parse JSON content from artifact
-function parseContent(artifact: Artifact | undefined): any {
-  if (!artifact || !artifact.content) {
-    return null;
-  }
-  try {
-    if (typeof artifact.content === 'string') {
-      return JSON.parse(artifact.content);
-    } else {
-      return artifact.content;
-    }
-  } catch (e) {
-    console.error("Failed to parse artifact content", e);
-    return null;
-  }
-}
 
 interface RevenueStream {
   source: string;
@@ -121,8 +89,6 @@ function parseArtifactContent(rawContent: unknown): BusinessModelContent | null 
 }
 
 export default function BusinessModelPage() {
-  const { appIdea } = useAppIdea();
-  const { businessModel } = useBusinessModel();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('business_model');
   const { selectedAppId } = useProjectContext();
 
@@ -143,34 +109,9 @@ export default function BusinessModelPage() {
   });
 
   const bmCompletion = (completionData as any)?.bm_completion ?? 0;
-  
-  const [targetMarket, setTargetMarket] = useState(businessModel?.targetMarket || '');
-  const [competitiveAdvantage, setCompetitiveAdvantage] = useState(businessModel?.competitiveAdvantage || '');
-  const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    if (businessModel) {
-      setTargetMarket(businessModel.targetMarket || '');
-      setCompetitiveAdvantage(businessModel.competitiveAdvantage || '');
-    }
-  }, [businessModel]);
-
-  const handleGenerate = async () => {
-    if (!appIdea?.appDescription) {
-      toast.error('Please save your app idea first');
-      return;
-    }
-
-    setIsGenerating(true);
-    
-    setTimeout(() => {
-      setIsGenerating(false);
-      toast.info('AI generation not yet configured');
-    }, 1000);
-  };
-
-  // Use artifact content if available, otherwise fall back to local hook
-  const content: BusinessModelContent | null = parseArtifactContent(artifact?.content) || businessModel?.generatedModel;
+  // Single source of truth: artifacts table
+  const content: BusinessModelContent | null = parseArtifactContent(artifact?.content);
 
   // Normalize data (handle multiple formats)
   const businessName = content?.name;
