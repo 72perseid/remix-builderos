@@ -14,7 +14,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const isProjectBoard = location.pathname === '/project-board';
-  const hideTopNav = location.pathname === '/coaching';
+  const hideTopNav = location.pathname === '/coaching' || location.pathname === '/1on1-coaching';
 
   return (
     <ChatProvider>
