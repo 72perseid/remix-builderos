@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useAppIdea } from '@/hooks/useAppIdea';
-import { useDatabaseDesign } from '@/hooks/useDatabaseDesign';
 import { useArtifact } from '@/hooks/useArtifact';
 import { Database, Loader2, Copy, Check } from 'lucide-react';
 import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
@@ -24,13 +22,12 @@ interface DatabaseDesignContent {
 }
 
 export default function DatabaseDesignPage() {
-  const { appIdea } = useAppIdea();
-  const { databaseDesign } = useDatabaseDesign();
   const { data: artifact, loading: artifactLoading } = useArtifact('db_design');
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const content: DatabaseDesignContent | null = artifact?.content as DatabaseDesignContent || databaseDesign?.generatedDesign;
+  // Single source of truth: artifacts table
+  const content: DatabaseDesignContent | null = artifact?.content as DatabaseDesignContent || null;
   const tables = content?.schema?.tables || content?.tables || [];
   const rels = content?.schema?.relationships || content?.relationships || [];
   const sqlContent = content?.sql || null;

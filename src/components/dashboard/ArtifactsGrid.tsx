@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Palette, Type, Instagram, CreditCard } from 'lucide-react';
-import { useLandingPage } from '@/hooks/useLandingPage';
 import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { ArtifactExportButton } from "./ArtifactExportButton";

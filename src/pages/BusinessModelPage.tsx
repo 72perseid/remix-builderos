@@ -3,7 +3,7 @@ import { BusinessCard } from '@/components/ui/business-card';
 import { useArtifact } from '@/hooks/useArtifact';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+
 import { Progress } from '@/components/ui/progress';
 import { Target, Users, DollarSign, Rocket, Building, Loader2, Megaphone } from 'lucide-react';
 import { ArtifactBreadcrumb } from '@/components/dashboard/ArtifactBreadcrumb';
