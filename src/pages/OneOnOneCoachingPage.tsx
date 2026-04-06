@@ -74,7 +74,7 @@ export default function OneOnOneCoachingPage() {
 
       {/* Grid */}
       <div className="relative z-10 flex-1 px-6 pb-10">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
           {loading
             ? Array.from({ length: 3 }).map((_, i) => (
                 <Card key={i} className="rounded-2xl p-8 bg-white/[0.04] border-white/10 space-y-4">
