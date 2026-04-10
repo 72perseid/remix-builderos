@@ -6,12 +6,22 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Support both query params and body
     const url = new URL(req.url);
-    const calendarId = url.searchParams.get("calendarId");
+    let calendarId = url.searchParams.get("calendarId");
+
+    if (!calendarId && req.body) {
+      try {
+        const body = await req.json();
+        calendarId = body.calendarId;
+      } catch {
+        // body not JSON, ignore
+      }
+    }
 
     if (!calendarId) {
       return new Response(
-        JSON.stringify({ error: "calendarId query param is required" }),
+        JSON.stringify({ error: "calendarId is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
