@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ExternalLink, MapPin, Video, Loader2 } from "lucide-react";
@@ -26,22 +25,16 @@ export default function CalendarPage() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const { data, error: fnError } = await supabase.functions.invoke(
-          "google-calendar-proxy",
-          { body: null, headers: {} }
-        );
-
-        // supabase.functions.invoke doesn't support query params natively,
-        // so we'll construct the URL manually
-        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "bsogscaipffwkjszicfc";
-        const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const projectId = "bsogscaipffwkjszicfc";
+        const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzb2dzY2FpcGZmd2tqc3ppY2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxODg3MTEsImV4cCI6MjA4MDc2NDcxMX0.QsK1D0ymysT6sBSIP428J6iF-JgZ7P5jRvsZkjTbtY4";
 
         const res = await fetch(
           `https://${projectId}.supabase.co/functions/v1/google-calendar-proxy?calendarId=${encodeURIComponent(CALENDAR_ID)}`,
           {
             headers: {
               "Content-Type": "application/json",
-              ...(anonKey ? { apikey: anonKey, Authorization: `Bearer ${anonKey}` } : {}),
+              apikey: anonKey,
+              Authorization: `Bearer ${anonKey}`,
             },
           }
         );
