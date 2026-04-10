@@ -1,52 +1,37 @@
 
 
-# Build Basic Calendar Page with Google Calendar Integration
+## Plan: Calendar Grid UI for CalendarPage
 
-## What We're Building
-A basic calendar page that fetches and displays events from a coach's Google Calendar using the public API key approach. The "Calendar" nav item will sit below "Build" in the sidebar.
+### Current State
+The page displays events as a vertical list of cards — functional but doesn't feel like a calendar.
 
-## Prerequisites (Your Action Items)
-Before I build, I need you to provide two things using the secret storage tool:
-1. **Google Calendar API Key** — I'll store it as a Supabase secret called `GOOGLE_CALENDAR_API_KEY`
-2. **Calendar ID** — I'll hardcode this initially for testing (you can paste it in chat)
+### What Changes
 
-## What I'll Build
+**Replace the list view with a monthly calendar grid** that shows:
+- A month/year header with prev/next navigation arrows
+- A 7-column day-of-week grid (Sun–Sat)
+- Day cells showing the date number, with event dots/pills rendered inside the correct day
+- Clicking a day with events opens a popover or side panel showing event details (title, time, meet link, location)
+- Today's date highlighted
+- Days outside the current month shown dimmed
 
-### 1. Edge Function: `supabase/functions/google-calendar-proxy/index.ts`
-- Reads `GOOGLE_CALENDAR_API_KEY` from secrets
-- Accepts a `calendarId` query param
-- Fetches upcoming events from Google Calendar API v3
-- Returns formatted JSON (title, start/end times, description, location/meet link)
-- Includes CORS headers
+**Keep the data fetching and edge function unchanged** — only the rendering layer changes.
 
-### 2. New Page: `src/pages/CalendarPage.tsx`
-- Simple list/card view of upcoming events (no heavy calendar library yet — keep it minimal for testing)
-- Calls the edge function to fetch events
-- Displays each event: title, date/time (browser timezone), description, Google Meet link if present
-- Loading and error states
+### Technical Approach
 
-### 3. Sidebar Update: `src/components/dashboard/DashboardSidebar.tsx`
-- Add "Calendar" nav item with `CalendarDays` icon right after "Build"
-- Route: `/calendar`
+1. **`src/pages/CalendarPage.tsx`** — Rewrite the render section:
+   - Add `currentMonth` state (Date) with prev/next handlers
+   - Build a 6×7 grid of day cells for the visible month
+   - Group fetched events by date (`YYYY-MM-DD` key)
+   - Render colored dots or short title pills in each day cell
+   - Use a Popover (from existing `@/components/ui/popover`) to show event details on day click
+   - Keep loading/error states as-is
 
-### 4. Route + Layout: `src/App.tsx` and `src/layouts/DashboardLayout.tsx`
-- Add `/calendar` route inside `DashboardLayout`
-- Hide top nav for calendar page (clean view)
+2. **Styling** — Dark theme consistent with existing slate/blue palette:
+   - Grid cells: `bg-white/5 border-white/10`
+   - Today: `bg-blue-500/20 ring ring-blue-500/40`
+   - Event pills: small `bg-blue-500` rounded badges
+   - Navigation: chevron buttons matching the existing calendar component style
 
-### 5. Config: `supabase/config.toml`
-- Add `[functions.google-calendar-proxy]` with `verify_jwt = false`
-
-## Files Summary
-
-| File | Action |
-|---|---|
-| `supabase/functions/google-calendar-proxy/index.ts` | New |
-| `supabase/config.toml` | Edit — add function config |
-| `src/pages/CalendarPage.tsx` | New |
-| `src/components/dashboard/DashboardSidebar.tsx` | Edit — add Calendar nav item after Build |
-| `src/App.tsx` | Edit — add `/calendar` route |
-| `src/layouts/DashboardLayout.tsx` | Edit — hide top nav for `/calendar` |
-
-## Next Step
-Please share the **Calendar ID** in chat so I can wire it up. I'll then use the secrets tool to request your **API Key**.
+No new dependencies needed — pure React + Tailwind + existing UI primitives.
 
