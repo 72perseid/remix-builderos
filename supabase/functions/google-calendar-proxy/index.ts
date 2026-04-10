@@ -1,3 +1,4 @@
+// Google Calendar proxy v1
 import { corsHeaders } from "@supabase/supabase-js/cors";
 
 Deno.serve(async (req) => {
