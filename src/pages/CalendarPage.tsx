@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ExternalLink, MapPin, Video, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-// TODO: replace with dynamic value or env var
 const CALENDAR_ID = "michael@ambitiouslabs.io";
 
 interface CalendarEvent {
@@ -25,27 +25,20 @@ export default function CalendarPage() {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const projectId = "bsogscaipffwkjszicfc";
-        const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzb2dzY2FpcGZmd2tqc3ppY2ZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxODg3MTEsImV4cCI6MjA4MDc2NDcxMX0.QsK1D0ymysT6sBSIP428J6iF-JgZ7P5jRvsZkjTbtY4";
-
-        const res = await fetch(
-          `https://${projectId}.supabase.co/functions/v1/google-calendar-proxy?calendarId=${encodeURIComponent(CALENDAR_ID)}`,
+        const { data, error: fnError } = await supabase.functions.invoke(
+          "google-calendar-proxy",
           {
-            headers: {
-              "Content-Type": "application/json",
-              apikey: anonKey,
-              Authorization: `Bearer ${anonKey}`,
-            },
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ calendarId: CALENDAR_ID }),
           }
         );
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || `HTTP ${res.status}`);
+        if (fnError) {
+          throw new Error(fnError.message || "Edge function error");
         }
 
-        const result = await res.json();
-        setEvents(result.events || []);
+        setEvents(data?.events || []);
       } catch (err: any) {
         console.error("Failed to fetch calendar events:", err);
         setError(err.message || "Failed to load events");
