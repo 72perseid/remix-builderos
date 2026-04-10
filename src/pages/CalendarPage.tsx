@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ExternalLink, MapPin, Video, Loader2 } from "lucide-react";
 
 // TODO: replace with dynamic value or env var
-const CALENDAR_ID = "primary";
+const CALENDAR_ID = "michael@ambitiouslabs.io";
 
 interface CalendarEvent {
   id: string;
