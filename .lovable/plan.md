@@ -1,44 +1,52 @@
 
 
-# Convert Landing Page Generator to Prompt Builder
+# Build Basic Calendar Page with Google Calendar Integration
 
-## What Changes
-Replace the current full landing page editor/hosting system with a simple prompt builder (same pattern as Master Prompt page). Instead of building and hosting a landing page inside BuilderOS, it will generate a comprehensive prompt users can copy into Cursor, Bolt, Replit, or any AI coding tool to build a landing page with proper SEO.
+## What We're Building
+A basic calendar page that fetches and displays events from a coach's Google Calendar using the public API key approach. The "Calendar" nav item will sit below "Build" in the sidebar.
 
-## How It Works
+## Prerequisites (Your Action Items)
+Before I build, I need you to provide two things using the secret storage tool:
+1. **Google Calendar API Key** — I'll store it as a Supabase secret called `GOOGLE_CALENDAR_API_KEY`
+2. **Calendar ID** — I'll hardcode this initially for testing (you can paste it in chat)
 
-1. User clicks "Generate Landing Page Prompt"
-2. The copilot AI combines data from existing artifacts (Business Model, Product Brief, UI/UX) into a detailed landing page prompt
-3. The prompt includes: headline, subheadline, features, problem statement, target audience, how-it-works steps, CTA text, color palette, theme preference, and SEO metadata
-4. User copies the prompt and pastes it into their preferred coding tool
+## What I'll Build
 
-## Technical Plan
+### 1. Edge Function: `supabase/functions/google-calendar-proxy/index.ts`
+- Reads `GOOGLE_CALENDAR_API_KEY` from secrets
+- Accepts a `calendarId` query param
+- Fetches upcoming events from Google Calendar API v3
+- Returns formatted JSON (title, start/end times, description, location/meet link)
+- Includes CORS headers
 
-### File: `src/pages/LandingPageGeneratorPage.tsx` — Full Rewrite
-- Replace the 964-line editor/publisher with a ~150-line prompt builder following `MasterPromptPage.tsx` pattern
-- Same structure: prerequisites check → generate button → rendered prompt with copy button
-- Prerequisites: `business_model` and `product_brief` (same as master prompt minus db_design/validation since those aren't needed for a landing page)
-- Uses `useCopilotChat` with `context: 'landing_page'` to generate the prompt
-- Uses `useArtifact('landing_page')` to store/retrieve the generated prompt
-- Remove all landing page form state, theme selector, signups tab, publish toggle, stats row, preview panel
+### 2. New Page: `src/pages/CalendarPage.tsx`
+- Simple list/card view of upcoming events (no heavy calendar library yet — keep it minimal for testing)
+- Calls the edge function to fetch events
+- Displays each event: title, date/time (browser timezone), description, Google Meet link if present
+- Loading and error states
 
-### File: `src/hooks/useLandingPage.ts` — Can be kept or removed
-- The hook won't be imported by the page anymore; can remove the import but keep the file for now (no breaking changes)
+### 3. Sidebar Update: `src/components/dashboard/DashboardSidebar.tsx`
+- Add "Calendar" nav item with `CalendarDays` icon right after "Build"
+- Route: `/calendar`
 
-### Files NOT changed
-- `src/lib/landingPageThemes.ts` — no longer used by the page, but harmless to keep
-- `src/components/landing/ThemeSelector.tsx` — same
-- Database tables (`landing_pages`, `landing_page_signups`) — unchanged, just unused by this page going forward
-- `src/pages/PublicLandingPage.tsx` — kept as-is (existing published pages still accessible)
+### 4. Route + Layout: `src/App.tsx` and `src/layouts/DashboardLayout.tsx`
+- Add `/calendar` route inside `DashboardLayout`
+- Hide top nav for calendar page (clean view)
 
-### Artifact type
-- Uses the existing `landing_page` artifact type in the `artifacts` table to store the generated prompt (same pattern as `master_prompt`)
+### 5. Config: `supabase/config.toml`
+- Add `[functions.google-calendar-proxy]` with `verify_jwt = false`
 
-### UI Structure (matching MasterPromptPage)
-1. Title: "Landing Page Prompt" with Rocket icon
-2. Subtitle: "Generate a prompt to build a conversion-optimized landing page with any AI coding tool"
-3. Prerequisites card (if business_model or product_brief missing)
-4. Generate button (if unlocked, no prompt yet)
-5. Prompt display with copy button (once generated)
-6. CoachCTA at bottom
+## Files Summary
+
+| File | Action |
+|---|---|
+| `supabase/functions/google-calendar-proxy/index.ts` | New |
+| `supabase/config.toml` | Edit — add function config |
+| `src/pages/CalendarPage.tsx` | New |
+| `src/components/dashboard/DashboardSidebar.tsx` | Edit — add Calendar nav item after Build |
+| `src/App.tsx` | Edit — add `/calendar` route |
+| `src/layouts/DashboardLayout.tsx` | Edit — hide top nav for `/calendar` |
+
+## Next Step
+Please share the **Calendar ID** in chat so I can wire it up. I'll then use the secrets tool to request your **API Key**.
 
