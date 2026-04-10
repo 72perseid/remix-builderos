@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users } from "lucide-react";
+import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users, CalendarDays } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,11 @@ const mainNavItems = [{
   url: "/project-board",
   icon: LayoutDashboard,
   routes: ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief', '/ui-ux'],
+}, {
+  title: "Calendar",
+  url: "/calendar",
+  icon: CalendarDays,
+  routes: ['/calendar'],
 }, {
   title: "Expert Support",
   url: "/coaching",

@@ -27,6 +27,7 @@ import SharedArtifactPage from "./pages/SharedArtifactPage";
 import LandingPageGeneratorPage from "./pages/LandingPageGeneratorPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
 import OneOnOneCoachingPage from "./pages/OneOnOneCoachingPage";
+import CalendarPage from "./pages/CalendarPage";
 import BookingSuccessPage from "./pages/BookingSuccessPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
@@ -112,6 +113,11 @@ const App = () => (
             <Route path="/landing-page" element={
               <ProtectedRoute>
                 <DashboardLayout><LandingPageGeneratorPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/calendar" element={
+              <ProtectedRoute>
+                <DashboardLayout><CalendarPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/1on1-coaching" element={
