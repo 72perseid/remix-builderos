@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { Task, TaskStatus, AcceptanceCriteriaItem } from '@/types';
+import type { TablesUpdate } from '@/integrations/supabase/types';
 
 export function useTasks() {
   const { user } = useAuth();
@@ -130,26 +131,21 @@ export function useTasks() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
       const now = new Date().toISOString();
       
-      const dbUpdates: Record<string, unknown> = {
+      const dbUpdates: TablesUpdate<'tasks'> = {
         updated_at: now,
+        ...(updates.title !== undefined && { title: updates.title }),
+        ...(updates.description !== undefined && { description: updates.description }),
+        ...(updates.status !== undefined && { status: updates.status }),
+        ...(updates.priority !== undefined && { priority: updates.priority }),
+        ...(updates.category !== undefined && { category: updates.category }),
+        ...(updates.color !== undefined && { color: updates.color }),
+        ...(updates.plannedDate !== undefined && { planned_date: updates.plannedDate }),
+        ...(updates.estimatedEffort !== undefined && { estimated_effort: updates.estimatedEffort }),
+        ...(updates.position !== undefined && { position: updates.position }),
+        ...(updates.subtasks !== undefined && { subtasks: updates.subtasks as any }),
+        ...(updates.checklist !== undefined && { checklist: updates.checklist as any }),
+        ...(updates.status === 'done' && { completed_date: now }),
       };
-
-      if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.description !== undefined) dbUpdates.description = updates.description;
-      if (updates.status !== undefined) dbUpdates.status = updates.status;
-      if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
-      if (updates.category !== undefined) dbUpdates.category = updates.category;
-      if (updates.color !== undefined) dbUpdates.color = updates.color;
-      if (updates.plannedDate !== undefined) dbUpdates.planned_date = updates.plannedDate;
-      if (updates.estimatedEffort !== undefined) dbUpdates.estimated_effort = updates.estimatedEffort;
-      if (updates.position !== undefined) dbUpdates.position = updates.position;
-      if (updates.subtasks !== undefined) dbUpdates.subtasks = updates.subtasks;
-      if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
-
-      // Auto-set completion date when moved to done
-      if (updates.status === 'done') {
-        dbUpdates.completed_date = now;
-      }
 
       const { data, error } = await supabase
         .from('tasks')

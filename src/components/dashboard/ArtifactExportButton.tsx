@@ -23,6 +23,9 @@ const ARTIFACT_LABELS: Record<ArtifactType, string> = {
   db_design: 'Database Design',
   kanban: 'Kanban Board',
   master_prompt: 'Master Prompt',
+  landing_copy: 'Landing Copy',
+  paywall_prompts: 'Paywall Prompts',
+  social_content: 'Social Content',
 };
 
 // ── Markdown helpers ──
