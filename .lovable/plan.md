@@ -1,95 +1,59 @@
 
 
-## Plan: Enrollment Access Control via Database Trigger
+## Plan: Enrollment-Based Access Control for Sidebar & Routes
 
-### Problem
+### What we're building
 
-Currently, `build_access`, `programs_access`, and `calendar_access` booleans on the `enrollments` table are set statically at insert time. They should be **dynamically enforced** by the database based on whether the corresponding `*_expires_at` date has passed.
+A hook that fetches the logged-in user's enrollment record and uses `build_access`, `calendar_access`, and `programs_access` booleans to:
+1. Show/hide sidebar nav items (Build, Calendar, Programs)
+2. Guard routes — redirect unauthorized users
+3. Create a blank Programs page
 
-### Approach
+### Files to create/modify
 
-Two database objects:
+**1. Create `src/hooks/useEnrollment.ts`**
+- Query the `enrollments` table filtered by `user_id = auth.uid()` and `status = 'active'`
+- Return `{ buildAccess, calendarAccess, programsAccess, loading }`
+- Uses React Query for caching
 
-1. **A reusable function** `enforce_enrollment_access()` that recalculates the three booleans based on expiry dates vs `now()`.
-2. **A trigger** on `enrollments` that fires `BEFORE INSERT OR UPDATE`, ensuring access booleans are always correct — no matter who writes the row (trigger, admin, future daily cron job).
+**2. Create `src/pages/ProgramsPage.tsx`**
+- Blank placeholder page with a "Programs" heading and "Coming soon" message
+- Styled consistently with the dark theme
 
-Later, a daily pg_cron job can simply `UPDATE enrollments SET updated_at = now() WHERE status = 'active'` to trigger the recalculation across all rows.
+**3. Modify `src/components/dashboard/DashboardSidebar.tsx`**
+- Import and call `useEnrollment()`
+- Add a `Programs` nav item (icon: `BookOpen`, url: `/programs`, routes: `['/programs']`)
+- Filter `mainNavItems` based on enrollment access:
+  - Build → `buildAccess`
+  - Calendar → `calendarAccess`
+  - Programs → `programsAccess`
+- Expert Support and 1-on-1 Coaching remain always visible (not gated)
 
-### Migration SQL
+**4. Modify `src/App.tsx`**
+- Add `/programs` route wrapped in `ProtectedRoute` + `DashboardLayout`
 
-```sql
--- Function: enforce access booleans from expiry dates
-CREATE OR REPLACE FUNCTION public.enforce_enrollment_access()
-RETURNS trigger
-LANGUAGE plpgsql
-AS $$
-BEGIN
-  NEW.programs_access := CASE
-    WHEN NEW.programs_expires_at IS NULL THEN false
-    WHEN NEW.programs_expires_at > now() THEN true
-    ELSE false
-  END;
+**5. Modify `src/layouts/DashboardLayout.tsx`**
+- Add `/programs` to the `hideTopNav` check (same treatment as coaching/calendar)
 
-  NEW.calendar_access := CASE
-    WHEN NEW.calendar_expires_at IS NULL THEN false
-    WHEN NEW.calendar_expires_at > now() THEN true
-    ELSE false
-  END;
+**6. Modify `src/components/ProtectedRoute.tsx`**
+- Import `useEnrollment()`
+- For `/project-board`, `/artifacts`, and all Build sub-routes: redirect to `/programs` (or first accessible route) if `buildAccess` is false
+- For `/calendar`: redirect if `calendarAccess` is false
+- For `/programs`: redirect if `programsAccess` is false
+- Redirect target: first accessible route, or show an "Access Denied" state
 
-  NEW.build_access := CASE
-    WHEN NEW.build_expires_at IS NULL THEN false
-    WHEN NEW.build_expires_at > now() THEN true
-    ELSE false
-  END;
-
-  RETURN NEW;
-END;
-$$;
-
--- Trigger: runs before every insert or update on enrollments
-CREATE TRIGGER trg_enforce_enrollment_access
-  BEFORE INSERT OR UPDATE ON public.enrollments
-  FOR EACH ROW
-  EXECUTE FUNCTION public.enforce_enrollment_access();
-```
-
-### How it works
+### Access mapping
 
 ```text
-INSERT/UPDATE enrollments
-        │
-        ▼
-  BEFORE trigger fires
-        │
-        ▼
-  enforce_enrollment_access()
-        │
-  programs_expires_at > now()? → programs_access = true/false
-  calendar_expires_at > now()? → calendar_access = true/false
-  build_expires_at    > now()? → build_access    = true/false
-        │
-        ▼
-  Row saved with correct booleans
+Sidebar Item     │ Enrollment Boolean  │ Routes Gated
+─────────────────┼─────────────────────┼──────────────────────────
+Build            │ build_access        │ /project-board, /artifacts, /app-idea, /business-model, etc.
+Calendar         │ calendar_access     │ /calendar
+Programs         │ programs_access     │ /programs
+Expert Support   │ always visible      │ /coaching
+1-on-1 Coaching  │ always visible      │ /1on1-coaching
 ```
 
-### What this means for `handle_new_user()`
-
-The existing trigger already sets expiry dates from the product's duration columns. Once this new trigger is in place, `handle_new_user()` no longer needs to set the `*_access` booleans at all — they'll be computed automatically. However, we won't modify `handle_new_user()` now since the values it sets will simply be overridden by the new trigger (no conflict).
-
-### Daily cron (future step, not in this migration)
-
-A simple `pg_cron` job that touches all active enrollments daily will cause the trigger to re-evaluate expired access:
-
-```sql
-UPDATE public.enrollments SET updated_at = now() WHERE status = 'active';
-```
-
-### Files changed
-
-| Area | Change |
-|------|--------|
-| Migration | Create `enforce_enrollment_access()` function |
-| Migration | Create `BEFORE INSERT OR UPDATE` trigger on `enrollments` |
-
-No frontend code changes needed.
+### No database changes needed
+The `enrollments` table and `enforce_enrollment_access` trigger already handle the booleans. RLS already allows users to SELECT their own enrollments.
 
