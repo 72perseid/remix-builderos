@@ -1,0 +1,115 @@
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+
+export interface CourseWithProgress {
+  id: string;
+  course_name: string;
+  short_name: string | null;
+  summary: string | null;
+  thumbnail: string | null;
+  tags: string[] | null;
+  course_type: string | null;
+  program_id: string;
+  totalLessons: number;
+  completedLessons: number;
+  progressPercent: number;
+}
+
+export function usePrograms() {
+  const { user } = useAuth();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['programs-page', user?.id],
+    queryFn: async () => {
+      // Fetch programs
+      const { data: programs, error: pErr } = await supabase
+        .from('programs')
+        .select('id, title, description, position')
+        .eq('is_active', true)
+        .order('position');
+
+      if (pErr) throw pErr;
+
+      // Fetch courses
+      const { data: courses, error: cErr } = await supabase
+        .from('courses')
+        .select('id, course_name, short_name, summary, thumbnail, tags, course_type, program_id')
+        .eq('is_active', true);
+
+      if (cErr) throw cErr;
+
+      // Fetch modules
+      const { data: modules, error: mErr } = await supabase
+        .from('modules')
+        .select('id, course_id')
+        .eq('is_active', true);
+
+      if (mErr) throw mErr;
+
+      // Fetch lessons
+      const { data: lessons, error: lErr } = await supabase
+        .from('lessons')
+        .select('id, module_id')
+        .eq('is_active', true);
+
+      if (lErr) throw lErr;
+
+      // Fetch user progress
+      const { data: progress, error: prErr } = await supabase
+        .from('user_lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', user!.id);
+
+      if (prErr) throw prErr;
+
+      const completedSet = new Set((progress || []).map(p => p.lesson_id));
+
+      // Map modules to courses
+      const modulesByCourse: Record<string, string[]> = {};
+      for (const m of modules || []) {
+        if (!modulesByCourse[m.course_id]) modulesByCourse[m.course_id] = [];
+        modulesByCourse[m.course_id].push(m.id);
+      }
+
+      // Map lessons to modules
+      const lessonsByModule: Record<string, string[]> = {};
+      for (const l of lessons || []) {
+        if (!lessonsByModule[l.module_id]) lessonsByModule[l.module_id] = [];
+        lessonsByModule[l.module_id].push(l.id);
+      }
+
+      // Build course data with progress
+      const coursesWithProgress: CourseWithProgress[] = (courses || []).map(c => {
+        const courseModuleIds = modulesByCourse[c.id] || [];
+        const courseLessonIds = courseModuleIds.flatMap(mId => lessonsByModule[mId] || []);
+        const totalLessons = courseLessonIds.length;
+        const completedLessons = courseLessonIds.filter(lId => completedSet.has(lId)).length;
+        const progressPercent = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+
+        return {
+          id: c.id,
+          course_name: c.course_name,
+          short_name: c.short_name,
+          summary: c.summary,
+          thumbnail: c.thumbnail,
+          tags: c.tags,
+          course_type: c.course_type,
+          program_id: c.program_id,
+          totalLessons,
+          completedLessons,
+          progressPercent,
+        };
+      });
+
+      return { programs: programs || [], courses: coursesWithProgress };
+    },
+    enabled: !!user?.id,
+  });
+
+  return {
+    programs: data?.programs || [],
+    courses: data?.courses || [],
+    loading: isLoading,
+  };
+}
