@@ -1,4 +1,5 @@
 import { BookOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { usePrograms, type CourseWithProgress } from "@/hooks/usePrograms";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -6,8 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 function CourseCardLarge({ course }: { course: CourseWithProgress }) {
+  const navigate = useNavigate();
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5">
+    <div
+      onClick={() => navigate(`/programs/${course.id}`)}
+      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer">
       <div className="flex flex-col md:flex-row">
         {course.thumbnail && (
           <div className="md:w-80 lg:w-96 flex-shrink-0">
@@ -70,8 +74,11 @@ function CourseCardLarge({ course }: { course: CourseWithProgress }) {
 }
 
 function CourseCardSmall({ course }: { course: CourseWithProgress }) {
+  const navigate = useNavigate();
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 flex flex-col">
+    <div
+      onClick={() => navigate(`/programs/${course.id}`)}
+      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 flex flex-col cursor-pointer">
       {course.thumbnail && (
         <img
           src={course.thumbnail}
