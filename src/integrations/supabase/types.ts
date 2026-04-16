@@ -1203,8 +1203,8 @@ export type Database = {
       }
     }
     Enums: {
-      activity_entity_type: "lesson" | "cta"
-      activity_event_type: "cta_clicked" | "lesson_completed"
+      activity_entity_type: "lesson" | "cta" | "video"
+      activity_event_type: "cta_clicked" | "lesson_completed" | "video_watched"
       app_role: "admin" | "user"
       artifact_type:
         | "business_model"
@@ -1373,8 +1373,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      activity_entity_type: ["lesson", "cta"],
-      activity_event_type: ["cta_clicked", "lesson_completed"],
+      activity_entity_type: ["lesson", "cta", "video"],
+      activity_event_type: ["cta_clicked", "lesson_completed", "video_watched"],
       app_role: ["admin", "user"],
       artifact_type: [
         "business_model",
