@@ -1,25 +1,42 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users, CalendarDays } from "lucide-react";
+import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users, CalendarDays, BookOpen } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useEnrollment } from "@/hooks/useEnrollment";
 import { ProfileSheet } from "./ProfileSheet";
 
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
 
-const mainNavItems = [{
+interface NavItem {
+  title: string;
+  url: string;
+  icon: React.ComponentType<{ className?: string }>;
+  routes: string[];
+  accessKey?: 'build' | 'calendar' | 'programs';
+}
+
+const mainNavItems: NavItem[] = [{
   title: "Build",
   url: "/project-board",
   icon: LayoutDashboard,
   routes: ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief', '/ui-ux'],
+  accessKey: 'build',
+}, {
+  title: "Programs",
+  url: "/programs",
+  icon: BookOpen,
+  routes: ['/programs'],
+  accessKey: 'programs',
 }, {
   title: "Calendar",
   url: "/calendar",
   icon: CalendarDays,
   routes: ['/calendar'],
+  accessKey: 'calendar',
 }, {
   title: "Expert Support",
   url: "/coaching",
@@ -37,10 +54,21 @@ export function DashboardSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { buildAccess, calendarAccess, programsAccess } = useEnrollment();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
 
-  const isActive = (item: typeof mainNavItems[0]) => item.routes.includes(location.pathname);
+  const accessMap: Record<string, boolean> = {
+    build: buildAccess,
+    calendar: calendarAccess,
+    programs: programsAccess,
+  };
+
+  const visibleItems = mainNavItems.filter(item =>
+    !item.accessKey || accessMap[item.accessKey]
+  );
+
+  const isActive = (item: NavItem) => item.routes.includes(location.pathname);
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-[#0B0E14]" collapsible="icon">
@@ -63,12 +91,12 @@ export function DashboardSidebar() {
         </div>
       </SidebarHeader>
 
-      {/* Nav items inside a rounded container */}
+      {/* Nav items */}
       <SidebarContent className={isCollapsed ? "bg-[#0B0E14] px-1" : "bg-[#0B0E14] px-3"}>
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {mainNavItems.map(item => (
+              {visibleItems.map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

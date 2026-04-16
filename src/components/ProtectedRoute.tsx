@@ -1,9 +1,16 @@
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useXanoSync } from '@/hooks/useXanoSync';
+import { useEnrollment } from '@/hooks/useEnrollment';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+
+const BUILD_ROUTES = [
+  '/project-board', '/artifacts', '/app-idea', '/business-model',
+  '/database-design', '/master-prompt', '/app-details', '/validation',
+  '/product-brief', '/ui-ux', '/landing-page',
+];
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,6 +26,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Auto-sync Xano data when user is authenticated
   useXanoSync(user);
+
+  const { buildAccess, calendarAccess, programsAccess, loading: enrollmentLoading } = useEnrollment();
 
   // Check if user has completed onboarding
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -56,7 +65,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     enabled: !!user?.id,
   });
 
-  if (loading || profileLoading || appsLoading) {
+  if (loading || profileLoading || appsLoading || enrollmentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -68,20 +77,39 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  // If profile exists and user hasn't completed onboarding, redirect to onboarding
-  // Skip redirect if already on onboarding page OR if user explicitly skipped
+  // Onboarding redirects
   const isOnOnboardingPage = location.pathname === '/onboarding';
   const hasSkippedOnboarding = sessionStorage.getItem('onboarding_skipped') === 'true';
   
-  // Skip onboarding redirect if user has existing apps (returning user)
   if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding && !hasExistingApps) {
     return <Navigate to="/onboarding" replace />;
   }
 
-  // If user is on onboarding page but already onboarded, redirect to dashboard
-  // Unless they're in "new app" mode (creating a second app)
   if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
     return <Navigate to="/project-board" replace />;
+  }
+
+  // Enrollment-based route gating
+  const path = location.pathname;
+
+  // Determine the first accessible route for redirect fallback
+  const getFirstAccessibleRoute = () => {
+    if (buildAccess) return '/project-board';
+    if (programsAccess) return '/programs';
+    if (calendarAccess) return '/calendar';
+    return '/coaching'; // always accessible
+  };
+
+  if (BUILD_ROUTES.includes(path) && !buildAccess) {
+    return <Navigate to={getFirstAccessibleRoute()} replace />;
+  }
+
+  if (path === '/calendar' && !calendarAccess) {
+    return <Navigate to={getFirstAccessibleRoute()} replace />;
+  }
+
+  if (path === '/programs' && !programsAccess) {
+    return <Navigate to={getFirstAccessibleRoute()} replace />;
   }
 
   return <>{children}</>;
