@@ -28,6 +28,7 @@ import LandingPageGeneratorPage from "./pages/LandingPageGeneratorPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
 import OneOnOneCoachingPage from "./pages/OneOnOneCoachingPage";
 import CalendarPage from "./pages/CalendarPage";
+import ProgramsPage from "./pages/ProgramsPage";
 import BookingSuccessPage from "./pages/BookingSuccessPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
@@ -123,6 +124,11 @@ const App = () => (
             <Route path="/1on1-coaching" element={
               <ProtectedRoute>
                 <DashboardLayout><OneOnOneCoachingPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/programs" element={
+              <ProtectedRoute>
+                <DashboardLayout><ProgramsPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/booking-success" element={<BookingSuccessPage />} />
