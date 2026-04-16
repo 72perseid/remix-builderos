@@ -1,62 +1,56 @@
 
 
-## Plan: Build the Programs Page
+## Plan: Course Detail Page with Module Listing
 
 ### What we're building
 
-A programs page matching the reference screenshot's layout — dark theme, with two sections:
-1. **Flagship Programs** — large cards for main courses (e.g., "DIA Vibe Coding MBA")
-2. **Complementary Courses** — smaller cards in a 4-column grid for free/secondary courses
+A new route `/programs/:courseId` that opens when a user clicks a course card on the Programs page. It shows:
 
-Each course card shows: thumbnail, tags, title, summary, progress bar (from `user_lesson_progress`), and a "Continue" button.
+1. **Breadcrumb**: Home > Courses > [Course Name]
+2. **Hero banner**: Course name, summary, overall progress bar with percentage
+3. **Program Content section**: List of modules as collapsible rows, each showing:
+   - Module number + duration (e.g. "Module 1 · 1 Day")
+   - Emoji + title + description
+   - Per-module progress bar with percentage
+   - "Show details" / "Hide details" toggle
+   - When expanded: horizontal scrollable lesson cards with thumbnails, title, and status badge (Not Started / Completed)
 
 ### Data
 
-From the database:
-- **1 program**: "Ambitious Labs Core"
-- **2 courses**: "DIA Vibe Coding MBA" (paid, 97 lessons) and "Free Intro to Vibe Coding" (free, 1 lesson)
-- Both have thumbnails and tags
-- Progress is computed from `user_lesson_progress` vs total lesson count per course
+- Reuse `usePrograms` hook logic but create a dedicated `useCourseDetail(courseId)` hook that fetches:
+  - Course info from `courses`
+  - Modules for that course from `modules` (ordered by `position`)
+  - Lessons per module from `lessons` (ordered by `position`)
+  - User progress from `user_lesson_progress`
+- Computes per-module and overall progress percentages
 
-### Database changes
-
-**1. Add RLS SELECT policies** so authenticated users can read course content:
-
-```sql
--- courses, modules, lessons, programs all need SELECT for authenticated users
-CREATE POLICY "authenticated users view courses" ON public.courses FOR SELECT TO authenticated USING (true);
-CREATE POLICY "authenticated users view modules" ON public.modules FOR SELECT TO authenticated USING (true);
-CREATE POLICY "authenticated users view lessons" ON public.lessons FOR SELECT TO authenticated USING (true);
-CREATE POLICY "authenticated users view programs" ON public.programs FOR SELECT TO authenticated USING (true);
-```
-
-### Frontend changes
-
-**1. Create `src/hooks/usePrograms.ts`**
-- Fetch programs with nested courses, modules, lessons
-- Fetch user's `user_lesson_progress` to compute per-course completion %
-- Return `{ programs, courses, progressMap, loading }`
-
-**2. Rewrite `src/pages/ProgramsPage.tsx`**
-- **Flagship section**: Courses where `course_type = 'paid'` — large card with thumbnail, tag pills, title, summary, progress bar, "Continue" button
-- **Complementary section**: Courses where `course_type = 'free'` — smaller thumbnail cards in a responsive grid
-- Progress bar: green dot + percentage + bar (matching the reference)
-- Dark card styling consistent with the app's design system (`bg-[#141922]`, `border-slate-700/50`)
-- Cards are non-navigational for now (no course detail page yet) — "Continue" button is a placeholder
-
-### Design details
-
-- Section headings: bold white text with muted subtitle
-- Tag pills: dark rounded badges (`bg-slate-700/60 text-slate-300`)
-- Progress: green accent (`bg-emerald-500`), percentage label left, bar right
-- Card hover: subtle lift/glow effect
-- Responsive: flagship cards full-width on mobile, complementary 2-col on tablet, 4-col on desktop
-
-### Files changed
+### Files to create/modify
 
 | File | Action |
 |------|--------|
-| Migration | Add 4 RLS SELECT policies |
-| `src/hooks/usePrograms.ts` | Create — data fetching |
-| `src/pages/ProgramsPage.tsx` | Rewrite — full programs UI |
+| `src/hooks/useCourseDetail.ts` | Create — fetch course, modules, lessons, progress |
+| `src/pages/CourseDetailPage.tsx` | Create — full UI matching reference screenshot |
+| `src/App.tsx` | Add `/programs/:courseId` route |
+| `src/layouts/DashboardLayout.tsx` | Add `/programs/` prefix to `hideTopNav` check |
+| `src/pages/ProgramsPage.tsx` | Make course cards navigate to `/programs/:courseId` |
+
+### UI details (matching reference screenshot)
+
+- **Hero banner**: Dark card (`bg-card border-border`), course name as heading, summary as subtitle, green progress bar with percentage
+- **Module rows**: Dark bordered cards, collapsed by default. Header row has module number, duration pill, emoji, title, description, progress bar, and toggle button
+- **Expanded lesson cards**: Horizontal scroll container with cards showing thumbnail (or gradient placeholder), status badge ("Not Started" / "Completed" with colored dot), and lesson title at bottom
+- **Breadcrumb**: Uses existing breadcrumb component or simple links at top
+- Responsive: cards stack on mobile, horizontal scroll on desktop
+
+### Navigation flow
+
+```text
+/programs (ProgramsPage)
+    │ click course card
+    ▼
+/programs/:courseId (CourseDetailPage)
+    │ breadcrumb "Courses" link
+    ▼
+/programs (back)
+```
 
