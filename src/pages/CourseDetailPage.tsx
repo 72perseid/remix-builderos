@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useCourseDetail, type ModuleDetail } from "@/hooks/useCourseDetail";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,7 +8,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
 import { useState } from "react";
 
-function ModuleRow({ module, index }: { module: ModuleDetail; index: number }) {
+function ModuleRow({ module, index, courseId }: { module: ModuleDetail; index: number; courseId: string }) {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
   return (
@@ -60,7 +61,8 @@ function ModuleRow({ module, index }: { module: ModuleDetail; index: number }) {
               {module.lessons.map((lesson) => (
                 <div
                   key={lesson.id}
-                  className="flex-shrink-0 w-44 rounded-lg border border-border bg-background overflow-hidden group"
+                  onClick={() => navigate(`/programs/${courseId}/lessons/${lesson.id}`)}
+                  className="flex-shrink-0 w-44 rounded-lg border border-border bg-background overflow-hidden group cursor-pointer hover:border-primary/40 transition-colors"
                 >
                   {/* Thumbnail or placeholder */}
                   <div className="h-24 w-full relative overflow-hidden">
@@ -196,7 +198,7 @@ export default function CourseDetailPage() {
         </h2>
         <div className="space-y-3">
           {course.modules.map((mod, i) => (
-            <ModuleRow key={mod.id} module={mod} index={i} />
+            <ModuleRow key={mod.id} module={mod} index={i} courseId={course.id} />
           ))}
         </div>
       </section>
