@@ -1,59 +1,62 @@
 
 
-## Plan: Enrollment-Based Access Control for Sidebar & Routes
+## Plan: Build the Programs Page
 
 ### What we're building
 
-A hook that fetches the logged-in user's enrollment record and uses `build_access`, `calendar_access`, and `programs_access` booleans to:
-1. Show/hide sidebar nav items (Build, Calendar, Programs)
-2. Guard routes — redirect unauthorized users
-3. Create a blank Programs page
+A programs page matching the reference screenshot's layout — dark theme, with two sections:
+1. **Flagship Programs** — large cards for main courses (e.g., "DIA Vibe Coding MBA")
+2. **Complementary Courses** — smaller cards in a 4-column grid for free/secondary courses
 
-### Files to create/modify
+Each course card shows: thumbnail, tags, title, summary, progress bar (from `user_lesson_progress`), and a "Continue" button.
 
-**1. Create `src/hooks/useEnrollment.ts`**
-- Query the `enrollments` table filtered by `user_id = auth.uid()` and `status = 'active'`
-- Return `{ buildAccess, calendarAccess, programsAccess, loading }`
-- Uses React Query for caching
+### Data
 
-**2. Create `src/pages/ProgramsPage.tsx`**
-- Blank placeholder page with a "Programs" heading and "Coming soon" message
-- Styled consistently with the dark theme
+From the database:
+- **1 program**: "Ambitious Labs Core"
+- **2 courses**: "DIA Vibe Coding MBA" (paid, 97 lessons) and "Free Intro to Vibe Coding" (free, 1 lesson)
+- Both have thumbnails and tags
+- Progress is computed from `user_lesson_progress` vs total lesson count per course
 
-**3. Modify `src/components/dashboard/DashboardSidebar.tsx`**
-- Import and call `useEnrollment()`
-- Add a `Programs` nav item (icon: `BookOpen`, url: `/programs`, routes: `['/programs']`)
-- Filter `mainNavItems` based on enrollment access:
-  - Build → `buildAccess`
-  - Calendar → `calendarAccess`
-  - Programs → `programsAccess`
-- Expert Support and 1-on-1 Coaching remain always visible (not gated)
+### Database changes
 
-**4. Modify `src/App.tsx`**
-- Add `/programs` route wrapped in `ProtectedRoute` + `DashboardLayout`
+**1. Add RLS SELECT policies** so authenticated users can read course content:
 
-**5. Modify `src/layouts/DashboardLayout.tsx`**
-- Add `/programs` to the `hideTopNav` check (same treatment as coaching/calendar)
-
-**6. Modify `src/components/ProtectedRoute.tsx`**
-- Import `useEnrollment()`
-- For `/project-board`, `/artifacts`, and all Build sub-routes: redirect to `/programs` (or first accessible route) if `buildAccess` is false
-- For `/calendar`: redirect if `calendarAccess` is false
-- For `/programs`: redirect if `programsAccess` is false
-- Redirect target: first accessible route, or show an "Access Denied" state
-
-### Access mapping
-
-```text
-Sidebar Item     │ Enrollment Boolean  │ Routes Gated
-─────────────────┼─────────────────────┼──────────────────────────
-Build            │ build_access        │ /project-board, /artifacts, /app-idea, /business-model, etc.
-Calendar         │ calendar_access     │ /calendar
-Programs         │ programs_access     │ /programs
-Expert Support   │ always visible      │ /coaching
-1-on-1 Coaching  │ always visible      │ /1on1-coaching
+```sql
+-- courses, modules, lessons, programs all need SELECT for authenticated users
+CREATE POLICY "authenticated users view courses" ON public.courses FOR SELECT TO authenticated USING (true);
+CREATE POLICY "authenticated users view modules" ON public.modules FOR SELECT TO authenticated USING (true);
+CREATE POLICY "authenticated users view lessons" ON public.lessons FOR SELECT TO authenticated USING (true);
+CREATE POLICY "authenticated users view programs" ON public.programs FOR SELECT TO authenticated USING (true);
 ```
 
-### No database changes needed
-The `enrollments` table and `enforce_enrollment_access` trigger already handle the booleans. RLS already allows users to SELECT their own enrollments.
+### Frontend changes
+
+**1. Create `src/hooks/usePrograms.ts`**
+- Fetch programs with nested courses, modules, lessons
+- Fetch user's `user_lesson_progress` to compute per-course completion %
+- Return `{ programs, courses, progressMap, loading }`
+
+**2. Rewrite `src/pages/ProgramsPage.tsx`**
+- **Flagship section**: Courses where `course_type = 'paid'` — large card with thumbnail, tag pills, title, summary, progress bar, "Continue" button
+- **Complementary section**: Courses where `course_type = 'free'` — smaller thumbnail cards in a responsive grid
+- Progress bar: green dot + percentage + bar (matching the reference)
+- Dark card styling consistent with the app's design system (`bg-[#141922]`, `border-slate-700/50`)
+- Cards are non-navigational for now (no course detail page yet) — "Continue" button is a placeholder
+
+### Design details
+
+- Section headings: bold white text with muted subtitle
+- Tag pills: dark rounded badges (`bg-slate-700/60 text-slate-300`)
+- Progress: green accent (`bg-emerald-500`), percentage label left, bar right
+- Card hover: subtle lift/glow effect
+- Responsive: flagship cards full-width on mobile, complementary 2-col on tablet, 4-col on desktop
+
+### Files changed
+
+| File | Action |
+|------|--------|
+| Migration | Add 4 RLS SELECT policies |
+| `src/hooks/usePrograms.ts` | Create — data fetching |
+| `src/pages/ProgramsPage.tsx` | Rewrite — full programs UI |
 
