@@ -65,6 +65,9 @@ const TYPE_SECTION_MAP: Record<ArtifactType, 'planning' | 'building' | 'launchin
   db_design: 'building',
   kanban: 'building',
   master_prompt: 'building',
+  landing_copy: 'launching',
+  paywall_prompts: 'launching',
+  social_content: 'launching',
 };
 
 export function ArtifactsGrid() {

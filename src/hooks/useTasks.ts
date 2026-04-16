@@ -130,7 +130,7 @@ export function useTasks() {
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
       const now = new Date().toISOString();
       
-      const dbUpdates: Record<string, unknown> = {
+      const dbUpdates: Record<string, any> = {
         updated_at: now,
       };
 
