@@ -1,0 +1,205 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useCourseDetail, type ModuleDetail } from "@/hooks/useCourseDetail";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
+import { useState } from "react";
+
+function ModuleRow({ module, index }: { module: ModuleDetail; index: number }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button className="w-full text-left p-4 md:p-5 flex items-start gap-4 hover:bg-muted/30 transition-colors">
+            {/* Module number + duration */}
+            <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Module {index + 1}
+              </span>
+              {module.duration_days && (
+                <span className="text-[10px] text-muted-foreground bg-secondary/60 px-2 py-0.5 rounded-full">
+                  {module.duration_days} {module.duration_days === 1 ? "Day" : "Days"}
+                </span>
+              )}
+            </div>
+
+            {/* Emoji + title + description */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                {module.emoji && <span className="text-lg">{module.emoji}</span>}
+                <h3 className="font-semibold text-foreground truncate">{module.title}</h3>
+              </div>
+              {module.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2">{module.description}</p>
+              )}
+            </div>
+
+            {/* Progress + toggle */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="hidden sm:flex items-center gap-2 w-32">
+                <Progress value={module.progressPercent} className="h-1.5 flex-1 bg-secondary" />
+                <span className="text-xs font-semibold text-foreground w-8 text-right">
+                  {module.progressPercent}%
+                </span>
+              </div>
+              <div className="text-muted-foreground">
+                {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </div>
+            </div>
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <div className="border-t border-border px-4 md:px-5 py-4">
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+              {module.lessons.map((lesson) => (
+                <div
+                  key={lesson.id}
+                  className="flex-shrink-0 w-44 rounded-lg border border-border bg-background overflow-hidden group"
+                >
+                  {/* Thumbnail or placeholder */}
+                  <div className="h-24 w-full relative overflow-hidden">
+                    {lesson.thumbnail ? (
+                      <img
+                        src={lesson.thumbnail}
+                        alt={lesson.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+                    )}
+                    {/* Status badge */}
+                    <div className="absolute top-2 left-2">
+                      {lesson.completed ? (
+                        <Badge className="bg-emerald-500/90 text-white text-[10px] gap-1 px-1.5 py-0.5 border-0">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Completed
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="bg-secondary/80 text-muted-foreground text-[10px] gap-1 px-1.5 py-0.5">
+                          <Circle className="h-3 w-3" />
+                          Not Started
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-2.5">
+                    <p className="text-xs font-medium text-foreground line-clamp-2 leading-snug">
+                      {lesson.title}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {module.lessons.length === 0 && (
+                <p className="text-xs text-muted-foreground py-2">No lessons in this module yet.</p>
+              )}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-20 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function CourseDetailPage() {
+  const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
+  const { course, loading } = useCourseDetail(courseId);
+
+  if (loading) return <LoadingSkeleton />;
+
+  if (!course) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
+        <h1 className="text-xl font-bold text-foreground mb-2">Course not found</h1>
+        <Button variant="secondary" onClick={() => navigate("/programs")}>
+          Back to Programs
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm">
+        <button
+          onClick={() => navigate("/programs")}
+          className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Courses
+        </button>
+        <span className="text-muted-foreground">/</span>
+        <span className="text-foreground font-medium truncate">{course.course_name}</span>
+      </div>
+
+      {/* Hero banner */}
+      <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+        <div>
+          {course.tags && course.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {course.tags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant="secondary"
+                  className="bg-secondary/60 text-muted-foreground text-xs font-medium"
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          )}
+          <h1 className="text-2xl font-bold text-foreground">{course.course_name}</h1>
+          {course.summary && (
+            <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{course.summary}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="text-sm font-semibold text-foreground">{course.progressPercent}%</span>
+          </div>
+          <Progress value={course.progressPercent} className="h-2 flex-1 bg-secondary" />
+          <span className="text-xs text-muted-foreground flex-shrink-0">
+            {course.completedLessons}/{course.totalLessons} lessons
+          </span>
+        </div>
+      </div>
+
+      {/* Program Content */}
+      <section>
+        <h2 className="text-lg font-bold text-foreground mb-4">
+          Program Content
+          <span className="text-sm font-normal text-muted-foreground ml-2">
+            {course.modules.length} modules · {course.totalLessons} lessons
+          </span>
+        </h2>
+        <div className="space-y-3">
+          {course.modules.map((mod, i) => (
+            <ModuleRow key={mod.id} module={mod} index={i} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
