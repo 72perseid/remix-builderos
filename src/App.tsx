@@ -31,6 +31,7 @@ import CalendarPage from "./pages/CalendarPage";
 import ProgramsPage from "./pages/ProgramsPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import BookingSuccessPage from "./pages/BookingSuccessPage";
+import LessonPage from "./pages/LessonPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
 
@@ -135,6 +136,11 @@ const App = () => (
             <Route path="/programs/:courseId" element={
               <ProtectedRoute>
                 <DashboardLayout><CourseDetailPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
+            <Route path="/programs/:courseId/lessons/:lessonId" element={
+              <ProtectedRoute>
+                <DashboardLayout><LessonPage /></DashboardLayout>
               </ProtectedRoute>
             } />
             <Route path="/booking-success" element={<BookingSuccessPage />} />
