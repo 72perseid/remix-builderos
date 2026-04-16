@@ -14,6 +14,128 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_group_calendars: {
+        Row: {
+          access_group_id: string
+          created_at: string
+          description: string | null
+          google_calendar_id: string
+          id: string
+          is_active: boolean
+        }
+        Insert: {
+          access_group_id: string
+          created_at?: string
+          description?: string | null
+          google_calendar_id: string
+          id?: string
+          is_active?: boolean
+        }
+        Update: {
+          access_group_id?: string
+          created_at?: string
+          description?: string | null
+          google_calendar_id?: string
+          id?: string
+          is_active?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_group_calendars_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: true
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      access_group_features: {
+        Row: {
+          access_group_id: string
+          created_at: string
+          feature_id: string
+        }
+        Insert: {
+          access_group_id: string
+          created_at?: string
+          feature_id: string
+        }
+        Update: {
+          access_group_id?: string
+          created_at?: string
+          feature_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_group_features_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_group_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      access_groups: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      activity_log: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["activity_entity_type"]
+          event_type: Database["public"]["Enums"]["activity_event_type"]
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["activity_entity_type"]
+          event_type: Database["public"]["Enums"]["activity_event_type"]
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["activity_entity_type"]
+          event_type?: Database["public"]["Enums"]["activity_event_type"]
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       app_ideas: {
         Row: {
           app_category: string | null
@@ -146,6 +268,30 @@ export type Database = {
           },
         ]
       }
+      calendar_connections: {
+        Row: {
+          connected_at: string
+          google_calendar_id: string
+          id: string
+          is_active: boolean
+          user_id: string
+        }
+        Insert: {
+          connected_at?: string
+          google_calendar_id: string
+          id?: string
+          is_active?: boolean
+          user_id: string
+        }
+        Update: {
+          connected_at?: string
+          google_calendar_id?: string
+          id?: string
+          is_active?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -223,94 +369,285 @@ export type Database = {
           },
         ]
       }
+      coaches: {
+        Row: {
+          book_for: string | null
+          booking_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image: string | null
+          languages: string[] | null
+          name: string | null
+          order_index: number | null
+          proceed_to_payment: string | null
+          rate_per_hour: number | null
+          skills: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          book_for?: string | null
+          booking_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          languages?: string[] | null
+          name?: string | null
+          order_index?: number | null
+          proceed_to_payment?: string | null
+          rate_per_hour?: number | null
+          skills?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          book_for?: string | null
+          booking_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string | null
+          languages?: string[] | null
+          name?: string | null
+          order_index?: number | null
+          proceed_to_payment?: string | null
+          rate_per_hour?: number | null
+          skills?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      courses: {
+        Row: {
+          course_name: string
+          course_type: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          main_video_url: string | null
+          old_course_id: number | null
+          program_id: string
+          short_name: string | null
+          summary: string | null
+          tags: string[] | null
+          thumbnail: string | null
+          unique_slug: string | null
+        }
+        Insert: {
+          course_name: string
+          course_type?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          main_video_url?: string | null
+          old_course_id?: number | null
+          program_id: string
+          short_name?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          thumbnail?: string | null
+          unique_slug?: string | null
+        }
+        Update: {
+          course_name?: string
+          course_type?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          main_video_url?: string | null
+          old_course_id?: number | null
+          program_id?: string
+          short_name?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          thumbnail?: string | null
+          unique_slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cta_access_groups: {
+        Row: {
+          access_group_id: string
+          created_at: string
+          cta_id: string
+        }
+        Insert: {
+          access_group_id: string
+          created_at?: string
+          cta_id: string
+        }
+        Update: {
+          access_group_id?: string
+          created_at?: string
+          cta_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cta_access_groups_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cta_access_groups_cta_id_fkey"
+            columns: ["cta_id"]
+            isOneToOne: false
+            referencedRelation: "ctas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ctas: {
+        Row: {
+          created_at: string
+          cta_label: string | null
+          cta_type: Database["public"]["Enums"]["cta_type"]
+          description: string | null
+          id: string
+          lesson_id: string
+          position: number
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          cta_label?: string | null
+          cta_type: Database["public"]["Enums"]["cta_type"]
+          description?: string | null
+          id?: string
+          lesson_id: string
+          position?: number
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          cta_label?: string | null
+          cta_type?: Database["public"]["Enums"]["cta_type"]
+          description?: string | null
+          id?: string
+          lesson_id?: string
+          position?: number
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ctas_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
+          access_group_id: string | null
           activations_id: number | null
-          annual_stripe_price_id: string | null
-          connect_features:
-            | Database["public"]["Enums"]["connect_feature"][]
-            | null
+          build_access: boolean
+          build_expires_at: string | null
+          calendar_access: boolean
+          calendar_expires_at: string | null
           created_at: string
-          duration_days: number | null
-          email: string | null
-          email_template: string | null
-          enrollment_method: string | null
-          enrollment_term_days: string | null
-          entity_id: number | null
-          entity_type: number | null
-          event_types: string[] | null
-          id: number
+          enrollment_method: string
+          id: string
           internal_details: string | null
-          monthly_stripe_price_id: string | null
-          one_off_stripe_price_id: string | null
-          periodicity: string | null
-          perks: string[] | null
-          price_list: string[] | null
-          products_id: number | null
+          product_id: number | null
+          programs_access: boolean
+          programs_expires_at: string | null
           status: string | null
+          updated_at: string
           user_id: string | null
         }
         Insert: {
+          access_group_id?: string | null
           activations_id?: number | null
-          annual_stripe_price_id?: string | null
-          connect_features?:
-            | Database["public"]["Enums"]["connect_feature"][]
-            | null
-          created_at?: string
-          duration_days?: number | null
-          email?: string | null
-          email_template?: string | null
-          enrollment_method?: string | null
-          enrollment_term_days?: string | null
-          entity_id?: number | null
-          entity_type?: number | null
-          event_types?: string[] | null
-          id?: number
+          build_access?: boolean
+          build_expires_at?: string | null
+          calendar_access?: boolean
+          calendar_expires_at?: string | null
+          created_at: string
+          enrollment_method?: string
+          id?: string
           internal_details?: string | null
-          monthly_stripe_price_id?: string | null
-          one_off_stripe_price_id?: string | null
-          periodicity?: string | null
-          perks?: string[] | null
-          price_list?: string[] | null
-          products_id?: number | null
+          product_id?: number | null
+          programs_access?: boolean
+          programs_expires_at?: string | null
           status?: string | null
+          updated_at: string
           user_id?: string | null
         }
         Update: {
+          access_group_id?: string | null
           activations_id?: number | null
-          annual_stripe_price_id?: string | null
-          connect_features?:
-            | Database["public"]["Enums"]["connect_feature"][]
-            | null
+          build_access?: boolean
+          build_expires_at?: string | null
+          calendar_access?: boolean
+          calendar_expires_at?: string | null
           created_at?: string
-          duration_days?: number | null
-          email?: string | null
-          email_template?: string | null
-          enrollment_method?: string | null
-          enrollment_term_days?: string | null
-          entity_id?: number | null
-          entity_type?: number | null
-          event_types?: string[] | null
-          id?: number
+          enrollment_method?: string
+          id?: string
           internal_details?: string | null
-          monthly_stripe_price_id?: string | null
-          one_off_stripe_price_id?: string | null
-          periodicity?: string | null
-          perks?: string[] | null
-          price_list?: string[] | null
-          products_id?: number | null
+          product_id?: number | null
+          programs_access?: boolean
+          programs_expires_at?: string | null
           status?: string | null
+          updated_at?: string
           user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "enrollments_products_id_fkey"
-            columns: ["products_id"]
+            foreignKeyName: "enrollments_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_product_id_fkey"
+            columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
+      }
+      features: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+        }
+        Relationships: []
       }
       leads: {
         Row: {
@@ -345,87 +682,190 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_access_groups: {
+        Row: {
+          access_group_id: string
+          created_at: string
+          lesson_id: string
+        }
+        Insert: {
+          access_group_id: string
+          created_at?: string
+          lesson_id: string
+        }
+        Update: {
+          access_group_id?: string
+          created_at?: string
+          lesson_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_access_groups_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_access_groups_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          access_group_ids: string[] | null
+          cohort_visibility: Json | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          lesson_type: string | null
+          module_id: string
+          old_lesson_id: number | null
+          position: number
+          text_content: string | null
+          thumbnail: string | null
+          title: string
+        }
+        Insert: {
+          access_group_ids?: string[] | null
+          cohort_visibility?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          lesson_type?: string | null
+          module_id: string
+          old_lesson_id?: number | null
+          position?: number
+          text_content?: string | null
+          thumbnail?: string | null
+          title: string
+        }
+        Update: {
+          access_group_ids?: string[] | null
+          cohort_visibility?: Json | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          lesson_type?: string | null
+          module_id?: string
+          old_lesson_id?: number | null
+          position?: number
+          text_content?: string | null
+          thumbnail?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      modules: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          duration_days: number | null
+          emoji: string | null
+          id: string
+          is_active: boolean
+          old_module_id: number | null
+          position: number
+          title: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          duration_days?: number | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          old_module_id?: number | null
+          position?: number
+          title: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          duration_days?: number | null
+          emoji?: string | null
+          id?: string
+          is_active?: boolean
+          old_module_id?: number | null
+          position?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           annual_stripe_price_id: string | null
-          build_features: string[] | null
-          category: string | null
-          connect_features: string[] | null
-          course_id: number[] | null
+          build_duration_days: number | null
+          calendar_duration_days: number | null
           created_at: string
-          duration_days: number | null
           email_template: string | null
-          event_types: string[] | null
-          events: boolean | null
           id: number
           internal_details: string | null
-          lab_room: boolean | null
-          logo_ai: boolean | null
-          monthly_price: number | null
+          is_active: boolean | null
           monthly_stripe_price_id: string | null
           notion_reference: string | null
           one_off_stripe_price_id: string | null
-          periodicity: string | null
-          perks: string[] | null
-          price_list: string[] | null
           product_name: string
-          programs_id: number | null
+          programs_duration_days: number | null
           stripe_product_id: string | null
-          yearly_price: number | null
         }
         Insert: {
           annual_stripe_price_id?: string | null
-          build_features?: string[] | null
-          category?: string | null
-          connect_features?: string[] | null
-          course_id?: number[] | null
+          build_duration_days?: number | null
+          calendar_duration_days?: number | null
           created_at?: string
-          duration_days?: number | null
           email_template?: string | null
-          event_types?: string[] | null
-          events?: boolean | null
           id?: number
           internal_details?: string | null
-          lab_room?: boolean | null
-          logo_ai?: boolean | null
-          monthly_price?: number | null
+          is_active?: boolean | null
           monthly_stripe_price_id?: string | null
           notion_reference?: string | null
           one_off_stripe_price_id?: string | null
-          periodicity?: string | null
-          perks?: string[] | null
-          price_list?: string[] | null
           product_name: string
-          programs_id?: number | null
+          programs_duration_days?: number | null
           stripe_product_id?: string | null
-          yearly_price?: number | null
         }
         Update: {
           annual_stripe_price_id?: string | null
-          build_features?: string[] | null
-          category?: string | null
-          connect_features?: string[] | null
-          course_id?: number[] | null
+          build_duration_days?: number | null
+          calendar_duration_days?: number | null
           created_at?: string
-          duration_days?: number | null
           email_template?: string | null
-          event_types?: string[] | null
-          events?: boolean | null
           id?: number
           internal_details?: string | null
-          lab_room?: boolean | null
-          logo_ai?: boolean | null
-          monthly_price?: number | null
+          is_active?: boolean | null
           monthly_stripe_price_id?: string | null
           notion_reference?: string | null
           one_off_stripe_price_id?: string | null
-          periodicity?: string | null
-          perks?: string[] | null
-          price_list?: string[] | null
           product_name?: string
-          programs_id?: number | null
+          programs_duration_days?: number | null
           stripe_product_id?: string | null
-          yearly_price?: number | null
         }
         Relationships: []
       }
@@ -504,6 +944,71 @@ export type Database = {
         }
         Relationships: []
       }
+      programs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          position: number
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          position?: number
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          position?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string
+          position: number
+          resource_type: string | null
+          title: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id: string
+          position?: number
+          resource_type?: string | null
+          title: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          position?: number
+          resource_type?: string | null
+          title?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           app_idea_id: string | null
@@ -579,6 +1084,38 @@ export type Database = {
           },
         ]
       }
+      user_lesson_progress: {
+        Row: {
+          completed_at: string
+          created_at: string
+          id: string
+          lesson_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          lesson_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -596,6 +1133,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      videos: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string
+          original_url: string | null
+          transcript: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id: string
+          original_url?: string | null
+          transcript?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          original_url?: string | null
+          transcript?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -631,6 +1203,8 @@ export type Database = {
       }
     }
     Enums: {
+      activity_entity_type: "lesson" | "cta"
+      activity_event_type: "cta_clicked" | "lesson_completed"
       app_role: "admin" | "user"
       artifact_type:
         | "business_model"
@@ -640,6 +1214,9 @@ export type Database = {
         | "kanban"
         | "master_prompt"
         | "ui_ux"
+        | "social_content"
+        | "landing_copy"
+        | "paywall_prompts"
       build_feature:
         | "ai_tools"
         | "templates"
@@ -648,12 +1225,14 @@ export type Database = {
         | "api_access"
         | "custom_branding"
       connect_feature: "slack" | "discord" | "notion" | "zapier" | "webhooks"
+      cta_type: "external_link" | "upgrade"
       enrollment_method:
         | "manual"
         | "stripe"
         | "invitation"
         | "bulk_import"
         | "api"
+        | "auto_signup"
       enrollment_status:
         | "active"
         | "pending"
@@ -794,6 +1373,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      activity_entity_type: ["lesson", "cta"],
+      activity_event_type: ["cta_clicked", "lesson_completed"],
       app_role: ["admin", "user"],
       artifact_type: [
         "business_model",
@@ -803,6 +1384,9 @@ export const Constants = {
         "kanban",
         "master_prompt",
         "ui_ux",
+        "social_content",
+        "landing_copy",
+        "paywall_prompts",
       ],
       build_feature: [
         "ai_tools",
@@ -813,12 +1397,14 @@ export const Constants = {
         "custom_branding",
       ],
       connect_feature: ["slack", "discord", "notion", "zapier", "webhooks"],
+      cta_type: ["external_link", "upgrade"],
       enrollment_method: [
         "manual",
         "stripe",
         "invitation",
         "bulk_import",
         "api",
+        "auto_signup",
       ],
       enrollment_status: [
         "active",
