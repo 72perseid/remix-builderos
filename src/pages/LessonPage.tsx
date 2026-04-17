@@ -135,9 +135,9 @@ export default function LessonPage() {
             </div>
           )}
 
-          {lesson.ctas.length > 0 && (
+          {(lesson.ctas?.length ?? 0) > 0 && (
             <div className="space-y-2">
-              {lesson.ctas.map((cta) => (
+              {lesson.ctas!.map((cta) => (
                 <LessonCTACard key={cta.id} cta={cta} completed={lesson.completed} />
               ))}
             </div>
