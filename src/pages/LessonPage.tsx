@@ -236,24 +236,21 @@ export default function LessonPage() {
             </Tabs>
           </div>
 
-          <Button
-            className="w-full gap-2"
-            variant={lesson.completed ? "secondary" : "default"}
-            disabled={lesson.completed || markComplete.isPending}
-            onClick={handleMarkComplete}
-          >
-            {lesson.completed ? (
-              <>
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                Lesson Completed
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="h-4 w-4" />
-                Mark This Lesson Complete
-              </>
-            )}
-          </Button>
+          {lesson.completed ? (
+            <div className="w-full flex items-center justify-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-500">
+              <CheckCircle2 className="h-4 w-4" />
+              Lesson Completed
+            </div>
+          ) : (
+            <Button
+              className="w-full gap-2"
+              disabled={markComplete.isPending}
+              onClick={handleMarkComplete}
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              Mark This Lesson Complete
+            </Button>
+          )}
 
           {lesson.nextLessonId && lesson.completed && (
             <Button
