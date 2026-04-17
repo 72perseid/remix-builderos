@@ -9,6 +9,7 @@ export interface LessonDetail {
   thumbnail: string | null;
   position: number;
   completed: boolean;
+  started: boolean;
 }
 
 export interface ModuleDetail {
