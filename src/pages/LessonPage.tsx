@@ -19,6 +19,7 @@ import {
   FileText,
   List,
   Home,
+  Loader2,
 } from "lucide-react";
 import { useRef, useCallback } from "react";
 import { toast } from "sonner";
@@ -250,8 +251,17 @@ export default function LessonPage() {
               disabled={markComplete.isPending}
               onClick={handleMarkComplete}
             >
-              <CheckCircle2 className="h-4 w-4" />
-              Mark This Lesson Complete
+              {markComplete.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Marking complete...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  Mark This Lesson Complete
+                </>
+              )}
             </Button>
           )}
 
