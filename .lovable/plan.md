@@ -1,51 +1,45 @@
 
 
-## Plan: Hybrid Dynamic Lesson Thumbnails (Initials + Keyword Icon)
+## Plan: Inline CTA Card with Post-Completion Attention Animation
 
-Replace the plain gradient placeholder on lesson cards with a dynamic thumbnail that combines:
-- **Hashed gradient background** — unique per lesson title
-- **Large faded initials** — layered in the back
-- **Keyword-matched Lucide icon** — layered on top, semantically hinting at content
+Combine Idea 1 (inline placement under video) with Idea 3 (post-completion emphasis) by rendering CTAs as a card directly below the video player, and animating it when the lesson is marked complete to draw the user's eye.
 
-### Visual
+### Placement
 
 ```text
-┌──────────────────┐
-│░░░░░ AB ░░░░░░░│   ← faded initials (back layer, white/10)
-│░░░░ ▶ ░░░░░░░░│   ← icon (front layer, white/90)
-└──────────────────┘
-   gradient hue derived from title hash
+┌─────────────────────────────┐
+│   [ Video Player ]          │
+├─────────────────────────────┤
+│   [ CTA Card(s) ] ← here    │  ← idle: subtle border
+│                             │  ← on complete: pulse ring + scale-in
+├─────────────────────────────┤
+│   Lesson Title              │
+│   Description               │
+└─────────────────────────────┘
 ```
 
-### Keyword → Icon map (extensible)
+### Behavior
 
-| Keywords in title | Icon |
-|---|---|
-| video, watch, intro | `PlayCircle` |
-| build, create, make | `Hammer` |
-| market, audience, customer | `Megaphone` |
-| design, ui, ux, brand | `Palette` |
-| code, dev, api, tech | `Code2` |
-| launch, ship, release | `Rocket` |
-| validate, test, research | `FlaskConical` |
-| money, price, revenue, model | `DollarSign` |
-| plan, strategy, roadmap | `Map` |
-| write, copy, content | `PenLine` |
-| _fallback_ | `BookOpen` |
+- **Idle state**: Card sits below the video with a normal border, icon (LinkIcon for `external_link`, Sparkles for `upgrade`), title, optional description, and CTA button on the right.
+- **Completed state**: Card animates with:
+  - A one-time `scale-in` + `fade-in` emphasis when `completed` flips to true (tracked via `useEffect` on `lesson.completed`).
+  - A persistent soft pulsing ring (`ring-2 ring-primary/40` with `animate-pulse`) while the lesson is complete to keep attention on the next action.
+  - For `upgrade` CTAs, gradient accent background (`from-primary/10 to-primary/5`) becomes more saturated.
 
 ### Files
 
 | File | Action |
 |---|---|
-| `src/lib/lessonThumbnail.ts` | **Create** — exports `getLessonThumbnail(title)` returning `{ gradient, initials, Icon }` |
-| `src/components/programs/LessonThumbnail.tsx` | **Create** — small component that renders the gradient + initials + icon stack |
-| `src/pages/CourseDetailPage.tsx` | **Edit** — replace the `bg-gradient-to-br from-primary/20 to-primary/5` placeholder with `<LessonThumbnail title={lesson.title} />` (keep the existing real-thumbnail `<img>` path as-is) |
+| `src/hooks/useLesson.ts` | **Edit** — fetch CTAs ordered by `position` for the current `lesson_id` and include them on `LessonData` as `ctas: LessonCTA[]`. |
+| `src/components/programs/LessonCTACard.tsx` | **Create** — renders a single CTA with idle/completed visual states. Props: `cta`, `completed`. |
+| `src/pages/LessonPage.tsx` | **Edit** — render `lesson.ctas.map(...)` in a stack directly under the video, above the lesson title. Only render the block if `ctas.length > 0`. Pass `completed={lesson.completed}` so the card knows when to animate. |
 
 ### Implementation notes
 
-- **Hash function**: simple `djb2` over the title string → modulo 360 for hue. Deterministic, no deps.
-- **Gradient**: `linear-gradient(135deg, hsl(h, 55%, 28%), hsl((h+45)%360, 55%, 18%))` — keeps it dark-theme friendly.
-- **Initials**: first letter of first 1–2 significant words (skip "the", "a", "an", "of", "to"), uppercase, max 2 chars. Rendered `text-4xl font-bold text-white/10` absolutely centered.
-- **Icon**: `text-white/90 h-8 w-8` absolutely centered on top of the initials.
-- **Reusable**: The `LessonThumbnail` component can be reused later on the lesson page sidebar / "Up Next" cards.
+- **Type**: `LessonCTA = { id, cta_type: 'external_link' | 'upgrade', title, description, cta_label, url, position }`.
+- **Query**: Add a parallel `supabase.from('ctas').select('...').eq('lesson_id', lessonId).order('position')` to the existing `Promise.all` in `useLesson`.
+- **Animation trigger**: In `LessonCTACard`, use `useEffect(() => { if (completed) setJustCompleted(true); const t = setTimeout(() => setJustCompleted(false), 1200); return () => clearTimeout(t); }, [completed])` to fire the one-time `animate-scale-in` flash, while the persistent `ring + animate-pulse` stays as long as `completed` is true.
+- **Button**: For `external_link`, render an anchor `target="_blank"`. For `upgrade`, route to `/coaching` (or `cta.url` if provided), styled with a primary gradient button.
+- **Empty state**: If a lesson has no CTAs, nothing renders — no spacing impact.
+- **Reusability**: `LessonCTACard` is self-contained, so it can later be moved to the sidebar or post-completion slot without changes.
 
