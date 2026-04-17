@@ -55,15 +55,24 @@ export function usePrograms() {
 
       if (lErr) throw lErr;
 
-      // Fetch user progress
-      const { data: progress, error: prErr } = await supabase
-        .from('user_lesson_progress')
-        .select('lesson_id')
-        .eq('user_id', user!.id);
+      // Fetch user progress + lesson_completed activity events
+      const [progressRes, activityRes] = await Promise.all([
+        supabase.from('user_lesson_progress').select('lesson_id').eq('user_id', user!.id),
+        supabase
+          .from('activity_log')
+          .select('entity_id')
+          .eq('user_id', user!.id)
+          .eq('event_type', 'lesson_completed')
+          .eq('entity_type', 'lesson'),
+      ]);
 
-      if (prErr) throw prErr;
+      if (progressRes.error) throw progressRes.error;
+      if (activityRes.error) throw activityRes.error;
 
-      const completedSet = new Set((progress || []).map(p => p.lesson_id));
+      const completedSet = new Set<string>([
+        ...(progressRes.data || []).map(p => p.lesson_id),
+        ...(activityRes.data || []).map(a => a.entity_id as string),
+      ]);
 
       // Map modules to courses
       const modulesByCourse: Record<string, string[]> = {};

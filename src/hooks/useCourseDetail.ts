@@ -9,6 +9,7 @@ export interface LessonDetail {
   thumbnail: string | null;
   position: number;
   completed: boolean;
+  started: boolean;
 }
 
 export interface ModuleDetail {
@@ -70,14 +71,51 @@ export function useCourseDetail(courseId: string | undefined) {
 
       if (lErr) throw lErr;
 
-      const { data: progress, error: pErr } = await supabase
-        .from('user_lesson_progress')
-        .select('lesson_id')
-        .eq('user_id', user!.id);
+      const lessonIds = (lessons || []).map(l => l.id);
 
-      if (pErr) throw pErr;
+      const [progressRes, activityCompletedRes, videosRes] = await Promise.all([
+        supabase.from('user_lesson_progress').select('lesson_id').eq('user_id', user!.id),
+        supabase
+          .from('activity_log')
+          .select('entity_id')
+          .eq('user_id', user!.id)
+          .eq('event_type', 'lesson_completed')
+          .eq('entity_type', 'lesson'),
+        lessonIds.length > 0
+          ? supabase.from('videos').select('id, lesson_id').in('lesson_id', lessonIds)
+          : Promise.resolve({ data: [], error: null } as const),
+      ]);
 
-      const completedSet = new Set((progress || []).map(p => p.lesson_id));
+      if (progressRes.error) throw progressRes.error;
+      if (activityCompletedRes.error) throw activityCompletedRes.error;
+      if (videosRes.error) throw videosRes.error;
+
+      // Build map: video_id -> lesson_id
+      const videoToLesson = new Map<string, string>();
+      for (const v of videosRes.data || []) videoToLesson.set(v.id, v.lesson_id);
+
+      // Fetch video_watched events to derive "started" lessons
+      const videoIds = (videosRes.data || []).map(v => v.id);
+      const startedSet = new Set<string>();
+      if (videoIds.length > 0) {
+        const { data: watched, error: wErr } = await supabase
+          .from('activity_log')
+          .select('entity_id')
+          .eq('user_id', user!.id)
+          .eq('event_type', 'video_watched')
+          .eq('entity_type', 'video')
+          .in('entity_id', videoIds);
+        if (wErr) throw wErr;
+        for (const w of watched || []) {
+          const lessonId = videoToLesson.get(w.entity_id as string);
+          if (lessonId) startedSet.add(lessonId);
+        }
+      }
+
+      const completedSet = new Set<string>([
+        ...(progressRes.data || []).map(p => p.lesson_id),
+        ...(activityCompletedRes.data || []).map(a => a.entity_id as string),
+      ]);
 
       const lessonsByModule: Record<string, typeof lessons> = {};
       for (const l of lessons || []) {
@@ -96,6 +134,7 @@ export function useCourseDetail(courseId: string | undefined) {
           thumbnail: l.thumbnail,
           position: l.position,
           completed: completedSet.has(l.id),
+          started: startedSet.has(l.id) && !completedSet.has(l.id),
         }));
 
         const total = mLessons.length;
