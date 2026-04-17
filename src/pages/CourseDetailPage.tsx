@@ -15,52 +15,63 @@ function ModuleRow({ module, index, courseId }: { module: ModuleDetail; index: n
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="w-full p-5 md:p-6 flex items-center gap-6">
-          {/* Emoji */}
-          {module.emoji && (
-            <div className="text-3xl flex-shrink-0 hidden sm:block">{module.emoji}</div>
-          )}
+        <CollapsibleTrigger asChild>
+          <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setOpen((v) => !v);
+              }
+            }}
+            className="w-full p-5 md:p-6 flex items-center gap-6 cursor-pointer hover:bg-muted/20 transition-colors"
+          >
+            {/* Emoji */}
+            {module.emoji && (
+              <div className="text-3xl flex-shrink-0 hidden sm:block">{module.emoji}</div>
+            )}
 
-          {/* Module label + title + description */}
-          <div className="flex-1 min-w-0">
-            <div className="text-xs text-muted-foreground mb-2">
-              Module {index + 1}
-              {module.duration_days && (
-                <>
-                  <span className="mx-2">·</span>
-                  {module.duration_days} {module.duration_days === 1 ? "Day" : "Days"}
-                </>
+            {/* Module label + title + description */}
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-muted-foreground mb-2">
+                Module {index + 1}
+                {module.duration_days && (
+                  <>
+                    <span className="mx-2">·</span>
+                    {module.duration_days} {module.duration_days === 1 ? "Day" : "Days"}
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2 mb-1.5">
+                {module.emoji && <span className="text-xl sm:hidden">{module.emoji}</span>}
+                <h3 className="text-lg font-semibold text-foreground truncate">{module.title}</h3>
+              </div>
+              {module.description && (
+                <p className="text-sm text-muted-foreground leading-relaxed">{module.description}</p>
               )}
             </div>
-            <div className="flex items-center gap-2 mb-1.5">
-              {module.emoji && <span className="text-xl sm:hidden">{module.emoji}</span>}
-              <h3 className="text-lg font-semibold text-foreground truncate">{module.title}</h3>
+
+            {/* Progress bar */}
+            <div className="hidden md:flex items-center gap-3 flex-shrink-0 w-64">
+              <span className="text-sm font-medium text-foreground w-10 text-right">
+                {module.progressPercent}%
+              </span>
+              <Progress value={module.progressPercent} className="h-1 flex-1 bg-secondary" />
             </div>
-            {module.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">{module.description}</p>
-            )}
-          </div>
 
-          {/* Progress bar */}
-          <div className="hidden md:flex items-center gap-3 flex-shrink-0 w-64">
-            <span className="text-sm font-medium text-foreground w-10 text-right">
-              {module.progressPercent}%
-            </span>
-            <Progress value={module.progressPercent} className="h-1 flex-1 bg-secondary" />
-          </div>
-
-          {/* Show details button */}
-          <CollapsibleTrigger asChild>
+            {/* Show/Hide details button (visual only — wrapper handles toggle) */}
             <Button
               variant="outline"
               size="sm"
-              className="flex-shrink-0 rounded-full border-border bg-transparent hover:bg-muted/40 text-foreground gap-1.5 px-4"
+              tabIndex={-1}
+              className="flex-shrink-0 rounded-full border-border bg-transparent hover:bg-muted/40 text-foreground gap-1.5 px-4 pointer-events-none"
             >
-              Show details
+              {open ? "Hide details" : "Show details"}
               {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
-          </CollapsibleTrigger>
-        </div>
+          </div>
+        </CollapsibleTrigger>
 
         <CollapsibleContent>
           <div className="border-t border-border px-4 md:px-5 py-4">
