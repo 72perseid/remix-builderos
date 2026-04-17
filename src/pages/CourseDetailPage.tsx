@@ -89,6 +89,11 @@ function ModuleRow({ module, index, courseId }: { module: ModuleDetail; index: n
                           <CheckCircle2 className="h-3 w-3" />
                           Completed
                         </Badge>
+                      ) : lesson.started ? (
+                        <Badge className="bg-amber-500/90 text-white text-[10px] gap-1 px-1.5 py-0.5 border-0">
+                          <Circle className="h-3 w-3 fill-current" />
+                          In Progress
+                        </Badge>
                       ) : (
                         <Badge variant="secondary" className="bg-secondary/80 text-muted-foreground text-[10px] gap-1 px-1.5 py-0.5">
                           <Circle className="h-3 w-3" />
