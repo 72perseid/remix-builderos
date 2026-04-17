@@ -142,6 +142,21 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       });
     },
     onSuccess: () => {
+      // Optimistically flip completed flags so the UI updates instantly,
+      // before the background refetch resolves.
+      queryClient.setQueryData<LessonData | undefined>(
+        ['lesson-detail', courseId, lessonId, user?.id],
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                completed: true,
+                siblings: prev.siblings.map((s) =>
+                  s.id === lessonId ? { ...s, completed: true } : s
+                ),
+              }
+            : prev
+      );
       queryClient.invalidateQueries({ queryKey: ['lesson-detail'] });
       queryClient.invalidateQueries({ queryKey: ['course-detail'] });
     },
