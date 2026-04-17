@@ -6,7 +6,7 @@ interface LessonThumbnailProps {
 }
 
 export function LessonThumbnail({ title, className }: LessonThumbnailProps) {
-  const { gradient, initials, Icon } = getLessonThumbnail(title);
+  const { gradient, Icon } = getLessonThumbnail(title);
 
   return (
     <div
@@ -14,9 +14,6 @@ export function LessonThumbnail({ title, className }: LessonThumbnailProps) {
       style={{ background: gradient }}
       aria-hidden="true"
     >
-      <span className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white/10 select-none tracking-wider">
-        {initials}
-      </span>
       <span className="absolute inset-0 flex items-center justify-center">
         <Icon className="h-8 w-8 text-white/90" strokeWidth={1.75} />
       </span>
