@@ -158,7 +158,12 @@ function LoadingSkeleton() {
 export default function CourseDetailPage() {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { course, loading } = useCourseDetail(courseId);
+
+  const openModuleId = location.hash.startsWith("#module-")
+    ? location.hash.replace("#module-", "")
+    : null;
 
   if (loading) return <LoadingSkeleton />;
 
