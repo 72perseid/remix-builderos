@@ -83,9 +83,12 @@ export default function LessonPage() {
             {lesson.courseName}
           </button>
           <ChevronRight className="h-3 w-3 flex-shrink-0" />
-          <span className="truncate max-w-[120px]">
+          <button
+            onClick={() => navigate(`/programs/${courseId}#module-${lesson.module_id}`)}
+            className="hover:text-foreground transition-colors truncate max-w-[140px]"
+          >
             {lesson.moduleEmoji} {lesson.moduleName}
-          </span>
+          </button>
           <ChevronRight className="h-3 w-3 flex-shrink-0" />
           <span className="text-foreground font-medium truncate max-w-[180px]">{lesson.title}</span>
         </div>
