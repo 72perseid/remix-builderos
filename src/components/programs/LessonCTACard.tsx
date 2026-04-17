@@ -50,13 +50,13 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 flex items-center gap-4 transition-all duration-300",
+        "relative rounded-xl border p-4 flex items-center gap-4 transition-all duration-300",
         isUpgrade
           ? completed
             ? "bg-gradient-to-r from-primary/15 to-primary/5 border-primary/40"
             : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20"
           : "bg-card border-border",
-        completed && "ring-2 ring-primary/40 animate-pulse",
+        completed && "border-primary/60 animate-border-pulse",
         justCompleted && "animate-scale-in"
       )}
     >
