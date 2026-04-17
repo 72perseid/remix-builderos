@@ -55,11 +55,17 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       if (lErr) throw lErr;
 
       // Fetch module + course in parallel
-      const [moduleRes, videoRes, resourcesRes, progressRes] = await Promise.all([
+      const [moduleRes, videoRes, resourcesRes, progressRes, activityRes] = await Promise.all([
         supabase.from('modules').select('id, title, emoji, course_id').eq('id', lesson.module_id).single(),
         supabase.from('videos').select('id, url').eq('lesson_id', lessonId!).limit(1).maybeSingle(),
         supabase.from('resources').select('id, title, url, resource_type, position').eq('lesson_id', lessonId!).order('position'),
         supabase.from('user_lesson_progress').select('lesson_id').eq('user_id', user!.id),
+        supabase
+          .from('activity_log')
+          .select('entity_id')
+          .eq('user_id', user!.id)
+          .eq('event_type', 'lesson_completed')
+          .eq('entity_type', 'lesson'),
       ]);
 
       if (moduleRes.error) throw moduleRes.error;
@@ -82,7 +88,11 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         .order('position');
       if (sErr) throw sErr;
 
-      const completedSet = new Set((progressRes.data || []).map(p => p.lesson_id));
+      // Merge user_lesson_progress + activity_log lesson_completed events
+      const completedSet = new Set<string>([
+        ...(progressRes.data || []).map(p => p.lesson_id),
+        ...(activityRes.data || []).map(a => a.entity_id as string),
+      ]);
       const siblingsList: SiblingLesson[] = (siblings || []).map(s => ({
         id: s.id,
         title: s.title,
