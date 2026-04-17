@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { LessonThumbnail } from "@/components/programs/LessonThumbnail";
 
 function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean }) {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDet
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5" />
+                      <LessonThumbnail title={lesson.title} />
                     )}
                     {/* Status badge */}
                     <div className="absolute top-2 left-2">
