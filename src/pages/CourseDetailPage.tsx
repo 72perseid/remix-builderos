@@ -6,15 +6,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
-function ModuleRow({ module, index, courseId }: { module: ModuleDetail; index: number; courseId: string }) {
+function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean }) {
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!defaultOpen);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (defaultOpen) {
+      setOpen(true);
+      setTimeout(() => {
+        ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [defaultOpen]);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div ref={ref} id={`module-${module.id}`} className="rounded-xl border border-border bg-card overflow-hidden scroll-mt-6">
         <CollapsibleTrigger asChild>
           <div
             role="button"
