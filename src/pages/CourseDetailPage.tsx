@@ -236,7 +236,13 @@ export default function CourseDetailPage() {
         </h2>
         <div className="space-y-3">
           {course.modules.map((mod, i) => (
-            <ModuleRow key={mod.id} module={mod} index={i} courseId={course.id} />
+            <ModuleRow
+              key={mod.id}
+              module={mod}
+              index={i}
+              courseId={course.id}
+              defaultOpen={mod.id === openModuleId}
+            />
           ))}
         </div>
       </section>
