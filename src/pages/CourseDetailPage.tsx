@@ -15,45 +15,52 @@ function ModuleRow({ module, index, courseId }: { module: ModuleDetail; index: n
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
       <div className="rounded-xl border border-border bg-card overflow-hidden">
-        <CollapsibleTrigger asChild>
-          <button className="w-full text-left p-4 md:p-5 flex items-start gap-4 hover:bg-muted/30 transition-colors">
-            {/* Module number + duration */}
-            <div className="flex flex-col items-center gap-1 flex-shrink-0 pt-0.5">
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Module {index + 1}
-              </span>
+        <div className="w-full p-5 md:p-6 flex items-center gap-6">
+          {/* Emoji */}
+          {module.emoji && (
+            <div className="text-3xl flex-shrink-0 hidden sm:block">{module.emoji}</div>
+          )}
+
+          {/* Module label + title + description */}
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-muted-foreground mb-2">
+              Module {index + 1}
               {module.duration_days && (
-                <span className="text-[10px] text-muted-foreground bg-secondary/60 px-2 py-0.5 rounded-full">
+                <>
+                  <span className="mx-2">·</span>
                   {module.duration_days} {module.duration_days === 1 ? "Day" : "Days"}
-                </span>
+                </>
               )}
             </div>
-
-            {/* Emoji + title + description */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                {module.emoji && <span className="text-lg">{module.emoji}</span>}
-                <h3 className="font-semibold text-foreground truncate">{module.title}</h3>
-              </div>
-              {module.description && (
-                <p className="text-xs text-muted-foreground line-clamp-2">{module.description}</p>
-              )}
+            <div className="flex items-center gap-2 mb-1.5">
+              {module.emoji && <span className="text-xl sm:hidden">{module.emoji}</span>}
+              <h3 className="text-lg font-semibold text-foreground truncate">{module.title}</h3>
             </div>
+            {module.description && (
+              <p className="text-sm text-muted-foreground leading-relaxed">{module.description}</p>
+            )}
+          </div>
 
-            {/* Progress + toggle */}
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <div className="hidden sm:flex items-center gap-2 w-32">
-                <Progress value={module.progressPercent} className="h-1.5 flex-1 bg-secondary" />
-                <span className="text-xs font-semibold text-foreground w-8 text-right">
-                  {module.progressPercent}%
-                </span>
-              </div>
-              <div className="text-muted-foreground">
-                {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </div>
-            </div>
-          </button>
-        </CollapsibleTrigger>
+          {/* Progress bar */}
+          <div className="hidden md:flex items-center gap-3 flex-shrink-0 w-64">
+            <span className="text-sm font-medium text-foreground w-10 text-right">
+              {module.progressPercent}%
+            </span>
+            <Progress value={module.progressPercent} className="h-1 flex-1 bg-secondary" />
+          </div>
+
+          {/* Show details button */}
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-shrink-0 rounded-full border-border bg-transparent hover:bg-muted/40 text-foreground gap-1.5 px-4"
+            >
+              Show details
+              {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CollapsibleTrigger>
+        </div>
 
         <CollapsibleContent>
           <div className="border-t border-border px-4 md:px-5 py-4">
