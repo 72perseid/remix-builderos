@@ -11,6 +11,16 @@ export interface LessonResource {
   position: number;
 }
 
+export interface LessonCTA {
+  id: string;
+  cta_type: "external_link" | "upgrade";
+  title: string;
+  description: string | null;
+  cta_label: string | null;
+  url: string | null;
+  position: number;
+}
+
 export interface SiblingLesson {
   id: string;
   title: string;
@@ -31,6 +41,7 @@ export interface LessonData {
   videoUrl: string | null;
   videoId: string | null;
   resources: LessonResource[];
+  ctas: LessonCTA[];
   siblings: SiblingLesson[];
   currentIndex: number;
   prevLessonId: string | null;
@@ -55,10 +66,11 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       if (lErr) throw lErr;
 
       // Fetch module + course in parallel
-      const [moduleRes, videoRes, resourcesRes, progressRes, activityRes] = await Promise.all([
+      const [moduleRes, videoRes, resourcesRes, ctasRes, progressRes, activityRes] = await Promise.all([
         supabase.from('modules').select('id, title, emoji, course_id').eq('id', lesson.module_id).single(),
         supabase.from('videos').select('id, url').eq('lesson_id', lessonId!).limit(1).maybeSingle(),
         supabase.from('resources').select('id, title, url, resource_type, position').eq('lesson_id', lessonId!).order('position'),
+        supabase.from('ctas').select('id, cta_type, title, description, cta_label, url, position').eq('lesson_id', lessonId!).order('position'),
         supabase.from('user_lesson_progress').select('lesson_id').eq('user_id', user!.id),
         supabase
           .from('activity_log')
@@ -115,6 +127,7 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         videoUrl: videoRes.data?.url || null,
         videoId: videoRes.data?.id || null,
         resources: (resourcesRes.data || []) as LessonResource[],
+        ctas: (ctasRes.data || []) as LessonCTA[],
         siblings: siblingsList,
         currentIndex,
         prevLessonId: currentIndex > 0 ? siblingsList[currentIndex - 1].id : null,
