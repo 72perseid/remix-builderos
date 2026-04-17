@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useRef, useCallback } from "react";
 import { toast } from "sonner";
+import { LessonCTACard } from "@/components/programs/LessonCTACard";
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -131,6 +132,14 @@ export default function LessonPage() {
           ) : (
             <div className="rounded-xl border border-border bg-card aspect-video flex items-center justify-center">
               <p className="text-muted-foreground text-sm">No video available for this lesson</p>
+            </div>
+          )}
+
+          {lesson.ctas.length > 0 && (
+            <div className="space-y-2">
+              {lesson.ctas.map((cta) => (
+                <LessonCTACard key={cta.id} cta={cta} completed={lesson.completed} />
+              ))}
             </div>
           )}
 
