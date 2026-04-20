@@ -1,6 +1,7 @@
 import { useLocation, Link } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { useDebugMode } from '@/hooks/useDebugMode';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 const routes = [
   { path: '/onboarding', label: 'Onboarding' },
@@ -20,9 +21,10 @@ const routes = [
 
 export function DebugNav() {
   const { isDebug, toggle } = useDebugMode();
+  const { isAdmin } = useIsAdmin();
   const location = useLocation();
 
-  if (!isDebug) return null;
+  if (!isAdmin || !isDebug) return null;
 
   return (
     <div className="fixed top-0 left-0 z-[100] h-full w-52 bg-black/90 backdrop-blur-sm border-r border-white/10 p-3 overflow-y-auto">
