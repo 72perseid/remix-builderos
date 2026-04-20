@@ -1,45 +1,38 @@
 
 
-## Plan: Inline CTA Card with Post-Completion Attention Animation
+## Plan: Restrict Debug Mode to Admin Users
 
-Combine Idea 1 (inline placement under video) with Idea 3 (post-completion emphasis) by rendering CTAs as a card directly below the video player, and animating it when the lesson is marked complete to draw the user's eye.
-
-### Placement
-
-```text
-┌─────────────────────────────┐
-│   [ Video Player ]          │
-├─────────────────────────────┤
-│   [ CTA Card(s) ] ← here    │  ← idle: subtle border
-│                             │  ← on complete: pulse ring + scale-in
-├─────────────────────────────┤
-│   Lesson Title              │
-│   Description               │
-└─────────────────────────────┘
-```
+Currently, debug mode (`?debug=true`, `Ctrl+Shift+D`, or `sessionStorage.debug_mode`) bypasses onboarding and route gating in `ProtectedRoute.tsx` for any user. This must be gated to admins only by checking the `user_roles` table for `role = 'admin'` via the existing `has_role` security definer function.
 
 ### Behavior
 
-- **Idle state**: Card sits below the video with a normal border, icon (LinkIcon for `external_link`, Sparkles for `upgrade`), title, optional description, and CTA button on the right.
-- **Completed state**: Card animates with:
-  - A one-time `scale-in` + `fade-in` emphasis when `completed` flips to true (tracked via `useEffect` on `lesson.completed`).
-  - A persistent soft pulsing ring (`ring-2 ring-primary/40` with `animate-pulse`) while the lesson is complete to keep attention on the next action.
-  - For `upgrade` CTAs, gradient accent background (`from-primary/10 to-primary/5`) becomes more saturated.
+- **Admin user**: Debug mode toggle works, `?debug=true` activates bypass, `Ctrl+Shift+D` opens the debug nav, and onboarding/route gates are bypassable as today.
+- **Non-admin user**: Toggle is a no-op, `?debug=true` is ignored, `Ctrl+Shift+D` does nothing, and `sessionStorage.debug_mode` is forcibly cleared. `ProtectedRoute` ignores any debug bypass attempt.
+- **Unauthenticated**: Same as non-admin — debug stays off.
 
 ### Files
 
 | File | Action |
 |---|---|
-| `src/hooks/useLesson.ts` | **Edit** — fetch CTAs ordered by `position` for the current `lesson_id` and include them on `LessonData` as `ctas: LessonCTA[]`. |
-| `src/components/programs/LessonCTACard.tsx` | **Create** — renders a single CTA with idle/completed visual states. Props: `cta`, `completed`. |
-| `src/pages/LessonPage.tsx` | **Edit** — render `lesson.ctas.map(...)` in a stack directly under the video, above the lesson title. Only render the block if `ctas.length > 0`. Pass `completed={lesson.completed}` so the card knows when to animate. |
+| `src/hooks/useIsAdmin.ts` | **Create** — React Query hook that calls `supabase.rpc('has_role', { _user_id, _role: 'admin' })` for the current user. Returns `{ isAdmin, loading }`. |
+| `src/hooks/useDebugMode.ts` | **Edit** — gate `setIsDebug(true)`, the URL param check, the keyboard shortcut, and `sessionStorage` writes behind `isAdmin`. If a non-admin has stale `sessionStorage.debug_mode`, clear it on mount. |
+| `src/components/ProtectedRoute.tsx` | **Edit** — recompute `isDebugMode` only when `isAdmin` is true; otherwise treat as `false`. Use the same `useIsAdmin` hook. |
+| `src/components/debug/DebugNav.tsx` | **Edit** — additionally guard rendering on `isAdmin` (defense in depth; `useDebugMode` already won't return `isDebug: true` for non-admins, but explicit is safer). |
 
 ### Implementation notes
 
-- **Type**: `LessonCTA = { id, cta_type: 'external_link' | 'upgrade', title, description, cta_label, url, position }`.
-- **Query**: Add a parallel `supabase.from('ctas').select('...').eq('lesson_id', lessonId).order('position')` to the existing `Promise.all` in `useLesson`.
-- **Animation trigger**: In `LessonCTACard`, use `useEffect(() => { if (completed) setJustCompleted(true); const t = setTimeout(() => setJustCompleted(false), 1200); return () => clearTimeout(t); }, [completed])` to fire the one-time `animate-scale-in` flash, while the persistent `ring + animate-pulse` stays as long as `completed` is true.
-- **Button**: For `external_link`, render an anchor `target="_blank"`. For `upgrade`, route to `/coaching` (or `cta.url` if provided), styled with a primary gradient button.
-- **Empty state**: If a lesson has no CTAs, nothing renders — no spacing impact.
-- **Reusability**: `LessonCTACard` is self-contained, so it can later be moved to the sidebar or post-completion slot without changes.
+- **Admin check**: Call `supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })`. The function is `SECURITY DEFINER` and reads `user_roles`, so RLS won't block it. Cache via React Query keyed on `['is-admin', user.id]` with `staleTime: 5 min`.
+- **`useDebugMode` signature stays the same** (`{ isDebug, toggle }`) so callers don't change. Internally:
+  - Initial state resolves to `false` until `isAdmin` resolves true; then it re-reads URL/sessionStorage.
+  - `toggle()` is a no-op when `!isAdmin`.
+  - On mount, if `!isAdmin && !loading`, remove `sessionStorage.debug_mode` to evict stale flags from a previously-admin session.
+- **`ProtectedRoute`**: replace the existing line  
+  `const isDebugMode = searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true';`  
+  with `const { isAdmin } = useIsAdmin(); const isDebugMode = isAdmin && (searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true');`
+- **No DB changes**: `user_roles`, the `app_role` enum, and `has_role()` already exist. No migrations needed.
+- **No security finding update needed**: this hardens an internal bypass, not a flagged scanner item.
+
+### Memory update
+
+Update `mem://tools/debug-mode` to record that debug mode is admin-only, gated via `user_roles.role = 'admin'` through the `has_role` RPC.
 
