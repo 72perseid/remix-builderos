@@ -1171,6 +1171,37 @@ export type Database = {
       }
     }
     Views: {
+      access_group_features_view: {
+        Row: {
+          access_group_description: string | null
+          access_group_id: string | null
+          access_group_is_active: boolean | null
+          access_group_name: string | null
+          access_group_slug: string | null
+          created_at: string | null
+          feature_description: string | null
+          feature_id: string | null
+          feature_is_active: boolean | null
+          feature_name: string | null
+          feature_slug: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_group_features_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "access_group_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_idea_artifacts: {
         Row: {
           app_category: string | null

@@ -2,6 +2,7 @@ import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useXanoSync } from '@/hooks/useXanoSync';
 import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
@@ -21,7 +22,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get('mode');
-  const isDebugMode = searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true';
+  const { isAdmin } = useIsAdmin();
+  const isDebugMode = isAdmin && (searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true');
   const isAllowedMode = mode === 'new' || mode === 'setup' || isDebugMode;
 
   // Auto-sync Xano data when user is authenticated
