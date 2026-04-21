@@ -2,6 +2,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveWorkflowMode, type WorkflowMode } from '@/lib/resolveWorkflowMode';
+import { pollForNewAppIdea, isRecoverableError } from '@/lib/recoverAppIdeaAfterTimeout';
+
+const N8N_TIMEOUT_MS = 90_000;
+const RECOVERY_MESSAGE = "Got it — I've finished setting up your app. You're all set!";
 
 export type { WorkflowMode };
 
