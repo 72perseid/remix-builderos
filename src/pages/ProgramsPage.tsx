@@ -1,17 +1,28 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePrograms, type CourseWithProgress } from "@/hooks/usePrograms";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useEnrollment } from "@/hooks/useEnrollment";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePaywall } from "@/hooks/usePaywall";
+import { PaywallDialog } from "@/components/paywall/PaywallDialog";
 
-function CourseCardLarge({ course }: { course: CourseWithProgress }) {
+function CourseCardLarge({ course, locked, onClick }: { course: CourseWithProgress; locked?: boolean; onClick?: () => void }) {
   const navigate = useNavigate();
+  const handleClick = onClick ?? (() => navigate(`/programs/${course.id}`));
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
-      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer">
+      onClick={handleClick}
+      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer relative">
+      {locked && (
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-background/90 backdrop-blur border border-border rounded-full px-3 py-1">
+          <Lock className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-medium text-foreground">Locked</span>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row">
         {course.thumbnail && (
           <div className="md:w-80 lg:w-96 flex-shrink-0">
@@ -146,6 +157,11 @@ function LoadingSkeleton() {
 
 export default function ProgramsPage() {
   const { courses, loading } = usePrograms();
+  const { programsAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const paywall = usePaywall();
+
+  const canSeeFlagship = isAdmin || programsAccess;
 
   const flagship = courses.filter((c) => c.course_type === "paid");
   const complementary = courses.filter((c) => c.course_type !== "paid");
@@ -179,7 +195,12 @@ export default function ProgramsPage() {
           </p>
           <div className="space-y-4">
             {flagship.map((course) => (
-              <CourseCardLarge key={course.id} course={course} />
+              <CourseCardLarge
+                key={course.id}
+                course={course}
+                locked={!canSeeFlagship}
+                onClick={canSeeFlagship ? undefined : () => paywall.open('programs')}
+              />
             ))}
           </div>
         </section>
@@ -201,6 +222,12 @@ export default function ProgramsPage() {
           </div>
         </section>
       )}
+
+      <PaywallDialog
+        open={paywall.isOpen}
+        onOpenChange={paywall.onOpenChange}
+        feature={paywall.feature}
+      />
     </div>
   );
 }

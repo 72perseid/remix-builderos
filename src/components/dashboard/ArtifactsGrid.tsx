@@ -7,6 +7,10 @@ import { ArtifactExportButton } from "./ArtifactExportButton";
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
 import { useProjectContext } from '@/contexts/ProjectContext';
+import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { usePaywall } from '@/hooks/usePaywall';
+import { PaywallDialog } from '@/components/paywall/PaywallDialog';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -77,8 +81,18 @@ export function ArtifactsGrid() {
   } = useArtifacts();
   const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const paywall = usePaywall();
   const navigate = useNavigate();
-  
+
+  const canBuild = isAdmin || buildAccess;
+
+  const handleNavigate = (route: string) => {
+    if (canBuild) navigate(route);
+    else paywall.open('build');
+  };
+
 
   useEffect(() => {
     refreshApps();
@@ -141,7 +155,7 @@ export function ArtifactsGrid() {
       </div>
       {/* Architect Banner - hidden after onboarding */}
       {!isOnboarded && (
-        <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
+        <ArchitectBanner onStartBuilding={() => canBuild ? navigate('/onboarding?mode=setup') : paywall.open('build')} hasData={hasAnyData} />
       )}
 
 
@@ -181,7 +195,7 @@ export function ArtifactsGrid() {
                   description={card.description} 
                   status={getCardStatus(card.type)} 
                   completion={completionMap[card.type]}
-                  onClick={() => navigate(card.route)}
+                  onClick={() => handleNavigate(card.route)}
                 />
               )
             ))}
@@ -201,7 +215,7 @@ export function ArtifactsGrid() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Landing Copy — linked to Landing Page Generator */}
             <div
-              onClick={() => navigate('/landing-page')}
+              onClick={() => handleNavigate('/landing-page')}
               className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 p-5 pt-10 min-h-[180px] flex flex-col cursor-pointer hover:border-primary/40 transition-colors"
             >
               <div className="mb-3">
@@ -237,5 +251,10 @@ export function ArtifactsGrid() {
           </div>
         </div>
       </div>
+      <PaywallDialog
+        open={paywall.isOpen}
+        onOpenChange={paywall.onOpenChange}
+        feature={paywall.feature}
+      />
     </div>;
 }
