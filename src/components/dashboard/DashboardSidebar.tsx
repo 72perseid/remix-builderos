@@ -8,6 +8,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEnrollment } from "@/hooks/useEnrollment";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePaywall } from "@/hooks/usePaywall";
+import { PaywallDialog, type PaywallFeature } from "@/components/paywall/PaywallDialog";
 import { ProfileSheet } from "./ProfileSheet";
 
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
