@@ -98,6 +98,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Determine the first accessible route for redirect fallback
   const getFirstAccessibleRoute = () => {
+    if (isAdmin) return '/admin';
     if (buildAccess) return '/project-board';
     if (programsAccess) return '/programs';
     if (calendarAccess) return '/calendar';
