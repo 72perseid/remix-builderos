@@ -155,7 +155,7 @@ export function ArtifactsGrid() {
       </div>
       {/* Architect Banner - hidden after onboarding */}
       {!isOnboarded && (
-        <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
+        <ArchitectBanner onStartBuilding={() => canBuild ? navigate('/onboarding?mode=setup') : paywall.open('build')} hasData={hasAnyData} />
       )}
 
 
