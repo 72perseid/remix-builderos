@@ -216,8 +216,10 @@ export function useOnboardingChat(forceNew: boolean = false) {
 
       setIsStreaming(true);
 
+      const invokeStartedAt = new Date().toISOString();
+
       try {
-        const { data, error: fnError } = await supabase.functions.invoke('chat-action', {
+        const invokePromise = supabase.functions.invoke('chat-action', {
           body: {
             message: content,
             user_id: user.id,
@@ -226,6 +228,12 @@ export function useOnboardingChat(forceNew: boolean = false) {
             app_idea_id: resolvedAppIdeaId,
           },
         });
+
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), N8N_TIMEOUT_MS)
+        );
+
+        const { data, error: fnError } = await Promise.race([invokePromise, timeoutPromise]);
 
         if (fnError) {
           throw new Error(`Failed to get AI response: ${fnError.message}`);
