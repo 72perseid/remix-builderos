@@ -32,6 +32,7 @@ import ProgramsPage from "./pages/ProgramsPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
 import BookingSuccessPage from "./pages/BookingSuccessPage";
 import LessonPage from "./pages/LessonPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound";
 import { DebugNav } from "./components/debug/DebugNav";
 
@@ -144,6 +145,11 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/booking-success" element={<BookingSuccessPage />} />
+            <Route path="/admin" element={
+              <ProtectedRoute>
+                <DashboardLayout><AdminPage /></DashboardLayout>
+              </ProtectedRoute>
+            } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
