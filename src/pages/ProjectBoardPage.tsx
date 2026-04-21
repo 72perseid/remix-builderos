@@ -104,8 +104,6 @@ const columnMapping: Record<string, TaskStatus> = {
 const tagToColumnMapping: Record<string, TaskStatus> = {
   'MVP': 'selected',
   'V1': 'backlog',
-  'V2': 'backlog',
-  'V3': 'backlog',
   'Stretch Goals': 'backlog'
 };
 
@@ -121,14 +119,6 @@ const labelColors: Record<string, {
   V1: {
     bg: '#3b82f6',
     hover: '#60a5fa'
-  },
-  V2: {
-    bg: '#6366f1',
-    hover: '#818cf8'
-  },
-  V3: {
-    bg: '#ec4899',
-    hover: '#f472b6'
   },
   'Stretch Goals': {
     bg: '#8b5cf6',
@@ -933,7 +923,7 @@ export default function ProjectBoardPage() {
                           <PopoverContent className="w-40 p-2 bg-[#1a2332] border-slate-700 z-[100]" side="left" align="start" sideOffset={8}>
                             <p className="text-xs font-semibold text-slate-400 mb-2 px-2">Category</p>
                             <div className="space-y-0.5">
-                              {(['MVP', 'V1', 'V2', 'V3', 'Stretch Goals'] as const).map(cat => (
+                              {(['MVP', 'V1', 'Stretch Goals'] as const).map(cat => (
                                 <button
                                   key={cat}
                                   onClick={() => setEditingCard(prev => prev ? { ...prev, tag: cat } : null)}
