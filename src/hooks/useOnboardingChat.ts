@@ -354,6 +354,68 @@ export function useOnboardingChat(forceNew: boolean = false) {
         return { text: aiResponse, sessionComplete };
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error');
+
+        // Recovery: if this looks like a timeout/network/5xx, poll app_ideas to
+        // see if n8n actually finished and wrote a row server-side.
+        if (isRecoverableError(error)) {
+          console.warn('sendMessage: recoverable error, starting recovery poll', error.message);
+          setIsRecovering(true);
+          try {
+            const sinceISO = sessionStartedAtRef.current < invokeStartedAt
+              ? sessionStartedAtRef.current
+              : invokeStartedAt;
+
+            const recovered = await pollForNewAppIdea(
+              user.id,
+              preExistingAppIdsRef.current,
+              sinceISO,
+              { attempts: 5, intervalMs: 6000 }
+            );
+
+            if (recovered) {
+              // Synthesize success: persist assistant reply, link session, mark onboarded
+              await supabase.from('chat_messages').insert({
+                session_id: currentSessionId,
+                role: 'assistant',
+                content: RECOVERY_MESSAGE,
+                metadata: { recovered: true } as never,
+              });
+
+              const assistantMessage: OnboardingMessage = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: RECOVERY_MESSAGE,
+                timestamp: new Date(),
+              };
+              setMessages((prev) => [...prev, assistantMessage]);
+
+              setAppIdeaId(recovered.id);
+              setWorkflowMode('onboarded');
+              forcedNewAppRef.current = false;
+              await fetchCompletion(recovered.id);
+
+              if (currentSessionId) {
+                await supabase
+                  .from('chat_sessions')
+                  .update({ app_idea_id: recovered.id, workflow_mode: 'onboarded' })
+                  .eq('id', currentSessionId);
+              }
+
+              await supabase
+                .from('profiles')
+                .update({ onboarded: true })
+                .eq('id', user.id);
+
+              setError(null);
+              return { text: RECOVERY_MESSAGE, sessionComplete: true };
+            }
+          } catch (pollErr) {
+            console.error('sendMessage: recovery poll threw', pollErr);
+          } finally {
+            setIsRecovering(false);
+          }
+        }
+
         setError(error);
         throw error;
       } finally {
