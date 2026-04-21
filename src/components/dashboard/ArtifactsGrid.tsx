@@ -251,5 +251,10 @@ export function ArtifactsGrid() {
           </div>
         </div>
       </div>
+      <PaywallDialog
+        open={paywall.isOpen}
+        onOpenChange={paywall.onOpenChange}
+        feature={paywall.feature}
+      />
     </div>;
 }
