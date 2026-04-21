@@ -157,6 +157,11 @@ function LoadingSkeleton() {
 
 export default function ProgramsPage() {
   const { courses, loading } = usePrograms();
+  const { programsAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const paywall = usePaywall();
+
+  const canSeeFlagship = isAdmin || programsAccess;
 
   const flagship = courses.filter((c) => c.course_type === "paid");
   const complementary = courses.filter((c) => c.course_type !== "paid");
@@ -190,7 +195,12 @@ export default function ProgramsPage() {
           </p>
           <div className="space-y-4">
             {flagship.map((course) => (
-              <CourseCardLarge key={course.id} course={course} />
+              <CourseCardLarge
+                key={course.id}
+                course={course}
+                locked={!canSeeFlagship}
+                onClick={canSeeFlagship ? undefined : () => paywall.open('programs')}
+              />
             ))}
           </div>
         </section>
@@ -212,6 +222,12 @@ export default function ProgramsPage() {
           </div>
         </section>
       )}
+
+      <PaywallDialog
+        open={paywall.isOpen}
+        onOpenChange={paywall.onOpenChange}
+        feature={paywall.feature}
+      />
     </div>
   );
 }
