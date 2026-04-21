@@ -106,20 +106,31 @@ export function DashboardSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {visibleItems.map(item => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item)}
-                    className="rounded-full h-10 px-4 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="h-5 w-5" />
-                      <span className="text-sm">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {visibleItems.map(item => {
+                const locked = isLocked(item);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild={!locked}
+                      isActive={isActive(item)}
+                      onClick={locked ? () => paywall.open(item.accessKey as PaywallFeature) : undefined}
+                      className="rounded-full h-10 px-4 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
+                    >
+                      {locked ? (
+                        <button type="button" className="w-full flex items-center gap-2">
+                          <item.icon className="h-5 w-5" />
+                          <span className="text-sm">{item.title}</span>
+                        </button>
+                      ) : (
+                        <Link to={item.url}>
+                          <item.icon className="h-5 w-5" />
+                          <span className="text-sm">{item.title}</span>
+                        </Link>
+                      )}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
