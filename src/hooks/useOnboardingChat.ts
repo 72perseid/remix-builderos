@@ -91,6 +91,13 @@ export function useOnboardingChat(forceNew: boolean = false) {
           const state = await resolveWorkflowMode(user.id);
           setWorkflowMode(state.workflowMode);
 
+          // Snapshot existing app IDs so recovery polling can detect newly created ones
+          const { data: existingApps } = await supabase
+            .from('app_ideas')
+            .select('id')
+            .eq('user_id', user.id);
+          preExistingAppIdsRef.current = new Set((existingApps || []).map((a) => a.id));
+
           // Store appIdeaId and fetch completion
           if (state.appIdeaId) {
             setAppIdeaId(state.appIdeaId);
