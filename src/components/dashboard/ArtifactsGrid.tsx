@@ -195,7 +195,7 @@ export function ArtifactsGrid() {
                   description={card.description} 
                   status={getCardStatus(card.type)} 
                   completion={completionMap[card.type]}
-                  onClick={() => navigate(card.route)}
+                  onClick={() => handleNavigate(card.route)}
                 />
               )
             ))}
