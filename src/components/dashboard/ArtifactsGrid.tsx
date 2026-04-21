@@ -215,7 +215,7 @@ export function ArtifactsGrid() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Landing Copy — linked to Landing Page Generator */}
             <div
-              onClick={() => navigate('/landing-page')}
+              onClick={() => handleNavigate('/landing-page')}
               className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 p-5 pt-10 min-h-[180px] flex flex-col cursor-pointer hover:border-primary/40 transition-colors"
             >
               <div className="mb-3">
