@@ -81,8 +81,18 @@ export function ArtifactsGrid() {
   } = useArtifacts();
   const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const paywall = usePaywall();
   const navigate = useNavigate();
-  
+
+  const canBuild = isAdmin || buildAccess;
+
+  const handleNavigate = (route: string) => {
+    if (canBuild) navigate(route);
+    else paywall.open('build');
+  };
+
 
   useEffect(() => {
     refreshApps();
