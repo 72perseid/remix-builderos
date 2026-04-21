@@ -75,16 +75,22 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  // Onboarding redirects
+  // Admins bypass onboarding entirely and land on /admin by default
   const isOnOnboardingPage = location.pathname === '/onboarding';
   const hasSkippedOnboarding = sessionStorage.getItem('onboarding_skipped') === 'true';
-  
-  if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding && !hasExistingApps) {
-    return <Navigate to="/onboarding" replace />;
-  }
 
-  if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
-    return <Navigate to="/project-board" replace />;
+  if (isAdmin) {
+    if (isOnOnboardingPage && !isAllowedMode) {
+      return <Navigate to="/admin" replace />;
+    }
+  } else {
+    if (profile && profile.onboarded === false && !isOnOnboardingPage && !hasSkippedOnboarding && !hasExistingApps) {
+      return <Navigate to="/onboarding" replace />;
+    }
+
+    if (profile && profile.onboarded === true && isOnOnboardingPage && !isAllowedMode) {
+      return <Navigate to="/project-board" replace />;
+    }
   }
 
   // Enrollment-based route gating
@@ -92,6 +98,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   // Determine the first accessible route for redirect fallback
   const getFirstAccessibleRoute = () => {
+    if (isAdmin) return '/admin';
     if (buildAccess) return '/project-board';
     if (programsAccess) return '/programs';
     if (calendarAccess) return '/calendar';
