@@ -45,6 +45,7 @@ export default function OnboardingPage() {
   const {
     messages,
     isStreaming,
+    isRecovering,
     sendMessage,
     startSession,
     error,
