@@ -10,12 +10,19 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { usePaywall } from "@/hooks/usePaywall";
 import { PaywallDialog } from "@/components/paywall/PaywallDialog";
 
-function CourseCardLarge({ course }: { course: CourseWithProgress }) {
+function CourseCardLarge({ course, locked, onClick }: { course: CourseWithProgress; locked?: boolean; onClick?: () => void }) {
   const navigate = useNavigate();
+  const handleClick = onClick ?? (() => navigate(`/programs/${course.id}`));
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
-      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer">
+      onClick={handleClick}
+      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer relative">
+      {locked && (
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 bg-background/90 backdrop-blur border border-border rounded-full px-3 py-1">
+          <Lock className="h-3.5 w-3.5 text-primary" />
+          <span className="text-xs font-medium text-foreground">Locked</span>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row">
         {course.thumbnail && (
           <div className="md:w-80 lg:w-96 flex-shrink-0">
