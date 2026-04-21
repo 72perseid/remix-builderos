@@ -7,6 +7,10 @@ import { ArtifactExportButton } from "./ArtifactExportButton";
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
 import { useProjectContext } from '@/contexts/ProjectContext';
+import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { usePaywall } from '@/hooks/usePaywall';
+import { PaywallDialog } from '@/components/paywall/PaywallDialog';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
