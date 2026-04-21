@@ -452,6 +452,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
     messages: messages.filter((m) => !m.isHidden),
     allMessages: messages,
     isStreaming,
+    isRecovering,
     error,
     workflowMode,
     modeLoading,
