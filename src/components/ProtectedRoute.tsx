@@ -110,5 +110,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to={getFirstAccessibleRoute()} replace />;
   }
 
+  if (path === '/admin' && !isAdmin) {
+    return <Navigate to={getFirstAccessibleRoute()} replace />;
+  }
+
   return <>{children}</>;
 }

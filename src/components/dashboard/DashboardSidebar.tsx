@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
-import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users, CalendarDays, BookOpen } from "lucide-react";
+import { LayoutDashboard, PanelLeftClose, PanelLeft, Sparkles, Users, CalendarDays, BookOpen, Shield } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEnrollment } from "@/hooks/useEnrollment";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { ProfileSheet } from "./ProfileSheet";
 
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
@@ -55,6 +56,7 @@ export function DashboardSidebar() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { buildAccess, calendarAccess, programsAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
 
@@ -64,9 +66,10 @@ export function DashboardSidebar() {
     programs: programsAccess,
   };
 
-  const visibleItems = mainNavItems.filter(item =>
-    !item.accessKey || accessMap[item.accessKey]
-  );
+  const visibleItems = [
+    ...mainNavItems.filter(item => !item.accessKey || accessMap[item.accessKey]),
+    ...(isAdmin ? [{ title: "Admin", url: "/admin", icon: Shield, routes: ['/admin'] } as NavItem] : []),
+  ];
 
   const isActive = (item: NavItem) => item.routes.includes(location.pathname);
 
