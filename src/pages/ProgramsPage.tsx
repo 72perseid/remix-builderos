@@ -1,10 +1,14 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePrograms, type CourseWithProgress } from "@/hooks/usePrograms";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { useEnrollment } from "@/hooks/useEnrollment";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePaywall } from "@/hooks/usePaywall";
+import { PaywallDialog } from "@/components/paywall/PaywallDialog";
 
 function CourseCardLarge({ course }: { course: CourseWithProgress }) {
   const navigate = useNavigate();
