@@ -1,6 +1,5 @@
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useXanoSync } from '@/hooks/useXanoSync';
 import { useEnrollment } from '@/hooks/useEnrollment';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useQuery } from '@tanstack/react-query';
@@ -25,9 +24,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAdmin } = useIsAdmin();
   const isDebugMode = isAdmin && (searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true');
   const isAllowedMode = mode === 'new' || mode === 'setup' || isDebugMode;
-
-  // Auto-sync Xano data when user is authenticated
-  useXanoSync(user);
 
   const { buildAccess, calendarAccess, programsAccess, loading: enrollmentLoading } = useEnrollment();
 
