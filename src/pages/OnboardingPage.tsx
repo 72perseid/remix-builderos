@@ -45,6 +45,7 @@ export default function OnboardingPage() {
   const {
     messages,
     isStreaming,
+    isRecovering,
     sendMessage,
     startSession,
     error,
@@ -442,8 +443,16 @@ export default function OnboardingPage() {
             </div>
         }
 
+          {/* Recovery status — n8n is slow, polling app_ideas */}
+          {isRecovering &&
+        <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 mb-4 text-blue-300 text-sm flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Still working… verifying your app was saved.
+            </div>
+        }
+
           {/* Error Display */}
-          {error &&
+          {error && !isRecovering &&
         <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4 text-destructive text-sm">
               {error.message}
             </div>

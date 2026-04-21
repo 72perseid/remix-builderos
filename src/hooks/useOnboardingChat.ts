@@ -2,6 +2,10 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveWorkflowMode, type WorkflowMode } from '@/lib/resolveWorkflowMode';
+import { pollForNewAppIdea, isRecoverableError } from '@/lib/recoverAppIdeaAfterTimeout';
+
+const N8N_TIMEOUT_MS = 90_000;
+const RECOVERY_MESSAGE = "Got it — I've finished setting up your app. You're all set!";
 
 export type { WorkflowMode };
 
@@ -19,9 +23,11 @@ export function useOnboardingChat(forceNew: boolean = false) {
   const sessionIdRef = useRef<string | null>(null);
   const forcedNewAppRef = useRef(false);
   const preExistingAppIdsRef = useRef<Set<string>>(new Set());
+  const sessionStartedAtRef = useRef<string>(new Date().toISOString());
 
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode | null>(null);
   const [modeLoading, setModeLoading] = useState(true);
@@ -84,6 +90,13 @@ export function useOnboardingChat(forceNew: boolean = false) {
           // Resolve workflow mode
           const state = await resolveWorkflowMode(user.id);
           setWorkflowMode(state.workflowMode);
+
+          // Snapshot existing app IDs so recovery polling can detect newly created ones
+          const { data: existingApps } = await supabase
+            .from('app_ideas')
+            .select('id')
+            .eq('user_id', user.id);
+          preExistingAppIdsRef.current = new Set((existingApps || []).map((a) => a.id));
 
           // Store appIdeaId and fetch completion
           if (state.appIdeaId) {
@@ -203,8 +216,10 @@ export function useOnboardingChat(forceNew: boolean = false) {
 
       setIsStreaming(true);
 
+      const invokeStartedAt = new Date().toISOString();
+
       try {
-        const { data, error: fnError } = await supabase.functions.invoke('chat-action', {
+        const invokePromise = supabase.functions.invoke('chat-action', {
           body: {
             message: content,
             user_id: user.id,
@@ -213,6 +228,12 @@ export function useOnboardingChat(forceNew: boolean = false) {
             app_idea_id: resolvedAppIdeaId,
           },
         });
+
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), N8N_TIMEOUT_MS)
+        );
+
+        const { data, error: fnError } = await Promise.race([invokePromise, timeoutPromise]);
 
         if (fnError) {
           throw new Error(`Failed to get AI response: ${fnError.message}`);
@@ -333,6 +354,68 @@ export function useOnboardingChat(forceNew: boolean = false) {
         return { text: aiResponse, sessionComplete };
       } catch (err) {
         const error = err instanceof Error ? err : new Error('Unknown error');
+
+        // Recovery: if this looks like a timeout/network/5xx, poll app_ideas to
+        // see if n8n actually finished and wrote a row server-side.
+        if (isRecoverableError(error)) {
+          console.warn('sendMessage: recoverable error, starting recovery poll', error.message);
+          setIsRecovering(true);
+          try {
+            const sinceISO = sessionStartedAtRef.current < invokeStartedAt
+              ? sessionStartedAtRef.current
+              : invokeStartedAt;
+
+            const recovered = await pollForNewAppIdea(
+              user.id,
+              preExistingAppIdsRef.current,
+              sinceISO,
+              { attempts: 5, intervalMs: 6000 }
+            );
+
+            if (recovered) {
+              // Synthesize success: persist assistant reply, link session, mark onboarded
+              await supabase.from('chat_messages').insert({
+                session_id: currentSessionId,
+                role: 'assistant',
+                content: RECOVERY_MESSAGE,
+                metadata: { recovered: true } as never,
+              });
+
+              const assistantMessage: OnboardingMessage = {
+                id: crypto.randomUUID(),
+                role: 'assistant',
+                content: RECOVERY_MESSAGE,
+                timestamp: new Date(),
+              };
+              setMessages((prev) => [...prev, assistantMessage]);
+
+              setAppIdeaId(recovered.id);
+              setWorkflowMode('onboarded');
+              forcedNewAppRef.current = false;
+              await fetchCompletion(recovered.id);
+
+              if (currentSessionId) {
+                await supabase
+                  .from('chat_sessions')
+                  .update({ app_idea_id: recovered.id, workflow_mode: 'onboarded' })
+                  .eq('id', currentSessionId);
+              }
+
+              await supabase
+                .from('profiles')
+                .update({ onboarded: true })
+                .eq('id', user.id);
+
+              setError(null);
+              return { text: RECOVERY_MESSAGE, sessionComplete: true };
+            }
+          } catch (pollErr) {
+            console.error('sendMessage: recovery poll threw', pollErr);
+          } finally {
+            setIsRecovering(false);
+          }
+        }
+
         setError(error);
         throw error;
       } finally {
@@ -369,6 +452,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
     messages: messages.filter((m) => !m.isHidden),
     allMessages: messages,
     isStreaming,
+    isRecovering,
     error,
     workflowMode,
     modeLoading,
