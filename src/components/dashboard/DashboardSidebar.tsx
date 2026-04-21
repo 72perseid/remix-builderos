@@ -62,6 +62,8 @@ export function DashboardSidebar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
 
+  const paywall = usePaywall();
+
   const accessMap: Record<string, boolean> = {
     build: buildAccess,
     calendar: calendarAccess,
@@ -69,11 +71,14 @@ export function DashboardSidebar() {
   };
 
   const visibleItems = [
-    ...mainNavItems.filter(item => !item.accessKey || accessMap[item.accessKey]),
+    ...mainNavItems,
     ...(isAdmin ? [{ title: "Admin", url: "/admin", icon: Shield, routes: ['/admin'] } as NavItem] : []),
   ];
 
   const isActive = (item: NavItem) => item.routes.includes(location.pathname);
+
+  const isLocked = (item: NavItem) =>
+    !!item.accessKey && !isAdmin && !accessMap[item.accessKey];
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-[#0B0E14]" collapsible="icon">
