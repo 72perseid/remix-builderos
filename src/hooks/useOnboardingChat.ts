@@ -23,9 +23,11 @@ export function useOnboardingChat(forceNew: boolean = false) {
   const sessionIdRef = useRef<string | null>(null);
   const forcedNewAppRef = useRef(false);
   const preExistingAppIdsRef = useRef<Set<string>>(new Set());
+  const sessionStartedAtRef = useRef<string>(new Date().toISOString());
 
   const [messages, setMessages] = useState<OnboardingMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [workflowMode, setWorkflowMode] = useState<WorkflowMode | null>(null);
   const [modeLoading, setModeLoading] = useState(true);
