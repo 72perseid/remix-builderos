@@ -1,49 +1,32 @@
 
 
-## Plan: N8N Timeout Recovery for Onboarding
+## Plan: Remove Artifact Sharing Feature (Frontend Only)
 
-When the n8n workflow takes longer than the edge-function timeout (~150s), the chat call rejects with an error and the user sees a generic failure — even when n8n actually finished writing the `app_idea` row server-side. This adds a fallback that polls `app_ideas` after a timeout/error and, if a new idea exists, transitions to the success state instead of showing an error.
+Remove the collaborative sharing feature — it was scope drift. This deletes the share dialog, comments panel, public shared-artifact route, and supporting hooks. The backend tables (`shared_links`, `artifact_comments`) are left in place; no destructive DB changes.
 
-### Behavior
+### Files to delete
 
-**Happy path (unchanged):** message succeeds → assistant reply rendered → `resolveWorkflowMode` detects new app → transition to onboarded.
+- `src/components/sharing/ShareDialog.tsx`
+- `src/components/sharing/CommentsPanel.tsx`
+- `src/hooks/useSharedLinks.ts`
+- `src/hooks/useArtifactComments.ts`
+- `src/pages/SharedArtifactPage.tsx`
+- `src/components/sharing/` (empty directory after deletions)
 
-**Timeout path (new):**
-1. `sendMessage` receives a function error or fetch timeout (>90s).
-2. Hook polls `app_ideas` for up to 30s (5 attempts, 6s apart) looking for a row whose `id` is **not** in the `preExistingAppIdsRef` snapshot AND `created_at > sessionStartTimestamp`.
-3. If a new row appears → treat as success: synthesize a generic assistant reply ("Got it — I've finished setting up your app."), persist it to `chat_messages`, set `appIdeaId`, link the session, mark `profiles.onboarded = true`, and return `{ text, sessionComplete: true }` so the existing UI fires the completion popup.
-4. If no row appears after 30s → bubble the original error as today.
+### Files to edit
 
-**No-bypass guarantee:** recovery only triggers on error/timeout, never on a successful response.
-
-### Files
-
-| File | Action |
+| File | Change |
 |---|---|
-| `src/lib/recoverAppIdeaAfterTimeout.ts` | **Create** — `pollForNewAppIdea(userId, knownIds, sinceISO, { attempts, intervalMs })` returns `{ id, created_at } \| null`. |
-| `src/hooks/useOnboardingChat.ts` | **Edit** — wrap the `supabase.functions.invoke('chat-action', …)` call in an `AbortController` with a 90s timeout. In the `catch` branch, before re-throwing, call the poller; on hit, run the same "new app detected" branch (lines 296–328) and return `{ text, sessionComplete: true }`. Track `sessionStartedAtRef` so the poll only matches rows created during this session. |
-| `src/pages/OnboardingPage.tsx` | **Edit (small)** — add a brief "Still working… verifying your app was saved" inline status during the recovery window so the UI isn't frozen silently. Reuse existing streaming spinner styling. No structural changes. |
+| `src/App.tsx` | Remove `import SharedArtifactPage` (line 26) and the `<Route path="/shared/:token" …>` (line 114). |
+| `src/components/dashboard/ArtifactBreadcrumb.tsx` | Remove `ShareDialog` import, the `useArtifact` lookup used only for `artifact?.id`, and the `<ShareDialog …>` render. Keep `ArtifactExportButton` and the breadcrumb intact. |
 
-### Implementation notes
+### Memory update
 
-- **Timeout source of truth:** `AbortController` wrapping the `functions.invoke`. We can't pass `signal` directly to `invoke`, so we race it against `new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), 90_000))`. Treat both `TIMEOUT` and `FunctionsHttpError`/network errors as recovery candidates.
-- **Polling query:**
-  ```ts
-  supabase.from('app_ideas')
-    .select('id, created_at, app_name')
-    .eq('user_id', userId)
-    .gt('created_at', sinceISO)
-    .order('created_at', { ascending: false })
-    .limit(5)
-  ```
-  Filter results client-side against `preExistingAppIdsRef` to be safe.
-- **Why 90s not 150s:** Surfacing the recovery flow earlier gives the user feedback; n8n can still complete in the background and be detected by the poll.
-- **Synthesized assistant message:** persisted to `chat_messages` with `metadata: { recovered: true }` for traceability.
-- **Recovery state flag:** new `isRecovering` boolean exposed from the hook so `OnboardingPage` can show the "verifying…" notice instead of the generic error banner.
-- **Non-recovery errors** (auth failure, validation) still throw normally — recovery only applies when timeout/network/5xx is the failure mode.
+- Delete `mem://features/artifacts/collaborative-sharing` (feature no longer exists).
+- Update `mem://index.md` to remove the "Collaborative Sharing" line from the Memories list.
 
 ### Out of scope
 
-- Edge function `chat-action` AbortController for the inner n8n fetch (separate concern; doesn't affect frontend recovery).
-- Realtime subscription on `app_ideas` (polling is simpler and sufficient for a 30s window).
+- Dropping `shared_links` / `artifact_comments` tables and related RLS policies. Left intact in case the feature returns; safe because nothing in the app references them after this change.
+- Edge function changes — none of the sharing code touches edge functions.
 
