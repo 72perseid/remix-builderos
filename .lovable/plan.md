@@ -1,38 +1,49 @@
 
 
-## Plan: Restrict Debug Mode to Admin Users
+## Plan: N8N Timeout Recovery for Onboarding
 
-Currently, debug mode (`?debug=true`, `Ctrl+Shift+D`, or `sessionStorage.debug_mode`) bypasses onboarding and route gating in `ProtectedRoute.tsx` for any user. This must be gated to admins only by checking the `user_roles` table for `role = 'admin'` via the existing `has_role` security definer function.
+When the n8n workflow takes longer than the edge-function timeout (~150s), the chat call rejects with an error and the user sees a generic failure — even when n8n actually finished writing the `app_idea` row server-side. This adds a fallback that polls `app_ideas` after a timeout/error and, if a new idea exists, transitions to the success state instead of showing an error.
 
 ### Behavior
 
-- **Admin user**: Debug mode toggle works, `?debug=true` activates bypass, `Ctrl+Shift+D` opens the debug nav, and onboarding/route gates are bypassable as today.
-- **Non-admin user**: Toggle is a no-op, `?debug=true` is ignored, `Ctrl+Shift+D` does nothing, and `sessionStorage.debug_mode` is forcibly cleared. `ProtectedRoute` ignores any debug bypass attempt.
-- **Unauthenticated**: Same as non-admin — debug stays off.
+**Happy path (unchanged):** message succeeds → assistant reply rendered → `resolveWorkflowMode` detects new app → transition to onboarded.
+
+**Timeout path (new):**
+1. `sendMessage` receives a function error or fetch timeout (>90s).
+2. Hook polls `app_ideas` for up to 30s (5 attempts, 6s apart) looking for a row whose `id` is **not** in the `preExistingAppIdsRef` snapshot AND `created_at > sessionStartTimestamp`.
+3. If a new row appears → treat as success: synthesize a generic assistant reply ("Got it — I've finished setting up your app."), persist it to `chat_messages`, set `appIdeaId`, link the session, mark `profiles.onboarded = true`, and return `{ text, sessionComplete: true }` so the existing UI fires the completion popup.
+4. If no row appears after 30s → bubble the original error as today.
+
+**No-bypass guarantee:** recovery only triggers on error/timeout, never on a successful response.
 
 ### Files
 
 | File | Action |
 |---|---|
-| `src/hooks/useIsAdmin.ts` | **Create** — React Query hook that calls `supabase.rpc('has_role', { _user_id, _role: 'admin' })` for the current user. Returns `{ isAdmin, loading }`. |
-| `src/hooks/useDebugMode.ts` | **Edit** — gate `setIsDebug(true)`, the URL param check, the keyboard shortcut, and `sessionStorage` writes behind `isAdmin`. If a non-admin has stale `sessionStorage.debug_mode`, clear it on mount. |
-| `src/components/ProtectedRoute.tsx` | **Edit** — recompute `isDebugMode` only when `isAdmin` is true; otherwise treat as `false`. Use the same `useIsAdmin` hook. |
-| `src/components/debug/DebugNav.tsx` | **Edit** — additionally guard rendering on `isAdmin` (defense in depth; `useDebugMode` already won't return `isDebug: true` for non-admins, but explicit is safer). |
+| `src/lib/recoverAppIdeaAfterTimeout.ts` | **Create** — `pollForNewAppIdea(userId, knownIds, sinceISO, { attempts, intervalMs })` returns `{ id, created_at } \| null`. |
+| `src/hooks/useOnboardingChat.ts` | **Edit** — wrap the `supabase.functions.invoke('chat-action', …)` call in an `AbortController` with a 90s timeout. In the `catch` branch, before re-throwing, call the poller; on hit, run the same "new app detected" branch (lines 296–328) and return `{ text, sessionComplete: true }`. Track `sessionStartedAtRef` so the poll only matches rows created during this session. |
+| `src/pages/OnboardingPage.tsx` | **Edit (small)** — add a brief "Still working… verifying your app was saved" inline status during the recovery window so the UI isn't frozen silently. Reuse existing streaming spinner styling. No structural changes. |
 
 ### Implementation notes
 
-- **Admin check**: Call `supabase.rpc('has_role', { _user_id: user.id, _role: 'admin' })`. The function is `SECURITY DEFINER` and reads `user_roles`, so RLS won't block it. Cache via React Query keyed on `['is-admin', user.id]` with `staleTime: 5 min`.
-- **`useDebugMode` signature stays the same** (`{ isDebug, toggle }`) so callers don't change. Internally:
-  - Initial state resolves to `false` until `isAdmin` resolves true; then it re-reads URL/sessionStorage.
-  - `toggle()` is a no-op when `!isAdmin`.
-  - On mount, if `!isAdmin && !loading`, remove `sessionStorage.debug_mode` to evict stale flags from a previously-admin session.
-- **`ProtectedRoute`**: replace the existing line  
-  `const isDebugMode = searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true';`  
-  with `const { isAdmin } = useIsAdmin(); const isDebugMode = isAdmin && (searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true');`
-- **No DB changes**: `user_roles`, the `app_role` enum, and `has_role()` already exist. No migrations needed.
-- **No security finding update needed**: this hardens an internal bypass, not a flagged scanner item.
+- **Timeout source of truth:** `AbortController` wrapping the `functions.invoke`. We can't pass `signal` directly to `invoke`, so we race it against `new Promise((_, rej) => setTimeout(() => rej(new Error('TIMEOUT')), 90_000))`. Treat both `TIMEOUT` and `FunctionsHttpError`/network errors as recovery candidates.
+- **Polling query:**
+  ```ts
+  supabase.from('app_ideas')
+    .select('id, created_at, app_name')
+    .eq('user_id', userId)
+    .gt('created_at', sinceISO)
+    .order('created_at', { ascending: false })
+    .limit(5)
+  ```
+  Filter results client-side against `preExistingAppIdsRef` to be safe.
+- **Why 90s not 150s:** Surfacing the recovery flow earlier gives the user feedback; n8n can still complete in the background and be detected by the poll.
+- **Synthesized assistant message:** persisted to `chat_messages` with `metadata: { recovered: true }` for traceability.
+- **Recovery state flag:** new `isRecovering` boolean exposed from the hook so `OnboardingPage` can show the "verifying…" notice instead of the generic error banner.
+- **Non-recovery errors** (auth failure, validation) still throw normally — recovery only applies when timeout/network/5xx is the failure mode.
 
-### Memory update
+### Out of scope
 
-Update `mem://tools/debug-mode` to record that debug mode is admin-only, gated via `user_roles.role = 'admin'` through the `has_role` RPC.
+- Edge function `chat-action` AbortController for the inner n8n fetch (separate concern; doesn't affect frontend recovery).
+- Realtime subscription on `app_ideas` (polling is simpler and sufficient for a 30s window).
 
