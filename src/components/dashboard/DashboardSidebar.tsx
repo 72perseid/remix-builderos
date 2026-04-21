@@ -162,6 +162,11 @@ export function DashboardSidebar() {
       </SidebarFooter>
 
       <ProfileSheet open={isProfileOpen} onOpenChange={setIsProfileOpen} />
+      <PaywallDialog
+        open={paywall.isOpen}
+        onOpenChange={paywall.onOpenChange}
+        feature={paywall.feature}
+      />
     </Sidebar>
   );
 }
