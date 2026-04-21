@@ -23,7 +23,7 @@ import MasterPromptPage from "./pages/MasterPromptPage";
 import UIUXPage from "./pages/UIUXPage";
 import AppDetailsPage from "./pages/AppDetailsPage";
 import CoachingPage from "./pages/CoachingPage";
-import SharedArtifactPage from "./pages/SharedArtifactPage";
+
 import LandingPageGeneratorPage from "./pages/LandingPageGeneratorPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
 import OneOnOneCoachingPage from "./pages/OneOnOneCoachingPage";
@@ -111,7 +111,7 @@ const App = () => (
                 <DashboardLayout><CoachingPage /></DashboardLayout>
               </ProtectedRoute>
             } />
-            <Route path="/shared/:token" element={<SharedArtifactPage />} />
+            
             <Route path="/lp/:slug" element={<PublicLandingPage />} />
             <Route path="/landing-page" element={
               <ProtectedRoute>
