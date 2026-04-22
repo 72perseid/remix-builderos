@@ -1,45 +1,49 @@
 
 
-## Plan: Blur kanban + paywall overlay for free users on `/project-board`
+## Plan: Align kanban-board to spec (position recalc + top-insert) — keep current color palette
 
-When a free user (no `buildAccess` and not admin) lands on `/project-board`, render the kanban columns blurred with a centered paywall card on top — matching the existing "browse but locked" pattern.
+### Changes
 
-### Behavior
+**1. `src/hooks/useTasks.ts` — `moveTask`** 
+Replace the single-row update with a batched recalculation so every affected row gets a clean sequential `position`:
 
-- **Admins / users with `buildAccess`**: no change. Full kanban remains interactive.
-- **Free users**: 
-  - Kanban board area renders as-is (with their data or empty placeholders) but is wrapped in a blurred, non-interactive overlay container.
-  - A paywall card sits centered on top with the same visual language as `PaywallDialog` (lock icon + title + bullets + CTA → `/coaching`).
-  - All clicks/drags inside the kanban are disabled (`pointer-events-none`).
-  - The Architect banner (above the kanban) stays visible and unblurred so onboarding messaging still reads.
+- Build the destination column's new ordered list by inserting the dragged task at `newPosition`.
+- If the source column differs, also rebuild the source column's list without the dragged task.
+- Reassign `position = 0..n-1` for every row in the affected column(s) and the dragged task's new `status`.
+- Persist via a single `upsert` writing `{ id, position, status, user_id, app_idea_id, title }` for all affected rows (PostgREST upsert requires non-null required columns, so the rebuild reads the full task objects from cache).
+- Keep optimistic update + invalidation behavior intact.
 
-### Implementation (`src/pages/ProjectBoardPage.tsx`)
+**2. `src/hooks/useTasks.ts` — `addTaskMutation`** 
+Insert new tasks at the top (`position = 0`) and shift the rest of that column down:
 
-1. Import `useEnrollment`, `useIsAdmin`, and `Lock`/`Sparkles` icons + `Button` (already imported).
-2. Compute `const isLocked = !isAdmin && !buildAccess;` after the existing loading checks.
-3. Wrap the existing `<Kanban>...</Kanban>` block in a `relative` container.
-4. When `isLocked`:
-   - Apply `blur-md select-none pointer-events-none` to the kanban wrapper.
-   - Render an absolute-positioned overlay (`absolute inset-0 flex items-center justify-center z-10`) containing an inline paywall card:
-     - Lock icon header (matching `PaywallDialog` styling — primary-tinted rounded square, `Sparkles` + small `Lock` badge).
-     - Title: **"Unlock the Builder Suite"**
-     - Description: "Get full access to the AI-powered planning and building tools to ship your app faster."
-     - 3 bullet items (same as `PAYWALL_COPY.build`):
-       - Project board & task automation
-       - Business model, validation & product brief artifacts
-       - Database design & master prompt generator
-     - Primary CTA button: **"Talk to an Expert"** → `navigate('/coaching')`.
-   - Card styled as `bg-card/95 backdrop-blur border border-slate-700/50 rounded-2xl p-6 max-w-md shadow-2xl`.
+- Read existing tasks for the same `app_idea_id` + target `status` from the current cache.
+- Insert the new task with `position = 0`.
+- Issue a follow-up bulk update (`upsert` on `{ id, position }`) shifting each existing task in that column by `+1` (or simpler: rewrite all positions in that column starting at 1 in their previous order).
+- Invalidate the tasks query.
+
+**3. Color palette** 
+Keep the current `red | orange | yellow | green | blue | purple | gray` palette as shipped. Update the kanban memory note to reflect the actual values so future agents don't drift back to the spec list.
+
+**4. Memory update** 
+Append a short memory file `mem://features/kanban/board-rules.md` capturing:
+- Five-column order + status enum mapping
+- Position rule: new tasks insert at top (`position = 0`); drag/drop recalculates all affected rows in column(s) sequentially
+- Color palette: `red, orange, yellow, green, blue, purple, gray` (deviates from openspec; openspec list is outdated)
+
+Add a one-line reference under `## Memories` in `mem://index.md` (preserving existing content).
 
 ### Files changed
 
 | File | Change |
 |---|---|
-| `src/pages/ProjectBoardPage.tsx` | Add `isLocked` check; wrap kanban with blur + non-interactive; render inline paywall overlay card on top |
+| `src/hooks/useTasks.ts` | Rewrite `moveTask` to batch-recalculate positions across affected column(s); change `addTaskMutation` to insert at `position = 0` and shift existing rows |
+| `mem://features/kanban/board-rules.md` | New memory file documenting kanban rules and palette deviation |
+| `mem://index.md` | Add reference line for the new memory |
 
 ### Out of scope
 
-- Changes to `PaywallDialog` component itself (we render an inline card instead of a modal so it stays persistent on the page).
-- Changes to artifact card click paywalls or other modules.
-- Changes to `ProtectedRoute`, sidebar, or `useEnrollment`.
+- No DB schema changes (existing `tasks.position integer` and `status text` already support this).
+- No UI changes to `KanbanBoard`, `KanbanColumn`, or `TaskCard` — drag handlers already pass `(activeId, targetStatus, newPosition)` which matches the new `moveTask` signature.
+- No changes to color picker UI or `Task['color']` union (decision B).
+- No regeneration of historical task ordering — fix applies from next move/create onward; existing duplicate positions self-heal as soon as the column is touched.
 
