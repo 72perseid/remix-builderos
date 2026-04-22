@@ -1,15 +1,18 @@
 import { cn } from '@/lib/utils';
-import { User } from 'lucide-react';
+import { User, FileText } from 'lucide-react';
 import logoIcon from '@/assets/logo-icon-assistant.png';
+import type { ChatAttachment } from '@/lib/chatAttachments';
 
 interface OnboardingMessageProps {
   role: 'user' | 'assistant';
   content: string;
   isNew?: boolean;
+  attachments?: ChatAttachment[];
 }
 
-export function OnboardingMessage({ role, content, isNew = false }: OnboardingMessageProps) {
+export function OnboardingMessage({ role, content, attachments }: OnboardingMessageProps) {
   const isUser = role === 'user';
+  const hasAttachments = !!attachments && attachments.length > 0;
 
   return (
     <div
@@ -37,7 +40,28 @@ export function OnboardingMessage({ role, content, isNew = false }: OnboardingMe
             Architect
           </p>
         )}
-        <p className="text-base leading-relaxed whitespace-pre-wrap">{content}</p>
+        {hasAttachments && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {attachments!.map((att, i) =>
+              att.type === 'image' ? (
+                <img
+                  key={i}
+                  src={att.data}
+                  alt={att.name}
+                  className="h-20 w-20 rounded object-cover border border-white/20"
+                />
+              ) : (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 text-xs bg-white/10 rounded px-2 py-1"
+                >
+                  <FileText className="h-3 w-3" /> {att.name}
+                </span>
+              )
+            )}
+          </div>
+        )}
+        {content && <p className="text-base leading-relaxed whitespace-pre-wrap">{content}</p>}
       </div>
 
       {isUser && (

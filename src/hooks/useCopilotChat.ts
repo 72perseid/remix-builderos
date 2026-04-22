@@ -3,12 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
+import type { ChatAttachment } from '@/lib/chatAttachments';
 
-export interface CopilotAttachment {
-  type: 'image' | 'markdown';
-  name: string;
-  data: string; // base64 data-url for images, raw text for markdown
-}
+// Backwards-compat alias — existing imports of CopilotAttachment continue to work.
+export type CopilotAttachment = ChatAttachment;
 
 export interface CopilotMessage {
   id: string;

@@ -1,14 +1,16 @@
 import { cn } from '@/lib/utils';
-import { User, CheckCircle } from 'lucide-react';
+import { User, CheckCircle, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import builderosIconMono from '@/assets/builderos-icon-mono.png';
+import type { ChatAttachment } from '@/lib/chatAttachments';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
   userAvatar?: string | null;
+  attachments?: ChatAttachment[];
   onDashboardClick?: () => void;
 }
 
@@ -23,10 +25,11 @@ function transformContent(content: string): { text: string; isComplete: boolean 
   return { text: content, isComplete: false };
 }
 
-export function ChatMessage({ role, content, timestamp, userAvatar, onDashboardClick }: ChatMessageProps) {
+export function ChatMessage({ role, content, timestamp, userAvatar, attachments, onDashboardClick }: ChatMessageProps) {
   const navigate = useNavigate();
   const isUser = role === 'user';
   const { text, isComplete } = transformContent(content);
+  const hasAttachments = !!attachments && attachments.length > 0;
 
   const handleDashboardClick = () => {
     onDashboardClick?.();
@@ -55,7 +58,28 @@ export function ChatMessage({ role, content, timestamp, userAvatar, onDashboardC
             : 'bg-muted text-foreground rounded-bl-md'
         )}
       >
-        <p className="text-sm whitespace-pre-wrap">{text}</p>
+        {hasAttachments && (
+          <div className="flex flex-wrap gap-1.5 mb-1.5">
+            {attachments!.map((att, i) =>
+              att.type === 'image' ? (
+                <img
+                  key={i}
+                  src={att.data}
+                  alt={att.name}
+                  className="h-16 w-16 rounded object-cover border border-white/20"
+                />
+              ) : (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 text-xs bg-white/10 rounded px-2 py-1"
+                >
+                  <FileText className="h-3 w-3" /> {att.name}
+                </span>
+              )
+            )}
+          </div>
+        )}
+        {text && <p className="text-sm whitespace-pre-wrap">{text}</p>}
         {isComplete && (
           <button 
             onClick={handleDashboardClick}
