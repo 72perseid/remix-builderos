@@ -1,16 +1,9 @@
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useEnrollment } from '@/hooks/useEnrollment';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
-
-const BUILD_ROUTES = [
-  '/project-board', '/artifacts', '/app-idea', '/business-model',
-  '/database-design', '/master-prompt', '/app-details', '/validation',
-  '/product-brief', '/ui-ux', '/landing-page',
-];
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -24,8 +17,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAdmin } = useIsAdmin();
   const isDebugMode = isAdmin && (searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true');
   const isAllowedMode = mode === 'new' || mode === 'setup' || isDebugMode;
-
-  const { buildAccess, calendarAccess, programsAccess, loading: enrollmentLoading } = useEnrollment();
 
   // Check if user has completed onboarding
   const { data: profile, isLoading: profileLoading } = useQuery({
