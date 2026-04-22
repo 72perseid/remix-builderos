@@ -1,57 +1,58 @@
 
 
-## Verification: chat-onboarding specification
+## Verification: chat-copilot specification
 
-Result of read-only audit against the current codebase.
+Read-only audit of the artifact Copilot against the spec.
 
 ### Verification summary
 
 | Requirement | Status | Notes |
 |---|---|---|
-| Starting a new session | ✅ Implemented | `useOnboardingChat` and `useChat` create `chat_sessions` rows on first send with correct `workflow_mode` and `app_idea_id` |
-| Resuming a session | ✅ Implemented | `useChat`/copilot hooks load `chat_messages` ordered by `created_at` for the active session |
-| User message persistence | ✅ Implemented | `chat_messages` row inserted with `role = 'user'` before edge call |
-| Assistant response persistence | ✅ Implemented | Response inserted with `role = 'assistant'`; `suggestions` extracted by `useCopilotChat` and rendered as suggestion bubbles |
-| Workflow mode routing — `new` | ✅ Implemented | Onboarding sends `workflowMode: 'new'`; on `session_complete` the `app_idea` is created and `profiles.onboarded` set to `true` (see `useOnboardingChat` + onboarding completion memory) |
-| Workflow mode routing — `onboarded` | ✅ Implemented | Returning users with an active app send `workflowMode: 'onboarded'` via `resolveWorkflowMode.ts` |
-| Workflow mode routing — `chat` | ✅ Implemented | Artifact copilot uses `workflowMode: 'chat'` plus `artifact_type` (per `mem://features/copilot/chat-logic`) |
-| Attachment support | ⚠️ Partial | Attachments work in the **artifact copilot** (`ArtifactCopilot` / `useCopilotChat`, restricted to `ui_ux` per `mem://features/copilot/chat-attachments`), but the **onboarding chat** (`OnboardingPage` / `useOnboardingChat`) and the global **ChatSheet** have no attachment UI or payload field |
+| Contextual Awareness — artifact type sent | ✅ Implemented | `useCopilotChat` sends `workflowMode: 'chat'` + `artifact_type` to `chat-action` (see `mem://features/copilot/chat-logic`); `chat-action/index.ts` forwards both to n8n |
+| Contextual Awareness — current artifact content sent | ❌ Missing | Only the `artifact_type` string is sent. The current `artifacts.content` JSONB is **not** included in the payload, so n8n has to re-fetch context server-side |
+| Suggestions surfaced | ✅ Implemented | `useCopilotChat` parses `suggestions[]` from n8n responses; `ArtifactCopilot` renders them as clickable chips (see `mem://features/copilot/suggestion-bubbles`) |
+| Applying a suggestion | ✅ Implemented | Clicking a suggestion chip calls the same send handler with the suggestion text as the prompt |
+| Artifact Refresh Trigger | ✅ Implemented | On every assistant response `useCopilotChat` invalidates the relevant React Query keys, causing the artifact page to re-render (see `mem://features/copilot/ui-synchronization`) |
+| Independent Chat Context per artifact type | ⚠️ Partial | Session is scoped by `artifact_type` so history is logically separate, **but** the same `chat_sessions` row is reused across visits — switching pages doesn't start a *fresh* session, it loads the existing one for that artifact type. Spec says "a fresh session is started scoped to the new artifact type" |
 
-### Gaps found
+### Gaps
 
-**Gap 1 — Attachments not available in onboarding / global chat**
-Spec says "Users SHALL be able to attach images and markdown files to messages" without restricting to artifact pages. Today only the UI/UX copilot accepts attachments. The onboarding flow and `ChatSheet` (workflow modes `new` and `onboarded`) have no paperclip button, no file state, and don't send an `attachments` array to `chat-action`.
+**Gap 1 — Artifact content not sent as context**
+`useCopilotChat` builds the payload with `{ message, session_id, workflowMode: 'chat', app_idea_id, artifact_type, attachments }`. The artifact's current `content` JSONB is never attached, so the n8n workflow operates blind unless it re-queries Supabase. Spec requires "current artifact content as context."
 
-The `chat-action` edge function already forwards `attachments` to N8N when present, so the backend contract is ready — only the client UIs are missing.
+**Gap 2 — Session reuse vs fresh session on navigation**
+Today, navigating from `/business-model` to `/product-brief` loads the persisted `chat_sessions` row for `product_brief` (resume behavior). The spec's wording — "a fresh session is started scoped to the new artifact type" — reads as *new session each visit*. Two valid interpretations:
+- **A. Spec literal**: start a brand-new `chat_sessions` row every time the page mounts. Pros: matches spec wording. Cons: throws away useful history; conflicts with the existing resume-session feature already shipped (`mem://architecture/database/chat-sessions`).
+- **B. Spec intent**: each artifact type has its *own* persistent session, isolated from other artifact types — which is already true today.
 
-### Proposed implementation (pending approval)
+### Proposed fixes
 
-1. **Shared attachment helper** — extract the existing base64 conversion + 5MB validation from `useCopilotChat` into `src/lib/chatAttachments.ts` so all three chat surfaces share the same logic and limits (5MB per file, image/* + text/markdown).
-2. **Onboarding chat (`OnboardingPage` + `useOnboardingChat`)** — add a paperclip button next to the textarea, render attachment chips (filename + remove), include `attachments` in the `chat-action` payload, and persist a small `metadata.attachments` summary on the user `chat_messages` row so resumed sessions show that an image was sent.
-3. **Global `ChatSheet` (`workflowMode: onboarded`)** — same paperclip + chip pattern, same payload addition.
-4. **Rendering** — `ChatMessage` already handles assistant markdown; extend it to render attached image thumbnails (and a filename pill for markdown files) when `metadata.attachments` is present on a user message.
-5. **Memory update** — broaden `mem://features/copilot/chat-attachments` (or add a new `mem://features/chat/attachments`) to note that attachments now work in onboarding, global chat, and UI/UX copilot, with the same 5MB / image+md limits.
+1. **Inject artifact content into payload** (`src/hooks/useCopilotChat.ts`)
+   - Read the latest artifact via the existing `useArtifact(artifactType)` hook (already used on artifact pages).
+   - Add `artifact_content: artifact?.content ?? null` to the `chat-action` body.
+   - Update `supabase/functions/chat-action/index.ts` to destructure `artifact_content` and forward it to n8n alongside `artifact_type`. No schema/auth changes.
+   - Memory note: append a one-liner to `mem://features/copilot/chat-logic` documenting that `artifact_content` is now part of the chat payload.
+
+2. **Session behavior — recommend Option B (no code change)**
+   - Per-artifact persistent sessions already deliver isolated context, which is the practical intent. Update `mem://features/copilot/chat-logic` to explicitly state: "Each artifact type owns one persistent `chat_sessions` row; switching pages loads that row, never the row of another artifact type."
+   - If the user prefers Option A (literal fresh session every mount), implement by creating a new `chat_sessions` row on `ArtifactCopilot` mount instead of resuming — flagged below as a question.
 
 ### Files to change (after approval)
 
 | File | Change |
 |---|---|
-| `src/lib/chatAttachments.ts` | New shared helper: validate, base64-encode, type-check |
-| `src/hooks/useOnboardingChat.ts` | Accept `attachments`, include in edge payload, store metadata on user message |
-| `src/pages/OnboardingPage.tsx` | Paperclip button, file input, attachment chips |
-| `src/hooks/useChat.ts` | Accept `attachments`, include in edge payload, store metadata |
-| `src/components/chat/ChatSheet.tsx` | Paperclip button, file input, attachment chips |
-| `src/components/chat/ChatMessage.tsx` | Render image thumbnails / file pills from `metadata.attachments` |
-| `src/hooks/useCopilotChat.ts` | Refactor to use the shared helper (no behavior change) |
-| `mem://features/chat/attachments.md` | New memory; update `mem://index.md` reference |
+| `src/hooks/useCopilotChat.ts` | Pull current artifact via `useArtifact`, include `artifact_content` in payload |
+| `supabase/functions/chat-action/index.ts` | Accept and forward `artifact_content` to n8n |
+| `mem://features/copilot/chat-logic` | Document `artifact_content` payload + per-artifact session reuse rule |
 
 ### Out of scope
 
-- No DB schema changes — attachment summaries piggyback on the existing `chat_messages.metadata` JSONB column.
-- No edge function changes — `chat-action` already forwards `attachments`.
-- N8N workflow updates for `new` / `onboarded` modes to consume attachments are outside this codebase; client will send the field, n8n side can adopt later without breaking.
+- No DB schema changes.
+- No UI changes to `ArtifactCopilot` (suggestions, refresh, attachments already work).
+- n8n workflow changes to *consume* `artifact_content` are outside this codebase; sending the field is forward-compatible.
 
-### Question
+### Questions
 
-Approve the gap fix to enable attachments in the onboarding chat and the global ChatSheet (matching the existing UI/UX copilot behavior with 5MB images + markdown)?
+1. Approve sending the current `artifact_content` JSONB to n8n on every Copilot message? (recommended — required by spec)
+2. For "Independent Chat Context": **A.** start a brand-new session every time an artifact page mounts (literal spec), or **B.** keep the current per-artifact persistent session that resumes history (recommended)?
 
