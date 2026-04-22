@@ -89,14 +89,14 @@ export function useTasks() {
     enabled: !!user?.id && !!selectedAppId,
   });
 
-  // Add task mutation
+  // Add task mutation — inserts at position 0 (top) and shifts existing column rows down
   const addTaskMutation = useMutation({
     mutationFn: async (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>) => {
       if (!user?.id || !selectedAppId) throw new Error('Not authenticated or no app selected');
 
-      const maxPosition = tasks.filter(t => t.status === task.status).length;
       const now = new Date().toISOString();
 
+      // Insert new task at position 0
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -111,7 +111,7 @@ export function useTasks() {
           planned_date: task.plannedDate || null,
           estimated_effort: task.estimatedEffort || null,
           checklist: (task.checklist || []) as unknown as import('@/integrations/supabase/types').Json,
-          position: maxPosition,
+          position: 0,
           created_at: now,
           updated_at: now,
         })
@@ -119,6 +119,30 @@ export function useTasks() {
         .single();
 
       if (error) throw error;
+
+      // Shift existing tasks in same column down by +1 (preserve previous order)
+      const existing = tasks
+        .filter(t => t.status === task.status)
+        .sort((a, b) => a.position - b.position);
+
+      if (existing.length > 0) {
+        const shifted = existing.map((t, idx) => ({
+          id: t.id,
+          user_id: user.id,
+          app_idea_id: selectedAppId,
+          title: t.title,
+          status: t.status,
+          position: idx + 1,
+          updated_at: now,
+        }));
+
+        const { error: shiftError } = await supabase
+          .from('tasks')
+          .upsert(shifted, { onConflict: 'id' });
+
+        if (shiftError) console.error('Error shifting task positions:', shiftError);
+      }
+
       return data;
     },
     onSuccess: () => {
@@ -190,12 +214,92 @@ export function useTasks() {
     deleteTaskMutation.mutate(id);
   }, [deleteTaskMutation]);
 
-  const moveTask = useCallback((taskId: string, newStatus: TaskStatus, newPosition: number) => {
-    updateTaskMutation.mutate({
-      id: taskId,
-      updates: { status: newStatus, position: newPosition },
+  // Move task: batch-recalculates positions across affected column(s) sequentially
+  const moveTask = useCallback(async (taskId: string, newStatus: TaskStatus, newPosition: number) => {
+    if (!user?.id || !selectedAppId) return;
+
+    const moving = tasks.find(t => t.id === taskId);
+    if (!moving) return;
+
+    const oldStatus = moving.status;
+    const now = new Date().toISOString();
+
+    // Build destination column ordered list (without the moving task), then insert at newPosition
+    const destList = tasks
+      .filter(t => t.status === newStatus && t.id !== taskId)
+      .sort((a, b) => a.position - b.position);
+
+    const clampedPos = Math.max(0, Math.min(newPosition, destList.length));
+    const newDest = [...destList];
+    const movedTask = { ...moving, status: newStatus };
+    newDest.splice(clampedPos, 0, movedTask);
+
+    // Compose rows to upsert
+    const rows: Array<{
+      id: string;
+      user_id: string;
+      app_idea_id: string;
+      title: string;
+      status: string;
+      position: number;
+      updated_at: string;
+    }> = newDest.map((t, idx) => ({
+      id: t.id,
+      user_id: user.id,
+      app_idea_id: selectedAppId,
+      title: t.title,
+      status: newStatus,
+      position: idx,
+      updated_at: now,
+    }));
+
+    // If moving across columns, also resequence the source column (without the moved task)
+    if (oldStatus !== newStatus) {
+      const sourceList = tasks
+        .filter(t => t.status === oldStatus && t.id !== taskId)
+        .sort((a, b) => a.position - b.position);
+
+      sourceList.forEach((t, idx) => {
+        rows.push({
+          id: t.id,
+          user_id: user.id,
+          app_idea_id: selectedAppId,
+          title: t.title,
+          status: oldStatus,
+          position: idx,
+          updated_at: now,
+        });
+      });
+    }
+
+    // Optimistic update
+    queryClient.setQueryData<Task[]>(queryKey, (prev) => {
+      if (!prev) return prev;
+      const byId = new Map(prev.map(t => [t.id, t]));
+      rows.forEach(r => {
+        const existing = byId.get(r.id);
+        if (existing) {
+          byId.set(r.id, {
+            ...existing,
+            status: r.status as TaskStatus,
+            position: r.position,
+            updatedAt: r.updated_at,
+          });
+        }
+      });
+      return Array.from(byId.values());
     });
-  }, [updateTaskMutation]);
+
+    const { error } = await supabase
+      .from('tasks')
+      .upsert(rows, { onConflict: 'id' });
+
+    if (error) {
+      console.error('Error moving task (batch):', error);
+    }
+
+    queryClient.invalidateQueries({ queryKey });
+  }, [user?.id, selectedAppId, tasks, queryClient, queryKey]);
 
   const importTasks = useCallback(async (newTasks: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'position'>[]) => {
     if (!user?.id || !selectedAppId) return;
