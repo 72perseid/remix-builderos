@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { toast } from '@/hooks/use-toast';
 import { resolveWorkflowMode } from '@/lib/resolveWorkflowMode';
+import { type ChatAttachment, summarizeAttachmentsForMetadata } from '@/lib/chatAttachments';
 
 const CHAT_ACTION_URL = `https://bsogscaipffwkjszicfc.supabase.co/functions/v1/chat-action`;
 const REQUEST_TIMEOUT_MS = 90000; // Extended to 90 seconds for heavy N8N workflows
@@ -14,6 +15,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  metadata?: { attachments?: ChatAttachment[] } | null;
 }
 
 // Helper function to create a fetch with timeout
@@ -122,7 +124,7 @@ export function useChat() {
       try {
         const { data, error } = await supabase
           .from('chat_messages')
-          .select('id, role, content, created_at')
+          .select('id, role, content, created_at, metadata')
           .eq('session_id', sessionId)
           .order('created_at', { ascending: true });
 
@@ -168,9 +170,11 @@ export function useChat() {
 
   // Send message mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async ({ content, attachments }: { content: string; attachments?: ChatAttachment[] }) => {
       if (!sessionId || !user?.id) throw new Error('No session or user');
       if (!selectedAppId && !isNewAppMode) throw new Error('No app selected');
+
+      const hasAttachments = !!attachments && attachments.length > 0;
 
       // Save user message to DB
       const { error: insertError } = await supabase
@@ -179,6 +183,9 @@ export function useChat() {
           session_id: sessionId,
           role: 'user',
           content,
+          metadata: hasAttachments
+            ? ({ attachments: summarizeAttachmentsForMetadata(attachments!) } as never)
+            : null,
         });
 
       if (insertError) throw insertError;
@@ -209,6 +216,7 @@ export function useChat() {
               session_id: sessionId,
               workflowMode: state.workflowMode,
               app_idea_id: state.appIdeaId ?? selectedAppId,
+              ...(hasAttachments ? { attachments } : {}),
             }),
           },
           REQUEST_TIMEOUT_MS
@@ -317,8 +325,8 @@ export function useChat() {
   });
 
   const sendMessage = useCallback(
-    (content: string) => {
-      return sendMessageMutation.mutateAsync(content);
+    (content: string, attachments?: ChatAttachment[]) => {
+      return sendMessageMutation.mutateAsync({ content, attachments });
     },
     [sendMessageMutation]
   );
