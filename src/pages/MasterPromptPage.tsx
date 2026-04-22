@@ -6,11 +6,13 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useCopilotChat } from '@/hooks/useCopilotChat';
 import { toast } from 'sonner';
-import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
+import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2, Lock } from 'lucide-react';
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { CoachCTA } from '@/components/dashboard/CoachCTA';
+import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 // Prerequisites configuration
 const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'validation', 'product_brief'] as const;
@@ -72,6 +74,10 @@ export default function MasterPromptPage() {
   });
   const [copied, setCopied] = useState(false);
 
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const isLocked = !isAdmin && !buildAccess;
+
   // Calculate missing prerequisites
   const missingArtifacts = REQUIRED_ARTIFACTS.filter(
     (type) => !allArtifacts.some((a) => a.type === type)
@@ -106,8 +112,9 @@ export default function MasterPromptPage() {
   }
 
   return (
-    <div className="h-full overflow-auto">
-      <div className="max-w-full space-y-6 p-6">
+    <div className="relative h-full overflow-hidden">
+      <div className={cn("h-full overflow-auto", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
+        <div className="max-w-full space-y-6 p-6">
           <div>
             <h1 className="text-2xl font-bold text-white">Master Prompt</h1>
             <p className="text-white/80 mt-1">
@@ -271,7 +278,42 @@ export default function MasterPromptPage() {
 
         {/* Coach CTA */}
         <CoachCTA message="Want someone to run this for you?" ctaLabel="Talk to an Expert" />
+        </div>
       </div>
+
+      {isLocked && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 p-6">
+          <div className="bg-card/95 backdrop-blur border border-slate-700/50 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+              <div className="relative">
+                <Sparkles className="h-7 w-7 text-primary" />
+                <Lock className="absolute -bottom-1 -right-1 h-4 w-4 text-primary bg-background rounded-full p-0.5" />
+              </div>
+            </div>
+            <h2 className="text-center text-xl font-semibold text-foreground mb-1.5">
+              Unlock the Builder Suite
+            </h2>
+            <p className="text-center text-sm text-muted-foreground mb-4">
+              Get full access to the AI-powered planning and building tools to ship your app faster.
+            </p>
+            <ul className="space-y-2.5 mb-5">
+              {[
+                "Project board & task automation",
+                "Business model, validation & product brief artifacts",
+                "Database design & master prompt generator",
+              ].map((b) => (
+                <li key={b} className="flex items-start gap-2.5 text-sm text-foreground">
+                  <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+            <Button onClick={() => navigate('/coaching')} className="w-full">
+              Talk to an Expert
+            </Button>
+          </div>
+        </div>
+      )}
     </div>);
 
 }
