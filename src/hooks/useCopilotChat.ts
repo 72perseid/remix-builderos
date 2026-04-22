@@ -54,6 +54,24 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
     setIsLoading(true);
 
     try {
+      // Fetch latest artifact content for this type so n8n receives current
+      // context without having to re-query Supabase server-side.
+      let artifactContent: unknown = null;
+      try {
+        const { data: artifactRow } = await supabase
+          .from('artifacts')
+          .select('content')
+          .eq('user_id', user.id)
+          .eq('app_idea_id', selectedAppId)
+          .eq('type', context as never)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        artifactContent = artifactRow?.content ?? null;
+      } catch (artifactErr) {
+        console.warn('[CopilotChat] Failed to load artifact content:', artifactErr);
+      }
+
       const { data, error } = await supabase.functions.invoke('chat-action', {
         body: {
           message: content,
@@ -62,6 +80,7 @@ export function useCopilotChat({ context, onArtifactRefresh }: UseCopilotChatOpt
           app_idea_id: selectedAppId,
           workflowMode: 'chat',
           artifact_type: context,
+          artifact_content: artifactContent,
           ...(attachments && attachments.length > 0 ? { attachments } : {}),
         },
       });
