@@ -4,8 +4,10 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
 import { useTasks } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag } from 'lucide-react';
+import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag, Lock, Sparkles, Check } from 'lucide-react';
 import { CoachCTA } from '@/components/dashboard/CoachCTA';
+import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay, KanbanMoveEvent } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -304,6 +306,9 @@ export default function ProjectBoardPage() {
   } = useArtifact('kanban');
   const { profile } = useProfile();
   const isOnboarded = profile?.onboarded === true;
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const isLocked = !isAdmin && !buildAccess;
 
   const { 
     tasks, 
@@ -620,18 +625,56 @@ export default function ProjectBoardPage() {
       )}
       
       {/* Kanban Board */}
-      <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id} onMove={handleMove}>
-        <KanbanBoard className="flex-1 gap-3">
-          {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
-        </KanbanBoard>
-        <KanbanOverlay>
-          {({ value }) => {
-            const card = findCard(value as string);
-            if (!card) return null;
-            return <TaskCard card={card} isOverlay />;
-          }}
-        </KanbanOverlay>
-      </Kanban>
+      <div className="relative flex-1 flex flex-col">
+        <div className={cn("flex-1 flex flex-col", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
+          <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id} onMove={handleMove}>
+            <KanbanBoard className="flex-1 gap-3">
+              {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
+            </KanbanBoard>
+            <KanbanOverlay>
+              {({ value }) => {
+                const card = findCard(value as string);
+                if (!card) return null;
+                return <TaskCard card={card} isOverlay />;
+              }}
+            </KanbanOverlay>
+          </Kanban>
+        </div>
+
+        {isLocked && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 p-6">
+            <div className="bg-card/95 backdrop-blur border border-slate-700/50 rounded-2xl p-6 max-w-md w-full shadow-2xl">
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+                <div className="relative">
+                  <Sparkles className="h-7 w-7 text-primary" />
+                  <Lock className="absolute -bottom-1 -right-1 h-4 w-4 text-primary bg-background rounded-full p-0.5" />
+                </div>
+              </div>
+              <h2 className="text-center text-xl font-semibold text-foreground mb-1.5">
+                Unlock the Builder Suite
+              </h2>
+              <p className="text-center text-sm text-muted-foreground mb-4">
+                Get full access to the AI-powered planning and building tools to ship your app faster.
+              </p>
+              <ul className="space-y-2.5 mb-5">
+                {[
+                  "Project board & task automation",
+                  "Business model, validation & product brief artifacts",
+                  "Database design & master prompt generator",
+                ].map((b) => (
+                  <li key={b} className="flex items-start gap-2.5 text-sm text-foreground">
+                    <Check className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button onClick={() => navigate('/coaching')} className="w-full">
+                Talk to an Expert
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Add Card Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
