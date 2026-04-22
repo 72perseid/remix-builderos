@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useArtifact } from '@/hooks/useArtifact';
-import { Database, Loader2, Copy, Check } from 'lucide-react';
+import { Database, Loader2, Copy, Check, Lock, Sparkles } from 'lucide-react';
 import { ArtifactCopilot, CopilotToggleButton } from '@/components/artifacts/ArtifactCopilot';
 import { CoachCTA } from '@/components/dashboard/CoachCTA';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import SchemaVisualizer from '@/components/database/SchemaVisualizer';
+import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 interface DatabaseDesignContent {
   erdDiagram?: string;
