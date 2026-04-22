@@ -3,6 +3,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { resolveWorkflowMode, type WorkflowMode } from '@/lib/resolveWorkflowMode';
 import { pollForNewAppIdea, isRecoverableError } from '@/lib/recoverAppIdeaAfterTimeout';
+import {
+  type ChatAttachment,
+  summarizeAttachmentsForMetadata,
+} from '@/lib/chatAttachments';
 
 const N8N_TIMEOUT_MS = 90_000;
 const RECOVERY_MESSAGE = "Got it — I've finished setting up your app. You're all set!";
@@ -15,6 +19,7 @@ export interface OnboardingMessage {
   content: string;
   timestamp: Date;
   isHidden?: boolean;
+  attachments?: ChatAttachment[];
 }
 
 export function useOnboardingChat(forceNew: boolean = false) {
@@ -146,18 +151,22 @@ export function useOnboardingChat(forceNew: boolean = false) {
           if (sessionIdRef.current) {
             const { data: msgs } = await supabase
               .from('chat_messages')
-              .select('id, role, content, created_at')
+              .select('id, role, content, created_at, metadata')
               .eq('session_id', sessionIdRef.current)
               .order('created_at', { ascending: true });
 
             if (msgs && msgs.length > 0) {
               setMessages(
-                msgs.map((m) => ({
-                  id: m.id,
-                  role: m.role as 'user' | 'assistant',
-                  content: m.content,
-                  timestamp: new Date(m.created_at),
-                }))
+                msgs.map((m) => {
+                  const meta = (m as { metadata?: { attachments?: ChatAttachment[] } | null }).metadata;
+                  return {
+                    id: m.id,
+                    role: m.role as 'user' | 'assistant',
+                    content: m.content,
+                    timestamp: new Date(m.created_at),
+                    attachments: Array.isArray(meta?.attachments) ? meta!.attachments : undefined,
+                  };
+                })
               );
             }
           }
@@ -174,7 +183,11 @@ export function useOnboardingChat(forceNew: boolean = false) {
   }, [user?.id, forceNew]);
 
   const sendMessage = useCallback(
-    async (content: string, isHidden: boolean = false): Promise<{ text: string; sessionComplete: boolean }> => {
+    async (
+      content: string,
+      isHidden: boolean = false,
+      attachments?: ChatAttachment[],
+    ): Promise<{ text: string; sessionComplete: boolean }> => {
       if (!user?.id) throw new Error('No user authenticated');
 
       setError(null);
@@ -196,12 +209,17 @@ export function useOnboardingChat(forceNew: boolean = false) {
       const currentSessionId = sessionIdRef.current;
       if (!currentSessionId) throw new Error('No chat session');
 
+      const hasAttachments = !!attachments && attachments.length > 0;
+
       // Save user message to DB before calling webhook
       if (!isHidden) {
         await supabase.from('chat_messages').insert({
           session_id: currentSessionId,
           role: 'user',
           content,
+          metadata: hasAttachments
+            ? ({ attachments: summarizeAttachmentsForMetadata(attachments!) } as never)
+            : null,
         });
 
         const userMessage: OnboardingMessage = {
@@ -210,6 +228,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
           content,
           timestamp: new Date(),
           isHidden: false,
+          attachments: hasAttachments ? attachments : undefined,
         };
         setMessages((prev) => [...prev, userMessage]);
       }
@@ -226,6 +245,7 @@ export function useOnboardingChat(forceNew: boolean = false) {
             session_id: currentSessionId,
             workflowMode: resolvedMode,
             app_idea_id: resolvedAppIdeaId,
+            ...(hasAttachments ? { attachments } : {}),
           },
         });
 
