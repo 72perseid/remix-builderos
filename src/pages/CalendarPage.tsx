@@ -51,6 +51,16 @@ export default function CalendarPage() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const { calendarAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const paywall = usePaywall();
+  const canViewEvents = isAdmin || calendarAccess;
+  const guard = (e: React.MouseEvent) => {
+    if (canViewEvents) return;
+    e.preventDefault();
+    e.stopPropagation();
+    paywall.open('calendar');
+  };
 
   useEffect(() => {
     async function fetchEvents() {
