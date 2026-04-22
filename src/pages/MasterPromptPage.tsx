@@ -6,11 +6,13 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { useArtifacts } from '@/hooks/useArtifacts';
 import { useCopilotChat } from '@/hooks/useCopilotChat';
 import { toast } from 'sonner';
-import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2 } from 'lucide-react';
+import { FileCode, Loader2, Copy, Check, Sparkles, AlertTriangle, Link2, Lock } from 'lucide-react';
 
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { CoachCTA } from '@/components/dashboard/CoachCTA';
+import { useEnrollment } from '@/hooks/useEnrollment';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 // Prerequisites configuration
 const REQUIRED_ARTIFACTS = ['business_model', 'db_design', 'validation', 'product_brief'] as const;
