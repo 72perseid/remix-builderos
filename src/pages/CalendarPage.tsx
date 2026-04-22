@@ -4,6 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin, Video, Loader2, LayoutGrid, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useEnrollment } from "@/hooks/useEnrollment";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePaywall } from "@/hooks/usePaywall";
+import { PaywallDialog } from "@/components/paywall/PaywallDialog";
 
 const CALENDAR_ID = "michael@ambitiouslabs.io";
 
@@ -47,6 +51,16 @@ export default function CalendarPage() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  const { calendarAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const paywall = usePaywall();
+  const canViewEvents = isAdmin || calendarAccess;
+  const guard = (e: React.MouseEvent) => {
+    if (canViewEvents) return;
+    e.preventDefault();
+    e.stopPropagation();
+    paywall.open('calendar');
+  };
 
   useEffect(() => {
     async function fetchEvents() {
@@ -192,6 +206,14 @@ export default function CalendarPage() {
 
               if (dayEvents.length === 0) return <div key={i}>{cell}</div>;
 
+              if (!canViewEvents) {
+                return (
+                  <div key={i} onClick={() => paywall.open('calendar')}>
+                    {cell}
+                  </div>
+                );
+              }
+
               return (
                 <Popover key={i}>
                   <PopoverTrigger asChild>{cell}</PopoverTrigger>
@@ -240,7 +262,11 @@ export default function CalendarPage() {
             </Card>
           )}
           {events.map((event) => (
-            <Card key={event.id} className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
+            <Card
+              key={event.id}
+              onClick={canViewEvents ? undefined : () => paywall.open('calendar')}
+              className={`bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors ${canViewEvents ? '' : 'cursor-pointer'}`}
+            >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-lg text-white">{event.title}</CardTitle>
@@ -254,17 +280,17 @@ export default function CalendarPage() {
                 {event.description && <p className="text-sm text-slate-300 line-clamp-3">{event.description}</p>}
                 <div className="flex flex-wrap gap-2 pt-1">
                   {event.location && (
-                    <a href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
+                    <a href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`} onClick={guard} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
                       <MapPin className="h-3 w-3" /> {event.location}
                     </a>
                   )}
                   {event.meetLink && (
-                    <a href={event.meetLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition-colors">
+                    <a href={event.meetLink} onClick={guard} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-green-400 hover:text-green-300 transition-colors">
                       <Video className="h-3 w-3" /> Join Google Meet
                     </a>
                   )}
                   {event.htmlLink && (
-                    <a href={event.htmlLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
+                    <a href={event.htmlLink} onClick={guard} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-white transition-colors">
                       <ExternalLink className="h-3 w-3" /> View in Google Calendar
                     </a>
                   )}
@@ -274,6 +300,12 @@ export default function CalendarPage() {
           ))}
         </div>
       )}
+
+      <PaywallDialog
+        open={paywall.isOpen}
+        onOpenChange={paywall.onOpenChange}
+        feature={paywall.feature}
+      />
     </div>
   );
 }

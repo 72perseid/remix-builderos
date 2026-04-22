@@ -6,10 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
-import { useEnrollment } from "@/hooks/useEnrollment";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { usePaywall } from "@/hooks/usePaywall";
-import { PaywallDialog, type PaywallFeature } from "@/components/paywall/PaywallDialog";
 import { ProfileSheet } from "./ProfileSheet";
 
 import logoHorizontalMono from "@/assets/logo-horizontal-mono.png";
@@ -19,7 +16,6 @@ interface NavItem {
   url: string;
   icon: React.ComponentType<{ className?: string }>;
   routes: string[];
-  accessKey?: 'build' | 'calendar' | 'programs';
 }
 
 const mainNavItems: NavItem[] = [{
@@ -27,19 +23,16 @@ const mainNavItems: NavItem[] = [{
   url: "/project-board",
   icon: LayoutDashboard,
   routes: ['/project-board', '/artifacts', '/database-design', '/master-prompt', '/app-details', '/app-idea', '/business-model', '/validation', '/product-brief', '/ui-ux'],
-  accessKey: 'build',
 }, {
   title: "Programs",
   url: "/programs",
   icon: BookOpen,
   routes: ['/programs'],
-  accessKey: 'programs',
 }, {
   title: "Calendar",
   url: "/calendar",
   icon: CalendarDays,
   routes: ['/calendar'],
-  accessKey: 'calendar',
 }, {
   title: "Expert Support",
   url: "/coaching",
@@ -57,18 +50,9 @@ export function DashboardSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const { user } = useAuth();
   const { profile } = useProfile();
-  const { buildAccess, calendarAccess, programsAccess } = useEnrollment();
   const { isAdmin } = useIsAdmin();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const isCollapsed = state === "collapsed";
-
-  const paywall = usePaywall();
-
-  const accessMap: Record<string, boolean> = {
-    build: buildAccess,
-    calendar: calendarAccess,
-    programs: programsAccess,
-  };
 
   const visibleItems = [
     ...mainNavItems,
@@ -76,9 +60,6 @@ export function DashboardSidebar() {
   ];
 
   const isActive = (item: NavItem) => item.routes.includes(location.pathname);
-
-  const isLocked = (item: NavItem) =>
-    !!item.accessKey && !isAdmin && !accessMap[item.accessKey];
 
   return (
     <Sidebar className="border-r border-sidebar-border bg-[#0B0E14]" collapsible="icon">
@@ -106,31 +87,20 @@ export function DashboardSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {visibleItems.map(item => {
-                const locked = isLocked(item);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild={!locked}
-                      isActive={isActive(item)}
-                      onClick={locked ? () => paywall.open(item.accessKey as PaywallFeature) : undefined}
-                      className="rounded-full h-10 px-4 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
-                    >
-                      {locked ? (
-                        <button type="button" className="w-full flex items-center gap-2">
-                          <item.icon className="h-5 w-5" />
-                          <span className="text-sm">{item.title}</span>
-                        </button>
-                      ) : (
-                        <Link to={item.url}>
-                          <item.icon className="h-5 w-5" />
-                          <span className="text-sm">{item.title}</span>
-                        </Link>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {visibleItems.map(item => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item)}
+                    className="rounded-full h-10 px-4 transition-all duration-200 text-slate-400 hover:text-white hover:bg-white/5 data-[active=true]:!bg-[hsl(217,91%,25%)] data-[active=true]:!text-blue-300 data-[active=true]:font-medium"
+                  >
+                    <Link to={item.url}>
+                      <item.icon className="h-5 w-5" />
+                      <span className="text-sm">{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -162,11 +132,6 @@ export function DashboardSidebar() {
       </SidebarFooter>
 
       <ProfileSheet open={isProfileOpen} onOpenChange={setIsProfileOpen} />
-      <PaywallDialog
-        open={paywall.isOpen}
-        onOpenChange={paywall.onOpenChange}
-        feature={paywall.feature}
-      />
     </Sidebar>
   );
 }

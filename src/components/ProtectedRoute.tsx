@@ -1,16 +1,9 @@
 import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useEnrollment } from '@/hooks/useEnrollment';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
-
-const BUILD_ROUTES = [
-  '/project-board', '/artifacts', '/app-idea', '/business-model',
-  '/database-design', '/master-prompt', '/app-details', '/validation',
-  '/product-brief', '/ui-ux', '/landing-page',
-];
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -24,8 +17,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAdmin } = useIsAdmin();
   const isDebugMode = isAdmin && (searchParams.get('debug') === 'true' || sessionStorage.getItem('debug_mode') === 'true');
   const isAllowedMode = mode === 'new' || mode === 'setup' || isDebugMode;
-
-  const { buildAccess, calendarAccess, programsAccess, loading: enrollmentLoading } = useEnrollment();
 
   // Check if user has completed onboarding
   const { data: profile, isLoading: profileLoading } = useQuery({
@@ -63,7 +54,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     enabled: !!user?.id,
   });
 
-  if (loading || profileLoading || appsLoading || enrollmentLoading) {
+  if (loading || profileLoading || appsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -93,32 +84,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     }
   }
 
-  // Enrollment-based route gating
-  const path = location.pathname;
-
-  // Determine the first accessible route for redirect fallback
-  const getFirstAccessibleRoute = () => {
-    if (isAdmin) return '/admin';
-    if (buildAccess) return '/project-board';
-    if (programsAccess) return '/programs';
-    if (calendarAccess) return '/calendar';
-    return '/coaching'; // always accessible
-  };
-
-  if (BUILD_ROUTES.includes(path) && !buildAccess) {
-    return <Navigate to={getFirstAccessibleRoute()} replace />;
-  }
-
-  if (path === '/calendar' && !calendarAccess) {
-    return <Navigate to={getFirstAccessibleRoute()} replace />;
-  }
-
-  if (path === '/programs' && !programsAccess) {
-    return <Navigate to={getFirstAccessibleRoute()} replace />;
-  }
-
-  if (path === '/admin' && !isAdmin) {
-    return <Navigate to={getFirstAccessibleRoute()} replace />;
+  // Admin-only route gating (browse-everywhere model: paywall happens on action, not navigation)
+  if (location.pathname === '/admin' && !isAdmin) {
+    return <Navigate to="/project-board" replace />;
   }
 
   return <>{children}</>;
