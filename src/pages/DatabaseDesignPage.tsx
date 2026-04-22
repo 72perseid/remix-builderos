@@ -28,6 +28,10 @@ export default function DatabaseDesignPage() {
   const { data: artifact, loading: artifactLoading } = useArtifact('db_design');
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const isLocked = !isAdmin && !buildAccess;
 
   // Single source of truth: artifacts table
   const content: DatabaseDesignContent | null = artifact?.content as DatabaseDesignContent || null;
