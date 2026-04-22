@@ -74,6 +74,10 @@ export default function MasterPromptPage() {
   });
   const [copied, setCopied] = useState(false);
 
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const isLocked = !isAdmin && !buildAccess;
+
   // Calculate missing prerequisites
   const missingArtifacts = REQUIRED_ARTIFACTS.filter(
     (type) => !allArtifacts.some((a) => a.type === type)
