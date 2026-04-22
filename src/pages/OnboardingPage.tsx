@@ -10,11 +10,23 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 
-import { Send, Loader2, Sparkles, ArrowRight, Bug, Check } from 'lucide-react';
+import { Send, Loader2, Sparkles, ArrowRight, Bug, Check, Paperclip, X, FileText } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon-onboarding.png';
 import { cn } from '@/lib/utils';
 import { useDebugMode } from '@/hooks/useDebugMode';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  type ChatAttachment,
+  processSelectedFiles,
+  ACCEPTED_ATTACHMENT_TYPES,
+  MAX_ATTACHMENTS_PER_MESSAGE,
+} from '@/lib/chatAttachments';
 import {
   Dialog,
   DialogContent,
@@ -59,6 +71,8 @@ export default function OnboardingPage() {
   } = useOnboardingChat(isNewAppMode);
 
   const [inputValue, setInputValue] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showCompletion, setShowCompletion] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
@@ -141,11 +155,13 @@ export default function OnboardingPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isStreaming || isFinalizing) return;
-    const content = inputValue.trim();
+    if ((!inputValue.trim() && pendingAttachments.length === 0) || isStreaming || isFinalizing) return;
+    const content = inputValue.trim() || (pendingAttachments.length > 0 ? 'Please review these attachments' : '');
+    const atts = pendingAttachments.length > 0 ? [...pendingAttachments] : undefined;
     setInputValue('');
+    setPendingAttachments([]);
     try {
-      const response = await sendMessage(content, false);
+      const response = await sendMessage(content, false, atts);
 
       const isCompletionMessage = (text: string): boolean => {
         const lower = text.toLowerCase();
@@ -184,6 +200,19 @@ export default function OnboardingPage() {
     } catch (err) {
       console.error('Failed to send message:', err);
     }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    const accepted = await processSelectedFiles(files, pendingAttachments.length);
+    if (accepted.length > 0) {
+      setPendingAttachments((prev) => [...prev, ...accepted]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setPendingAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const performFinalTransition = async () => {
