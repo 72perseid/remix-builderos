@@ -61,7 +61,7 @@ export default function DatabaseDesignPage() {
 
   return (
     <div className="relative h-dvh flex flex-col overflow-hidden">
-      <div className="overflow-auto flex-1">
+      <div className={cn("overflow-auto flex-1", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
         <div className="max-w-full space-y-6 p-6">
           <div className="flex items-center justify-between">
             <div>
