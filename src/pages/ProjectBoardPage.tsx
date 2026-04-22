@@ -306,6 +306,9 @@ export default function ProjectBoardPage() {
   } = useArtifact('kanban');
   const { profile } = useProfile();
   const isOnboarded = profile?.onboarded === true;
+  const { buildAccess } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
+  const isLocked = !isAdmin && !buildAccess;
 
   const { 
     tasks, 
