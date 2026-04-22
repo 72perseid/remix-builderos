@@ -1,49 +1,57 @@
 
 
-## Plan: Align kanban-board to spec (position recalc + top-insert) — keep current color palette
+## Verification: chat-onboarding specification
 
-### Changes
+Result of read-only audit against the current codebase.
 
-**1. `src/hooks/useTasks.ts` — `moveTask`** 
-Replace the single-row update with a batched recalculation so every affected row gets a clean sequential `position`:
+### Verification summary
 
-- Build the destination column's new ordered list by inserting the dragged task at `newPosition`.
-- If the source column differs, also rebuild the source column's list without the dragged task.
-- Reassign `position = 0..n-1` for every row in the affected column(s) and the dragged task's new `status`.
-- Persist via a single `upsert` writing `{ id, position, status, user_id, app_idea_id, title }` for all affected rows (PostgREST upsert requires non-null required columns, so the rebuild reads the full task objects from cache).
-- Keep optimistic update + invalidation behavior intact.
+| Requirement | Status | Notes |
+|---|---|---|
+| Starting a new session | ✅ Implemented | `useOnboardingChat` and `useChat` create `chat_sessions` rows on first send with correct `workflow_mode` and `app_idea_id` |
+| Resuming a session | ✅ Implemented | `useChat`/copilot hooks load `chat_messages` ordered by `created_at` for the active session |
+| User message persistence | ✅ Implemented | `chat_messages` row inserted with `role = 'user'` before edge call |
+| Assistant response persistence | ✅ Implemented | Response inserted with `role = 'assistant'`; `suggestions` extracted by `useCopilotChat` and rendered as suggestion bubbles |
+| Workflow mode routing — `new` | ✅ Implemented | Onboarding sends `workflowMode: 'new'`; on `session_complete` the `app_idea` is created and `profiles.onboarded` set to `true` (see `useOnboardingChat` + onboarding completion memory) |
+| Workflow mode routing — `onboarded` | ✅ Implemented | Returning users with an active app send `workflowMode: 'onboarded'` via `resolveWorkflowMode.ts` |
+| Workflow mode routing — `chat` | ✅ Implemented | Artifact copilot uses `workflowMode: 'chat'` plus `artifact_type` (per `mem://features/copilot/chat-logic`) |
+| Attachment support | ⚠️ Partial | Attachments work in the **artifact copilot** (`ArtifactCopilot` / `useCopilotChat`, restricted to `ui_ux` per `mem://features/copilot/chat-attachments`), but the **onboarding chat** (`OnboardingPage` / `useOnboardingChat`) and the global **ChatSheet** have no attachment UI or payload field |
 
-**2. `src/hooks/useTasks.ts` — `addTaskMutation`** 
-Insert new tasks at the top (`position = 0`) and shift the rest of that column down:
+### Gaps found
 
-- Read existing tasks for the same `app_idea_id` + target `status` from the current cache.
-- Insert the new task with `position = 0`.
-- Issue a follow-up bulk update (`upsert` on `{ id, position }`) shifting each existing task in that column by `+1` (or simpler: rewrite all positions in that column starting at 1 in their previous order).
-- Invalidate the tasks query.
+**Gap 1 — Attachments not available in onboarding / global chat**
+Spec says "Users SHALL be able to attach images and markdown files to messages" without restricting to artifact pages. Today only the UI/UX copilot accepts attachments. The onboarding flow and `ChatSheet` (workflow modes `new` and `onboarded`) have no paperclip button, no file state, and don't send an `attachments` array to `chat-action`.
 
-**3. Color palette** 
-Keep the current `red | orange | yellow | green | blue | purple | gray` palette as shipped. Update the kanban memory note to reflect the actual values so future agents don't drift back to the spec list.
+The `chat-action` edge function already forwards `attachments` to N8N when present, so the backend contract is ready — only the client UIs are missing.
 
-**4. Memory update** 
-Append a short memory file `mem://features/kanban/board-rules.md` capturing:
-- Five-column order + status enum mapping
-- Position rule: new tasks insert at top (`position = 0`); drag/drop recalculates all affected rows in column(s) sequentially
-- Color palette: `red, orange, yellow, green, blue, purple, gray` (deviates from openspec; openspec list is outdated)
+### Proposed implementation (pending approval)
 
-Add a one-line reference under `## Memories` in `mem://index.md` (preserving existing content).
+1. **Shared attachment helper** — extract the existing base64 conversion + 5MB validation from `useCopilotChat` into `src/lib/chatAttachments.ts` so all three chat surfaces share the same logic and limits (5MB per file, image/* + text/markdown).
+2. **Onboarding chat (`OnboardingPage` + `useOnboardingChat`)** — add a paperclip button next to the textarea, render attachment chips (filename + remove), include `attachments` in the `chat-action` payload, and persist a small `metadata.attachments` summary on the user `chat_messages` row so resumed sessions show that an image was sent.
+3. **Global `ChatSheet` (`workflowMode: onboarded`)** — same paperclip + chip pattern, same payload addition.
+4. **Rendering** — `ChatMessage` already handles assistant markdown; extend it to render attached image thumbnails (and a filename pill for markdown files) when `metadata.attachments` is present on a user message.
+5. **Memory update** — broaden `mem://features/copilot/chat-attachments` (or add a new `mem://features/chat/attachments`) to note that attachments now work in onboarding, global chat, and UI/UX copilot, with the same 5MB / image+md limits.
 
-### Files changed
+### Files to change (after approval)
 
 | File | Change |
 |---|---|
-| `src/hooks/useTasks.ts` | Rewrite `moveTask` to batch-recalculate positions across affected column(s); change `addTaskMutation` to insert at `position = 0` and shift existing rows |
-| `mem://features/kanban/board-rules.md` | New memory file documenting kanban rules and palette deviation |
-| `mem://index.md` | Add reference line for the new memory |
+| `src/lib/chatAttachments.ts` | New shared helper: validate, base64-encode, type-check |
+| `src/hooks/useOnboardingChat.ts` | Accept `attachments`, include in edge payload, store metadata on user message |
+| `src/pages/OnboardingPage.tsx` | Paperclip button, file input, attachment chips |
+| `src/hooks/useChat.ts` | Accept `attachments`, include in edge payload, store metadata |
+| `src/components/chat/ChatSheet.tsx` | Paperclip button, file input, attachment chips |
+| `src/components/chat/ChatMessage.tsx` | Render image thumbnails / file pills from `metadata.attachments` |
+| `src/hooks/useCopilotChat.ts` | Refactor to use the shared helper (no behavior change) |
+| `mem://features/chat/attachments.md` | New memory; update `mem://index.md` reference |
 
 ### Out of scope
 
-- No DB schema changes (existing `tasks.position integer` and `status text` already support this).
-- No UI changes to `KanbanBoard`, `KanbanColumn`, or `TaskCard` — drag handlers already pass `(activeId, targetStatus, newPosition)` which matches the new `moveTask` signature.
-- No changes to color picker UI or `Task['color']` union (decision B).
-- No regeneration of historical task ordering — fix applies from next move/create onward; existing duplicate positions self-heal as soon as the column is touched.
+- No DB schema changes — attachment summaries piggyback on the existing `chat_messages.metadata` JSONB column.
+- No edge function changes — `chat-action` already forwards `attachments`.
+- N8N workflow updates for `new` / `onboarded` modes to consume attachments are outside this codebase; client will send the field, n8n side can adopt later without breaking.
+
+### Question
+
+Approve the gap fix to enable attachments in the onboarding chat and the global ChatSheet (matching the existing UI/UX copilot behavior with 5MB images + markdown)?
 
