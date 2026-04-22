@@ -1,59 +1,45 @@
 
 
-## Plan: Refine paywall trigger points
+## Plan: Blur kanban + paywall overlay for free users on `/project-board`
 
-Loosen the paywalls so free users can browse all pages, but only hit the upsell when they try to engage with gated content.
+When a free user (no `buildAccess` and not admin) lands on `/project-board`, render the kanban columns blurred with a centered paywall card on top — matching the existing "browse but locked" pattern.
 
-### Build module
+### Behavior
 
-- **Sidebar (`DashboardSidebar.tsx`)**: Remove the "Build" lock. Build nav item always navigates to `/project-board` for everyone (no paywall on click).
-- **Project board page**: No changes — it's already viewable.
-- **Artifacts grid (`ArtifactsGrid.tsx`)**:
-  - Page itself stays fully accessible (already does).
-  - Clicking any artifact card (Business Model, Validation, Product Brief, UI/UX, DB Design, Master Prompt, Landing Copy) → opens paywall (`feature='build'`) if `!buildAccess && !isAdmin`.
-  - Architect banner CTA → also opens the paywall.
-  - This is already implemented; verify it stays in place after sidebar change.
+- **Admins / users with `buildAccess`**: no change. Full kanban remains interactive.
+- **Free users**: 
+  - Kanban board area renders as-is (with their data or empty placeholders) but is wrapped in a blurred, non-interactive overlay container.
+  - A paywall card sits centered on top with the same visual language as `PaywallDialog` (lock icon + title + bullets + CTA → `/coaching`).
+  - All clicks/drags inside the kanban are disabled (`pointer-events-none`).
+  - The Architect banner (above the kanban) stays visible and unblurred so onboarding messaging still reads.
 
-### Programs module
+### Implementation (`src/pages/ProjectBoardPage.tsx`)
 
-- **Sidebar**: Remove the "Programs" lock. Programs nav item always navigates to `/programs`.
-- **Programs page (`ProgramsPage.tsx`)**:
-  - Both sections (Flagship + Complementary) always render.
-  - **Complementary courses** (free intro to Vibe Coding, etc.): always clickable, navigate to `/programs/:id`.
-  - **Flagship courses**: visible with the existing "Locked" badge; clicking → opens paywall (`feature='programs'`) if `!programsAccess && !isAdmin`. Already wired — keep as-is.
-
-### Calendar module
-
-- **Sidebar**: Remove the "Calendar" lock. Calendar nav item always navigates to `/calendar`.
-- **Calendar page (`CalendarPage.tsx`)**:
-  - Page renders the full calendar grid + events for everyone.
-  - When a free user clicks any event chip / event detail trigger → open paywall (`feature='calendar'`) instead of opening the booking dialog or external link.
-  - Admin and users with `calendarAccess` keep the normal click behavior (open event details / book).
-  - Mount one `PaywallDialog` at the page level, controlled by `usePaywall()`.
-
-### Sidebar simplification
-
-- `DashboardSidebar.tsx`: drop the `isLocked` / paywall logic for Build, Calendar, Programs. All three become normal `<Link>` items for everyone. Only the **Admin** item stays gated (by `isAdmin`).
-- Remove the now-unused `PaywallDialog` mount and `usePaywall` hook from the sidebar.
-
-### ProtectedRoute
-
-- Keep the route-level access checks as a deep-link safety net (no changes), OR relax them so `/project-board`, `/calendar`, `/programs` are always accessible to authenticated users (since gating is now click-level).
-- **Decision**: relax `ProtectedRoute` to allow authenticated users into `/project-board`, `/calendar`, `/programs` regardless of access flags. This matches the new "browse freely, paywall on action" model. `/admin` stays gated by `isAdmin`.
+1. Import `useEnrollment`, `useIsAdmin`, and `Lock`/`Sparkles` icons + `Button` (already imported).
+2. Compute `const isLocked = !isAdmin && !buildAccess;` after the existing loading checks.
+3. Wrap the existing `<Kanban>...</Kanban>` block in a `relative` container.
+4. When `isLocked`:
+   - Apply `blur-md select-none pointer-events-none` to the kanban wrapper.
+   - Render an absolute-positioned overlay (`absolute inset-0 flex items-center justify-center z-10`) containing an inline paywall card:
+     - Lock icon header (matching `PaywallDialog` styling — primary-tinted rounded square, `Sparkles` + small `Lock` badge).
+     - Title: **"Unlock the Builder Suite"**
+     - Description: "Get full access to the AI-powered planning and building tools to ship your app faster."
+     - 3 bullet items (same as `PAYWALL_COPY.build`):
+       - Project board & task automation
+       - Business model, validation & product brief artifacts
+       - Database design & master prompt generator
+     - Primary CTA button: **"Talk to an Expert"** → `navigate('/coaching')`.
+   - Card styled as `bg-card/95 backdrop-blur border border-slate-700/50 rounded-2xl p-6 max-w-md shadow-2xl`.
 
 ### Files changed
 
 | File | Change |
 |---|---|
-| `src/components/dashboard/DashboardSidebar.tsx` | Remove paywall on Build/Calendar/Programs nav items |
-| `src/components/ProtectedRoute.tsx` | Stop blocking `/project-board`, `/calendar`, `/programs` by access flags |
-| `src/pages/CalendarPage.tsx` | Intercept event clicks with paywall when `!calendarAccess && !isAdmin` |
-| `src/pages/ProgramsPage.tsx` | (Verify) flagship-only paywall, complementary always clickable — already correct |
-| `src/components/dashboard/ArtifactsGrid.tsx` | (Verify) artifact card clicks still trigger build paywall — already correct |
+| `src/pages/ProjectBoardPage.tsx` | Add `isLocked` check; wrap kanban with blur + non-interactive; render inline paywall overlay card on top |
 
 ### Out of scope
 
-- Changes to `PaywallDialog.tsx` copy or `usePaywall.ts` API
-- Changes to `/coaching`, `/admin`, or backend RLS
-- Per-event lock badges on calendar chips (click behavior only)
+- Changes to `PaywallDialog` component itself (we render an inline card instead of a modal so it stays persistent on the page).
+- Changes to artifact card click paywalls or other modules.
+- Changes to `ProtectedRoute`, sidebar, or `useEnrollment`.
 
