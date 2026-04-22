@@ -4,6 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin, Video, Loader2, LayoutGrid, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useEnrollment } from "@/hooks/useEnrollment";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { usePaywall } from "@/hooks/usePaywall";
+import { PaywallDialog } from "@/components/paywall/PaywallDialog";
 
 const CALENDAR_ID = "michael@ambitiouslabs.io";
 
