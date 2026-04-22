@@ -447,7 +447,12 @@ export default function OnboardingPage() {
           {(messages.length > 0 || isStreaming) &&
         <div className="flex-1 overflow-y-auto space-y-6 pb-4">
               {messages.map((message) =>
-          <OnboardingMessage key={message.id} role={message.role} content={message.content} />
+          <OnboardingMessage
+            key={message.id}
+            role={message.role}
+            content={message.content}
+            attachments={(message as { attachments?: ChatAttachment[] }).attachments}
+          />
           )}
 
               {isStreaming &&
@@ -514,7 +519,64 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            <div className="flex gap-3">
+            {/* Attachment previews */}
+            {pendingAttachments.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {pendingAttachments.map((att, i) => (
+                  <div key={i} className="relative group">
+                    {att.type === 'image' ? (
+                      <img
+                        src={att.data}
+                        alt={att.name}
+                        className="h-14 w-14 rounded object-cover border border-slate-700"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-1 text-xs bg-slate-800 rounded px-2 py-1.5 border border-slate-700">
+                        <FileText className="h-3 w-3 text-slate-400" />
+                        <span className="text-slate-300 max-w-[100px] truncate">{att.name}</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => removeAttachment(i)}
+                      className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_ATTACHMENT_TYPES}
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+
+            <div className="flex gap-3 items-end">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isStreaming || showCompletion || pendingAttachments.length >= MAX_ATTACHMENTS_PER_MESSAGE}
+                      className="h-12 w-12 text-slate-400 hover:text-white hover:bg-slate-800"
+                    >
+                      <Paperclip className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p>Attach image or .md (max 5MB, up to {MAX_ATTACHMENTS_PER_MESSAGE})</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
               <Textarea
               ref={inputRef}
               value={inputValue}
@@ -527,7 +589,7 @@ export default function OnboardingPage() {
 
               <Button
               onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isStreaming || showCompletion}
+              disabled={(!inputValue.trim() && pendingAttachments.length === 0) || isStreaming || showCompletion}
               className="h-12 px-6 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-lg">
 
                 {isStreaming ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
