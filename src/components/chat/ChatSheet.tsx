@@ -4,12 +4,19 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChatMessage } from './ChatMessage';
 import { useChat } from '@/hooks/useChat';
 import { useChatContext } from '@/contexts/ChatContext';
 import { useProfile } from '@/hooks/useProfile';
-import { Send, Loader2, AlertCircle, Rocket } from 'lucide-react';
+import { Send, Loader2, AlertCircle, Rocket, Paperclip, X, FileText } from 'lucide-react';
 import logoIcon from '@/assets/logo-icon.png';
+import {
+  type ChatAttachment,
+  processSelectedFiles,
+  ACCEPTED_ATTACHMENT_TYPES,
+  MAX_ATTACHMENTS_PER_MESSAGE,
+} from '@/lib/chatAttachments';
 
 interface ChatSheetProps {
   open: boolean;
@@ -22,6 +29,8 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
   const { shouldClearOnOpen, setShouldClearOnOpen } = useChatContext();
   const { profile } = useProfile();
   const [input, setInput] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [transitionComplete, setTransitionComplete] = useState(false);
 
@@ -63,10 +72,25 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
   }, [isFinalizing, newAppId, onOpenChange, resetFinalizing, navigate]);
 
   const handleSend = async () => {
-    if (!input.trim() || isStreaming || !hasSelectedApp) return;
-    const message = input.trim();
+    if ((!input.trim() && pendingAttachments.length === 0) || isStreaming || !hasSelectedApp) return;
+    const message = input.trim() || (pendingAttachments.length > 0 ? 'Please review these attachments' : '');
+    const atts = pendingAttachments.length > 0 ? [...pendingAttachments] : undefined;
     setInput('');
-    await sendMessage(message);
+    setPendingAttachments([]);
+    await sendMessage(message, atts);
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    const accepted = await processSelectedFiles(files, pendingAttachments.length);
+    if (accepted.length > 0) {
+      setPendingAttachments((prev) => [...prev, ...accepted]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setPendingAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -160,6 +184,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
                       content={msg.content}
                       timestamp={msg.created_at}
                       userAvatar={profile?.profile_image}
+                      attachments={msg.metadata?.attachments}
                       onDashboardClick={() => onOpenChange(false)}
                     />
                   ))}
@@ -177,8 +202,66 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
               )}
             </ScrollArea>
 
+            {/* Attachment previews */}
+            {pendingAttachments.length > 0 && (
+              <div className="px-4 pt-2 border-t border-slate-800">
+                <div className="flex flex-wrap gap-2">
+                  {pendingAttachments.map((att, i) => (
+                    <div key={i} className="relative group">
+                      {att.type === 'image' ? (
+                        <img
+                          src={att.data}
+                          alt={att.name}
+                          className="h-12 w-12 rounded object-cover border border-slate-700"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs bg-slate-800 rounded px-2 py-1.5 border border-slate-700">
+                          <FileText className="h-3 w-3 text-slate-400" />
+                          <span className="text-slate-300 max-w-[80px] truncate">{att.name}</span>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => removeAttachment(i)}
+                        className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-100 transition-opacity"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1">PNG, JPG, WEBP, or Markdown • Max 5MB each</p>
+              </div>
+            )}
+
             <div className="p-4 border-t border-slate-800">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_ATTACHMENT_TYPES}
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+              />
               <div className="flex gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isStreaming || !hasSelectedApp || pendingAttachments.length >= MAX_ATTACHMENTS_PER_MESSAGE}
+                        className="text-slate-400 hover:text-white hover:bg-slate-800"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p>Attach image or .md (max 5MB, up to {MAX_ATTACHMENTS_PER_MESSAGE})</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -189,7 +272,7 @@ export function ChatSheet({ open, onOpenChange }: ChatSheetProps) {
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={!input.trim() || isStreaming || !hasSelectedApp}
+                  disabled={(!input.trim() && pendingAttachments.length === 0) || isStreaming || !hasSelectedApp}
                   size="icon"
                   className="bg-white text-black hover:bg-slate-200 disabled:opacity-50"
                 >
