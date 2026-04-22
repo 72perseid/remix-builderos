@@ -179,41 +179,19 @@ const ChatContent = React.memo(function ChatContent({
     prevLoadingRef.current = isLoading;
   }, [messages.length, isLoading, refetchCompletion]);
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (kept for backwards-compat references)
   const MAX_ATTACHMENTS = 3;
   const ACCEPTED_TYPES = 'image/png,image/jpeg,image/webp,.md,.markdown';
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (fileInputRef.current) fileInputRef.current.value = '';
-
-    for (const file of files) {
-      if (file.size > MAX_FILE_SIZE) {
-        toast({ title: 'File too large', description: `"${file.name}" exceeds 5MB limit.`, variant: 'destructive' });
-        continue;
-      }
-      setPendingAttachments(prev => {
-        if (prev.length >= MAX_ATTACHMENTS) {
-          toast({ title: 'Limit reached', description: `Max ${MAX_ATTACHMENTS} attachments per message.`, variant: 'destructive' });
-          return prev;
-        }
-        const reader = new FileReader();
-        const isMarkdown = file.name.endsWith('.md') || file.name.endsWith('.markdown');
-        if (isMarkdown) {
-          reader.onload = () => {
-            setPendingAttachments(p => [...p, { type: 'markdown', name: file.name, data: reader.result as string }]);
-          };
-          reader.readAsText(file);
-        } else {
-          reader.onload = () => {
-            setPendingAttachments(p => [...p, { type: 'image', name: file.name, data: reader.result as string }]);
-          };
-          reader.readAsDataURL(file);
-        }
-        return prev;
-      });
+    const { processSelectedFiles } = await import('@/lib/chatAttachments');
+    const accepted = await processSelectedFiles(files, pendingAttachments.length);
+    if (accepted.length > 0) {
+      setPendingAttachments((prev) => [...prev, ...accepted]);
     }
-  }, []);
+  }, [pendingAttachments.length]);
 
   const removeAttachment = useCallback((index: number) => {
     setPendingAttachments(prev => prev.filter((_, i) => i !== index));
