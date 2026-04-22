@@ -72,6 +72,7 @@ serve(async (req) => {
       workflowMode,
       app_idea_id,
       artifact_type,
+      artifact_content,
       attachments,
     } = body as {
       message?: string;
@@ -79,6 +80,7 @@ serve(async (req) => {
       workflowMode?: string;
       app_idea_id?: string | null;
       artifact_type?: string | null;
+      artifact_content?: unknown;
       attachments?: Array<{ type: string; name: string; data: string }>;
     };
 
@@ -89,6 +91,7 @@ serve(async (req) => {
       workflowMode,
       app_idea_id,
       artifact_type,
+      hasArtifactContent: artifact_content !== undefined && artifact_content !== null,
       hasMessage: !!message,
       hasAttachments: Array.isArray(attachments) && attachments.length > 0,
       attachmentCount: attachments?.length ?? 0,
@@ -105,6 +108,7 @@ serve(async (req) => {
         workflowMode,
         app_idea_id,
         artifact_type,
+        ...(artifact_content !== undefined ? { artifact_content } : {}),
         ...(attachments && attachments.length > 0 ? { attachments } : {}),
       }),
     });
