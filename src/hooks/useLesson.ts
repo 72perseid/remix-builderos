@@ -100,6 +100,31 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         .order('position');
       if (sErr) throw sErr;
 
+      // Fetch all modules in the course + their lessons to compute cross-module prev/next
+      const { data: courseModules, error: cmErr } = await supabase
+        .from('modules')
+        .select('id, position, lessons(id, position, is_active)')
+        .eq('course_id', mod.course_id)
+        .eq('is_active', true)
+        .order('position');
+      if (cmErr) throw cmErr;
+
+      const allLessons = (courseModules || [])
+        .slice()
+        .sort((a, b) => a.position - b.position)
+        .flatMap((m: any) =>
+          ((m.lessons as any[]) || [])
+            .filter((l) => l.is_active)
+            .sort((a, b) => a.position - b.position)
+            .map((l) => l.id as string)
+        );
+      const flatIndex = allLessons.findIndex((id) => id === lessonId);
+      const prevLessonId = flatIndex > 0 ? allLessons[flatIndex - 1] : null;
+      const nextLessonId =
+        flatIndex >= 0 && flatIndex < allLessons.length - 1
+          ? allLessons[flatIndex + 1]
+          : null;
+
       // Merge user_lesson_progress + activity_log lesson_completed events
       const completedSet = new Set<string>([
         ...(progressRes.data || []).map(p => p.lesson_id),
@@ -130,8 +155,8 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         ctas: (ctasRes.data || []) as LessonCTA[],
         siblings: siblingsList,
         currentIndex,
-        prevLessonId: currentIndex > 0 ? siblingsList[currentIndex - 1].id : null,
-        nextLessonId: currentIndex < siblingsList.length - 1 ? siblingsList[currentIndex + 1].id : null,
+        prevLessonId,
+        nextLessonId,
         completed: completedSet.has(lessonId!),
       } as LessonData;
     },
