@@ -238,15 +238,31 @@ export default function CourseDetailPage() {
           </span>
         </h2>
         <div className="space-y-3">
-          {course.modules.map((mod, i) => (
-            <ModuleRow
-              key={mod.id}
-              module={mod}
-              index={i}
-              courseId={course.id}
-              defaultOpen={mod.id === openModuleId}
-            />
-          ))}
+          {(() => {
+            // Pick the active module: in-progress lesson > first incomplete > first
+            const inProgress = course.modules.find((m) =>
+              m.lessons.some((l) => l.started && !l.completed)
+            );
+            const firstIncomplete = course.modules.find((m) =>
+              m.lessons.some((l) => !l.completed)
+            );
+            const activeModuleId =
+              hashModuleId ??
+              inProgress?.id ??
+              firstIncomplete?.id ??
+              course.modules[0]?.id ??
+              null;
+            return course.modules.map((mod, i) => (
+              <ModuleRow
+                key={mod.id}
+                module={mod}
+                index={i}
+                courseId={course.id}
+                defaultOpen={mod.id === activeModuleId}
+                autoScroll={!!hashModuleId && mod.id === hashModuleId}
+              />
+            ));
+          })()}
         </div>
       </section>
     </div>
