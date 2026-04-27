@@ -9,6 +9,32 @@ import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { cn } from "@/lib/utils";
 import coursePlaceholder from "@/assets/course-placeholder.jpg";
 
+function ProgramCardLockOverlay() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 p-4">
+      <div className="w-full max-w-[240px] rounded-xl border border-border bg-card/95 p-4 text-center shadow-2xl backdrop-blur">
+        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
+          <Lock className="h-5 w-5 text-primary" />
+        </div>
+        <h4 className="mb-1 text-sm font-semibold text-foreground">Premium Program</h4>
+        <p className="mb-3 text-xs text-muted-foreground">Upgrade to access this course.</p>
+        <Button
+          size="sm"
+          className="h-8 w-full text-xs"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/coaching");
+          }}
+        >
+          Talk to an Expert
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: boolean }) {
   const navigate = useNavigate();
   return (
@@ -21,67 +47,65 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
           : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
       )}
     >
-      <div className="relative">
-        <img
-          src={course.thumbnail?.trim() ? course.thumbnail : coursePlaceholder}
-          alt={course.course_name}
-          loading="lazy"
-          onError={(e) => {
-            const img = e.currentTarget;
-            if (img.src !== coursePlaceholder) img.src = coursePlaceholder;
-          }}
-          className={cn("w-full h-40 object-cover", locked && "blur-sm")}
-        />
-        {locked && (
-          <Badge className="absolute top-2 left-2 bg-background/90 text-foreground border border-border gap-1 backdrop-blur-sm">
-            <Lock className="h-3 w-3" /> Premium
-          </Badge>
-        )}
-      </div>
-      <div className="p-4 flex flex-col flex-1 gap-3">
-        <div className="flex-1">
-          {course.tags && course.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {course.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="bg-secondary/60 text-muted-foreground text-[10px] font-medium"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-          <h4 className="text-sm font-semibold text-foreground mb-1">
-            {course.course_name}
-          </h4>
-          {course.summary && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {course.summary}
-            </p>
-          )}
+      <div className={cn("flex flex-col flex-1", locked && "blur-md select-none pointer-events-none")} aria-hidden={locked}>
+        <div className="relative">
+          <img
+            src={course.thumbnail?.trim() ? course.thumbnail : coursePlaceholder}
+            alt={course.course_name}
+            loading="lazy"
+            onError={(e) => {
+              const img = e.currentTarget;
+              if (img.src !== coursePlaceholder) img.src = coursePlaceholder;
+            }}
+            className="w-full h-40 object-cover"
+          />
         </div>
-
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            <span className="text-xs font-semibold text-foreground">
-              {course.progressPercent}%
-            </span>
-            <Progress
-              value={course.progressPercent}
-              className="h-1.5 flex-1 bg-secondary"
-            />
-            <span className="text-[10px] text-muted-foreground flex-shrink-0">
-              {course.completedLessons}/{course.totalLessons}
-            </span>
+        <div className="p-4 flex flex-col flex-1 gap-3">
+          <div className="flex-1">
+            {course.tags && course.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {course.tags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="bg-secondary/60 text-muted-foreground text-[10px] font-medium"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            <h4 className="text-sm font-semibold text-foreground mb-1">
+              {course.course_name}
+            </h4>
+            {course.summary && (
+              <p className="text-xs text-muted-foreground line-clamp-2">
+                {course.summary}
+              </p>
+            )}
           </div>
-          <Button size="sm" variant="secondary" className="w-full text-xs h-8">
-            {course.progressPercent > 0 ? "Continue" : "Start"}
-          </Button>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="text-xs font-semibold text-foreground">
+                {course.progressPercent}%
+              </span>
+              <Progress
+                value={course.progressPercent}
+                className="h-1.5 flex-1 bg-secondary"
+              />
+              <span className="text-[10px] text-muted-foreground flex-shrink-0">
+                {course.completedLessons}/{course.totalLessons}
+              </span>
+            </div>
+            <Button size="sm" variant="secondary" className="w-full text-xs h-8">
+              {course.progressPercent > 0 ? "Continue" : "Start"}
+            </Button>
+          </div>
         </div>
       </div>
+      {locked && <ProgramCardLockOverlay />}
     </div>
   );
 }
