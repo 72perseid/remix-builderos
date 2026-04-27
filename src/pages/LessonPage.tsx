@@ -30,7 +30,7 @@ export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
   const { lesson, loading, markComplete, logVideoWatch } = useLesson(courseId, lessonId);
-  const { has, loading: featuresLoading } = useUserFeatures();
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [allLessonsOpen, setAllLessonsOpen] = useState(false);
 
@@ -64,7 +64,8 @@ export default function LessonPage() {
     );
   }
 
-  const isLocked = !has("programs");
+  const isPaidCourse = (lesson?.courseType ?? "").toLowerCase() === "paid";
+  const isLocked = isPaidCourse && !hasUse("programs");
 
   if (!lesson && !isLocked) {
     return (
