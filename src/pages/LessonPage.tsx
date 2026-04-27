@@ -1,5 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useLesson } from "@/hooks/useLesson";
+import { useUserFeatures } from "@/hooks/useUserFeatures";
+import { LockedOverlay } from "@/components/paywall/LockedOverlay";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
