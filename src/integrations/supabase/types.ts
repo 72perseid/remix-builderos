@@ -424,6 +424,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          is_featured: boolean | null
           main_video_url: string | null
           old_course_id: number | null
           program_id: string
@@ -439,6 +440,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_featured?: boolean | null
           main_video_url?: string | null
           old_course_id?: number | null
           program_id: string
@@ -454,6 +456,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_featured?: boolean | null
           main_video_url?: string | null
           old_course_id?: number | null
           program_id?: string
