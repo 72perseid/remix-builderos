@@ -186,13 +186,15 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         ...(progressRes.data || []).map(p => p.lesson_id),
         ...(activityRes.data || []).map(a => a.entity_id as string),
       ]);
-      const siblingsList: SiblingLesson[] = (siblings || []).map(s => ({
-        id: s.id,
-        title: s.title,
-        position: s.position,
-        thumbnail: (s as any).thumbnail ?? null,
-        completed: completedSet.has(s.id),
-      }));
+      const siblingsList: SiblingLesson[] = (siblings || [])
+        .filter(s => isVisible(s.id))
+        .map(s => ({
+          id: s.id,
+          title: s.title,
+          position: s.position,
+          thumbnail: (s as any).thumbnail ?? null,
+          completed: completedSet.has(s.id),
+        }));
 
       const courseLessons: CourseLessonRef[] = courseLessonsList.map((l) => ({
         ...l,
