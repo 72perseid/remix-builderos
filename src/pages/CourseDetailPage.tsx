@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucid
 import { useState, useEffect, useRef } from "react";
 import { LessonThumbnail } from "@/components/programs/LessonThumbnail";
 
-function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean }) {
+function ModuleRow({ module, index, courseId, defaultOpen, autoScroll }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean; autoScroll?: boolean }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(!!defaultOpen);
   const ref = useRef<HTMLDivElement>(null);
@@ -17,11 +17,13 @@ function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDet
   useEffect(() => {
     if (defaultOpen) {
       setOpen(true);
-      setTimeout(() => {
-        ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      if (autoScroll) {
+        setTimeout(() => {
+          ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     }
-  }, [defaultOpen]);
+  }, [defaultOpen, autoScroll]);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -162,7 +164,7 @@ export default function CourseDetailPage() {
   const location = useLocation();
   const { course, loading } = useCourseDetail(courseId);
 
-  const openModuleId = location.hash.startsWith("#module-")
+  const hashModuleId = location.hash.startsWith("#module-")
     ? location.hash.replace("#module-", "")
     : null;
 
@@ -236,15 +238,31 @@ export default function CourseDetailPage() {
           </span>
         </h2>
         <div className="space-y-3">
-          {course.modules.map((mod, i) => (
-            <ModuleRow
-              key={mod.id}
-              module={mod}
-              index={i}
-              courseId={course.id}
-              defaultOpen={mod.id === openModuleId}
-            />
-          ))}
+          {(() => {
+            // Pick the active module: in-progress lesson > first incomplete > first
+            const inProgress = course.modules.find((m) =>
+              m.lessons.some((l) => l.started && !l.completed)
+            );
+            const firstIncomplete = course.modules.find((m) =>
+              m.lessons.some((l) => !l.completed)
+            );
+            const activeModuleId =
+              hashModuleId ??
+              inProgress?.id ??
+              firstIncomplete?.id ??
+              course.modules[0]?.id ??
+              null;
+            return course.modules.map((mod, i) => (
+              <ModuleRow
+                key={mod.id}
+                module={mod}
+                index={i}
+                courseId={course.id}
+                defaultOpen={mod.id === activeModuleId}
+                autoScroll={!!hashModuleId && mod.id === hashModuleId}
+              />
+            ));
+          })()}
         </div>
       </section>
     </div>

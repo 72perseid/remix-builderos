@@ -1,46 +1,65 @@
+## Plan: Activate Layer-2 lesson access-group filtering
 
+### Context
 
-## Plan: Programs-courses fixes + spec/memory updates
+- 108 active lessons; 306 rows in `lesson_access_groups` — most lessons exist in 3 tier variants (Starter / Academy / Accelerator) plus a few Free.
+- Confirmed example: module `2e3e...a921` has two `How to Use Discord` lessons — one tagged `tier2` (Academy), one `tier3` (Accelerator).
+- Today the client ignores `lesson_access_groups`, so users see both copies (the screenshot's duplicate "How to Use Discord" cards).
+- Each user has exactly one `access_group_id` on their active enrollment (`useEnrollment` already fetches the active row — we'll extend it).
 
-Three approvals received:
-1. ✅ Fix cross-module Next/Prev navigation
-2. ✅ Keep Layer-2 access-group filtering deferred (Option A — consistent with enrollment-access decision)
-3. ✅ Update the canonical openspec text in the repo
+### Filtering rule
 
-### Code change
+A lesson is visible to the user when **either**:
+1. `lesson_access_groups` has no row for that lesson (untagged → visible to everyone with `programs_access`), OR
+2. `lesson_access_groups` has a row matching the user's enrollment `access_group_id`.
 
-**`src/hooks/useLesson.ts`** — Compute prev/next across all modules in the course, not just within the current module.
+Admins (via `has_role admin`) bypass the filter and see every lesson.
 
-- Add a query for all modules in the course (ordered by `position`) and all their lessons (ordered by `position`).
-- Build a flat list `allLessons = modules.flatMap(m => m.lessons)`.
-- Find the current lesson's index in that flat list.
-- Set `prevLessonId = allLessons[i-1]?.id ?? null` and `nextLessonId = allLessons[i+1]?.id ?? null`.
-- Keep the existing `siblings` array (same-module lessons) untouched — the lesson sidebar's "Progress" panel still scopes to the current module.
-- No UI changes needed: `LessonPage`'s Next/Prev buttons already consume `prevLessonId` / `nextLessonId`.
+This eliminates duplicates because each tier variant is tagged to a different group, so only the user's tier passes.
 
-### Documentation changes
+### Code changes
 
-**`mem://features/access/enrollment-model.md`** — Append one-liner: "Programs feature inherits the Layer-2 deferral — `lesson_access_groups` and `cta_access_groups` are not consulted; lessons and CTAs are visible to all users with `programs_access`."
+**`src/hooks/useEnrollment.ts`**
+- Extend the select to include `access_group_id`.
+- Return `accessGroupId: string | null` alongside the existing booleans.
 
-**Canonical openspec for `programs-courses`** — I'll locate the spec source in the repo (likely under `openspec/`, `specs/`, or `docs/`) and edit it:
-- **Course Detail requirement**: Remove the stale "⚠️ Michael Must Fix" warning (modules are already rendered).
-- **Lesson Navigation requirement**: No spec change — code is being fixed to match spec.
-- **Access Group Gating requirement**: Mark as **Planned (deferred)**. Add a note: "Layer-2 access-group filtering for lessons and CTAs is intentionally deferred — see `mem://features/access/enrollment-model`. Today all lessons and CTAs are visible to users with `programs_access`."
+**`src/hooks/useCourseDetail.ts`**
+- Accept the user's `accessGroupId` (read via `useEnrollment` inside the hook) and `isAdmin` (via `useIsAdmin`).
+- After fetching `lessons`, fetch their `lesson_access_groups` rows in one query (`.in('lesson_id', lessonIds)`).
+- Build `lessonGroupsMap: lessonId -> Set<access_group_id>`.
+- Filter lessons: keep when `isAdmin`, or when the lesson has no rows in the map, or when the map's set contains `accessGroupId`.
+- Recompute `totalLessons`, `completedLessons`, and per-module progress from the filtered list (so progress reflects what the user actually sees).
+- Include `accessGroupId` and admin flag in the React Query `queryKey` so the cache splits per user/role.
 
-If the openspec source is not checked into the repo, I'll only update memory and surface the exact diff for you to apply manually.
+**`src/hooks/useLesson.ts`**
+- Same join in the existing course-modules query (extend the select to include `lesson_access_groups(access_group_id)`).
+- Filter both `siblings` (module-scoped list) and `courseLessons` (course-wide list used by the `Lesson X of N` counter and Next/Prev navigation) using the same rule.
+- This makes Next/Prev skip lessons the user can't see and keeps the counter accurate.
+- Direct lesson access by URL: if a user opens a lesson UUID outside their group, the lesson detail still loads (we don't block it explicitly — the visibility filter only affects listings/navigation). Acceptable for now; matches the deferred "browse-everywhere" stance for everything else. (Out of scope: hard 404 / paywall on direct nav.)
 
-### Files to change
+**`src/hooks/usePrograms.ts`** (Programs landing page)
+- Apply the same filter when computing per-course progress / lesson counts so cards reflect what the user actually has.
+- Will inspect the file first to confirm shape, then apply the same join + filter pattern.
+
+### Memory update
+
+**`mem://features/access/enrollment-model.md`** — flip the Programs Layer-2 status:
+- Update the "Programs feature inheritance" section to note `lesson_access_groups` is now ENFORCED in `useCourseDetail`, `useLesson`, and `usePrograms`. Untagged lessons are visible to all users with `programs_access`. CTAs (`cta_access_groups`) and other Layer-2 surfaces remain deferred.
+- Update the top-of-file summary line accordingly.
+
+### Files changed
 
 | File | Change |
 |---|---|
-| `src/hooks/useLesson.ts` | Compute prev/next across all modules of the course |
-| `mem://features/access/enrollment-model.md` | Append Programs Layer-2 inheritance note |
-| Canonical `programs-courses` openspec source (path TBD on switch to default mode) | Remove stale Michael note; mark Access Group Gating deferred |
+| `src/hooks/useEnrollment.ts` | Return `accessGroupId` |
+| `src/hooks/useCourseDetail.ts` | Fetch `lesson_access_groups`; filter lessons; recompute progress; admin bypass |
+| `src/hooks/useLesson.ts` | Same filter applied to `siblings` and `courseLessons` (counter + nav) |
+| `src/hooks/usePrograms.ts` | Same filter applied to course-level lesson counts/progress |
+| `mem://features/access/enrollment-model.md` | Mark Programs Layer-2 as ENFORCED |
 
 ### Out of scope
 
-- No DB schema changes.
-- No activation of `lesson_access_groups` / `cta_access_groups`.
-- No UI changes to `LessonPage`, `CourseDetailPage`, or `ProgramsPage`.
-- No changes to `useCourseDetail` or `usePrograms`.
-
+- No DB / RLS changes (RLS already permits SELECT for all authenticated users on `lesson_access_groups` was empty in policy list — will rely on the implicit "RLS enabled, no SELECT policy = no rows" behavior; need to verify and add a SELECT policy `USING (true)` if reads return empty).
+- CTA filtering (`cta_access_groups`) stays deferred.
+- No hard block on direct lesson URLs outside the user's group (visibility-only filtering for now).
+- No admin UI for editing lesson access groups.
