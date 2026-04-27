@@ -99,11 +99,16 @@ function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; lo
           src={course.thumbnail || coursePlaceholder}
           alt={course.course_name}
           loading="lazy"
-          className="w-full h-48 md:h-full object-cover"
+          className={cn("w-full h-48 md:h-full object-cover", locked && "blur-sm")}
         />
         <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground gap-1">
           <Sparkles className="h-3 w-3" /> Featured
         </Badge>
+        {locked && (
+          <Badge className="absolute top-3 right-3 bg-background/90 text-foreground border border-border gap-1 backdrop-blur-sm">
+            <Lock className="h-3 w-3" /> Premium
+          </Badge>
+        )}
       </div>
       <div className="md:w-3/5 p-6 flex flex-col gap-4">
         <div className="flex-1">
