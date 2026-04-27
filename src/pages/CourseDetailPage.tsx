@@ -196,88 +196,94 @@ export default function CourseDetailPage() {
         )}
         aria-hidden={isLocked}
       >
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm">
-        <button
-          onClick={() => navigate("/programs")}
-          className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Courses
-        </button>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-foreground font-medium truncate">{course.course_name}</span>
-      </div>
-
-      {/* Hero banner */}
-      <div className="rounded-xl border border-border bg-card p-6 space-y-4">
-        <div>
-          {course.tags && course.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {course.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="bg-secondary/60 text-muted-foreground text-xs font-medium"
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-          <h1 className="text-2xl font-bold text-foreground">{course.course_name}</h1>
-          {course.summary && (
-            <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{course.summary}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="text-sm font-semibold text-foreground">{course.progressPercent}%</span>
+      {course && (
+        <>
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              onClick={() => navigate("/programs")}
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Courses
+            </button>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-foreground font-medium truncate">{course.course_name}</span>
           </div>
-          <Progress value={course.progressPercent} className="h-2 flex-1 bg-secondary" />
-          <span className="text-xs text-muted-foreground flex-shrink-0">
-            {course.completedLessons}/{course.totalLessons} lessons
-          </span>
-        </div>
+
+          {/* Hero banner */}
+          <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <div>
+              {course.tags && course.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {course.tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="bg-secondary/60 text-muted-foreground text-xs font-medium"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              <h1 className="text-2xl font-bold text-foreground">{course.course_name}</h1>
+              {course.summary && (
+                <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{course.summary}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-sm font-semibold text-foreground">{course.progressPercent}%</span>
+              </div>
+              <Progress value={course.progressPercent} className="h-2 flex-1 bg-secondary" />
+              <span className="text-xs text-muted-foreground flex-shrink-0">
+                {course.completedLessons}/{course.totalLessons} lessons
+              </span>
+            </div>
+          </div>
+
+          {/* Program Content */}
+          <section>
+            <h2 className="text-lg font-bold text-foreground mb-4">
+              Program Content
+              <span className="text-sm font-normal text-muted-foreground ml-2">
+                {course.modules.length} modules · {course.totalLessons} lessons
+              </span>
+            </h2>
+            <div className="space-y-3">
+              {(() => {
+                const inProgress = course.modules.find((m) =>
+                  m.lessons.some((l) => l.started && !l.completed)
+                );
+                const firstIncomplete = course.modules.find((m) =>
+                  m.lessons.some((l) => !l.completed)
+                );
+                const activeModuleId =
+                  hashModuleId ??
+                  inProgress?.id ??
+                  firstIncomplete?.id ??
+                  course.modules[0]?.id ??
+                  null;
+                return course.modules.map((mod, i) => (
+                  <ModuleRow
+                    key={mod.id}
+                    module={mod}
+                    index={i}
+                    courseId={course.id}
+                    defaultOpen={mod.id === activeModuleId}
+                    autoScroll={!!hashModuleId && mod.id === hashModuleId}
+                  />
+                ));
+              })()}
+            </div>
+          </section>
+        </>
+      )}
       </div>
 
-      {/* Program Content */}
-      <section>
-        <h2 className="text-lg font-bold text-foreground mb-4">
-          Program Content
-          <span className="text-sm font-normal text-muted-foreground ml-2">
-            {course.modules.length} modules · {course.totalLessons} lessons
-          </span>
-        </h2>
-        <div className="space-y-3">
-          {(() => {
-            // Pick the active module: in-progress lesson > first incomplete > first
-            const inProgress = course.modules.find((m) =>
-              m.lessons.some((l) => l.started && !l.completed)
-            );
-            const firstIncomplete = course.modules.find((m) =>
-              m.lessons.some((l) => !l.completed)
-            );
-            const activeModuleId =
-              hashModuleId ??
-              inProgress?.id ??
-              firstIncomplete?.id ??
-              course.modules[0]?.id ??
-              null;
-            return course.modules.map((mod, i) => (
-              <ModuleRow
-                key={mod.id}
-                module={mod}
-                index={i}
-                courseId={course.id}
-                defaultOpen={mod.id === activeModuleId}
-                autoScroll={!!hashModuleId && mod.id === hashModuleId}
-              />
-            ));
-          })()}
-        </div>
-      </section>
+      {isLocked && <LockedOverlay feature="programs" />}
     </div>
   );
 }
