@@ -81,10 +81,10 @@ export function useCourseDetail(courseId: string | undefined) {
       // Layer-2 access-group filtering: fetch lesson_access_groups for these lessons
       const { data: lagRows, error: lagErr } = rawLessonIds.length > 0
         ? await supabase
-            .from('lesson_access_groups')
+            .from('access_groups_artifacts')
             .select('lesson_id, access_group_id')
             .in('lesson_id', rawLessonIds)
-        : { data: [], error: null };
+        : { data: [] as { lesson_id: string; access_group_id: string }[], error: null };
       if (lagErr) throw lagErr;
 
       const lessonGroupsMap = new Map<string, Set<string>>();
