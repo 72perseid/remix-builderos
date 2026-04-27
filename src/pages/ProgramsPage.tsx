@@ -208,9 +208,10 @@ export default function ProgramsPage() {
   if (coursesLoading || featuresLoading) return <LoadingSkeleton />;
 
   const canUsePrograms = hasUse("programs");
+  const isPaidValue = (value?: string | null) =>
+    (value ?? "").trim().toLowerCase() === "paid";
   const isCoursePaid = (c: CourseWithProgress) =>
-    (c.course_type ?? "").toLowerCase() === "paid" ||
-    (c.tags ?? []).some((t) => t?.toLowerCase() === "paid");
+    isPaidValue(c.course_type) || (c.tags ?? []).some(isPaidValue);
   const isCourseLocked = (c: CourseWithProgress) =>
     isCoursePaid(c) && !canUsePrograms;
 
