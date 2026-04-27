@@ -8,7 +8,6 @@ import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
-import { useNavigate as _unused } from 'react-router-dom';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -79,16 +78,13 @@ export function ArtifactsGrid() {
   } = useArtifacts();
   const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
-  const { buildAccess } = useEnrollment();
-  const { isAdmin } = useIsAdmin();
-  const paywall = usePaywall();
+  const { has: hasFeature } = useUserFeatures();
   const navigate = useNavigate();
 
-  const canBuild = isAdmin || buildAccess;
+  const canBuild = hasFeature('build');
 
   const handleNavigate = (route: string) => {
     if (canBuild) navigate(route);
-    else paywall.open('build');
   };
 
 
@@ -249,10 +245,5 @@ export function ArtifactsGrid() {
           </div>
         </div>
       </div>
-      <PaywallDialog
-        open={paywall.isOpen}
-        onOpenChange={paywall.onOpenChange}
-        feature={paywall.feature}
-      />
     </div>;
 }
