@@ -187,7 +187,8 @@ export default function ProgramsPage() {
 
   const canUsePrograms = hasUse("programs");
   const isCoursePaid = (c: CourseWithProgress) =>
-    (c.course_type ?? "").toLowerCase() === "paid";
+    (c.course_type ?? "").toLowerCase() === "paid" ||
+    (c.tags ?? []).some((t) => t?.toLowerCase() === "paid");
   const isCourseLocked = (c: CourseWithProgress) =>
     isCoursePaid(c) && !canUsePrograms;
 
