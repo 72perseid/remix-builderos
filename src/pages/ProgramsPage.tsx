@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import { BookOpen, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePrograms, type CourseWithProgress } from "@/hooks/usePrograms";
 import { Progress } from "@/components/ui/progress";
@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { LockedOverlay } from "@/components/paywall/LockedOverlay";
 import { cn } from "@/lib/utils";
+import coursePlaceholder from "@/assets/course-placeholder.jpg";
 
 function CourseCard({ course }: { course: CourseWithProgress }) {
   const navigate = useNavigate();
