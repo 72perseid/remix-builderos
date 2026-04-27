@@ -221,6 +221,9 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
                 siblings: prev.siblings.map((s) =>
                   s.id === lessonId ? { ...s, completed: true } : s
                 ),
+                courseLessons: prev.courseLessons.map((l) =>
+                  l.id === lessonId ? { ...l, completed: true } : l
+                ),
               }
             : prev
       );
