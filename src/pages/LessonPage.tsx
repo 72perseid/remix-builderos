@@ -30,6 +30,7 @@ export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
   const { lesson, loading, markComplete, logVideoWatch } = useLesson(courseId, lessonId);
+  const { has, loading: featuresLoading } = useUserFeatures();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [allLessonsOpen, setAllLessonsOpen] = useState(false);
 
@@ -51,7 +52,7 @@ export default function LessonPage() {
     navigate(`/programs/${courseId}/lessons/${id}`);
   };
 
-  if (loading) {
+  if (loading || featuresLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         <Skeleton className="h-8 w-full max-w-lg" />
@@ -63,7 +64,9 @@ export default function LessonPage() {
     );
   }
 
-  if (!lesson) {
+  const isLocked = !has("programs");
+
+  if (!lesson && !isLocked) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <h1 className="text-xl font-bold text-foreground mb-2">Lesson not found</h1>
@@ -74,11 +77,36 @@ export default function LessonPage() {
     );
   }
 
-  const moduleTotal = lesson.siblings.length;
-  const moduleIdx = lesson.currentIndex >= 0 ? lesson.currentIndex : 0;
+  const moduleTotal = lesson?.siblings.length ?? 0;
+  const moduleIdx = (lesson?.currentIndex ?? 0) >= 0 ? (lesson?.currentIndex ?? 0) : 0;
+
+  if (!lesson) {
+    return (
+      <div className="relative min-h-[calc(100vh-120px)]">
+        <div
+          className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6 blur-md select-none pointer-events-none"
+          aria-hidden
+        >
+          <Skeleton className="h-8 w-full max-w-lg" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-[400px] lg:col-span-2 rounded-xl" />
+            <Skeleton className="h-[400px] rounded-xl" />
+          </div>
+        </div>
+        <LockedOverlay feature="programs" />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+    <div className="relative min-h-[calc(100vh-120px)]">
+      <div
+        className={cn(
+          "max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6",
+          isLocked && "blur-md select-none pointer-events-none"
+        )}
+        aria-hidden={isLocked}
+      >
       {/* Top bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         {/* Breadcrumb */}
