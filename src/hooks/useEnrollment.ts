@@ -11,7 +11,7 @@ export function useEnrollment() {
       if (!user?.id) return null;
       const { data, error } = await supabase
         .from('enrollments')
-        .select('build_access, calendar_access, programs_access')
+        .select('build_access, calendar_access, programs_access, access_group_id')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false })
@@ -31,6 +31,7 @@ export function useEnrollment() {
     buildAccess: data?.build_access ?? false,
     calendarAccess: data?.calendar_access ?? false,
     programsAccess: data?.programs_access ?? false,
+    accessGroupId: data?.access_group_id ?? null,
     loading: isLoading,
   };
 }
