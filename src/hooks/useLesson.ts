@@ -26,6 +26,16 @@ export interface SiblingLesson {
   title: string;
   position: number;
   completed: boolean;
+  thumbnail: string | null;
+}
+
+export interface CourseLessonRef {
+  id: string;
+  title: string;
+  position: number;
+  moduleId: string;
+  completed: boolean;
+  thumbnail: string | null;
 }
 
 export interface LessonData {
@@ -43,7 +53,9 @@ export interface LessonData {
   resources: LessonResource[];
   ctas: LessonCTA[];
   siblings: SiblingLesson[];
+  courseLessons: CourseLessonRef[];
   currentIndex: number;
+  courseIndex: number;
   prevLessonId: string | null;
   nextLessonId: string | null;
   completed: boolean;
