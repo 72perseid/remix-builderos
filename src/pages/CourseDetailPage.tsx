@@ -166,7 +166,7 @@ export default function CourseDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { course, loading } = useCourseDetail(courseId);
-  const { has, loading: featuresLoading } = useUserFeatures();
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
 
   const hashModuleId = location.hash.startsWith("#module-")
     ? location.hash.replace("#module-", "")
@@ -174,7 +174,8 @@ export default function CourseDetailPage() {
 
   if (loading || featuresLoading) return <LoadingSkeleton />;
 
-  const isLocked = !has("programs");
+  const isPaidCourse = (course?.course_type ?? "").toLowerCase() === "paid";
+  const isLocked = isPaidCourse && !hasUse("programs");
 
   if (!course && !isLocked) {
     return (
