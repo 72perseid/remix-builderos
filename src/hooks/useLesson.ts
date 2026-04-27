@@ -65,11 +65,13 @@ export interface LessonData {
 
 export function useLesson(courseId: string | undefined, lessonId: string | undefined) {
   const { user } = useAuth();
+  const { accessGroupId } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
   const queryClient = useQueryClient();
   const lastLoggedRef = useRef<number>(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['lesson-detail', courseId, lessonId, user?.id],
+    queryKey: ['lesson-detail', courseId, lessonId, user?.id, accessGroupId, isAdmin],
     queryFn: async () => {
       // Fetch lesson
       const { data: lesson, error: lErr } = await supabase
