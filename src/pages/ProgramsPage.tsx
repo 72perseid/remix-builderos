@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { cn } from "@/lib/utils";
+import { isPaidCourse } from "@/lib/programAccess";
 import coursePlaceholder from "@/assets/course-placeholder.jpg";
 
 function ProgramCardLockOverlay() {
@@ -39,11 +40,11 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      onClick={() => navigate(`/programs/${course.id}`)}
       className={cn(
         "relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 flex flex-col",
         locked
-          ? "cursor-not-allowed"
+          ? "cursor-pointer"
           : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
       )}
     >
@@ -114,11 +115,11 @@ function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; lo
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      onClick={() => navigate(`/programs/${course.id}`)}
       className={cn(
         "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row",
         locked
-          ? "cursor-not-allowed"
+          ? "cursor-pointer"
           : "hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
       )}
     >
@@ -208,12 +209,8 @@ export default function ProgramsPage() {
   if (coursesLoading || featuresLoading) return <LoadingSkeleton />;
 
   const canUsePrograms = hasUse("programs");
-  const isPaidValue = (value?: string | null) =>
-    (value ?? "").trim().toLowerCase() === "paid";
-  const isCoursePaid = (c: CourseWithProgress) =>
-    isPaidValue(c.course_type) || (c.tags ?? []).some(isPaidValue);
   const isCourseLocked = (c: CourseWithProgress) =>
-    isCoursePaid(c) && !canUsePrograms;
+    isPaidCourse(c) && !canUsePrograms;
 
   if (courses.length === 0) {
     return (

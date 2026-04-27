@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { LessonThumbnail } from "@/components/programs/LessonThumbnail";
+import { isPaidCourse } from "@/lib/programAccess";
 
 function ModuleRow({ module, index, courseId, defaultOpen, autoScroll }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean; autoScroll?: boolean }) {
   const navigate = useNavigate();
@@ -174,8 +175,7 @@ export default function CourseDetailPage() {
 
   if (loading || featuresLoading) return <LoadingSkeleton />;
 
-  const isPaidCourse = (course?.course_type ?? "").toLowerCase() === "paid";
-  const isLocked = isPaidCourse && !hasUse("programs");
+  const isLocked = course?.lockedPreview === true || (isPaidCourse(course) && !hasUse("programs"));
 
   if (!course && !isLocked) {
     return (
