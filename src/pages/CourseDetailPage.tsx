@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucid
 import { useState, useEffect, useRef } from "react";
 import { LessonThumbnail } from "@/components/programs/LessonThumbnail";
 
-function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean }) {
+function ModuleRow({ module, index, courseId, defaultOpen, autoScroll }: { module: ModuleDetail; index: number; courseId: string; defaultOpen?: boolean; autoScroll?: boolean }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(!!defaultOpen);
   const ref = useRef<HTMLDivElement>(null);
@@ -17,11 +17,13 @@ function ModuleRow({ module, index, courseId, defaultOpen }: { module: ModuleDet
   useEffect(() => {
     if (defaultOpen) {
       setOpen(true);
-      setTimeout(() => {
-        ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+      if (autoScroll) {
+        setTimeout(() => {
+          ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
+      }
     }
-  }, [defaultOpen]);
+  }, [defaultOpen, autoScroll]);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
