@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { cn } from "@/lib/utils";
+import { isPaidCourse } from "@/lib/programAccess";
 import coursePlaceholder from "@/assets/course-placeholder.jpg";
 
 function ProgramCardLockOverlay() {
@@ -208,12 +209,8 @@ export default function ProgramsPage() {
   if (coursesLoading || featuresLoading) return <LoadingSkeleton />;
 
   const canUsePrograms = hasUse("programs");
-  const isPaidValue = (value?: string | null) =>
-    (value ?? "").trim().toLowerCase() === "paid";
-  const isCoursePaid = (c: CourseWithProgress) =>
-    isPaidValue(c.course_type) || (c.tags ?? []).some(isPaidValue);
   const isCourseLocked = (c: CourseWithProgress) =>
-    isCoursePaid(c) && !canUsePrograms;
+    isPaidCourse(c) && !canUsePrograms;
 
   if (courses.length === 0) {
     return (
