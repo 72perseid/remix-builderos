@@ -20,9 +20,11 @@ export interface CourseWithProgress {
 
 export function usePrograms() {
   const { user } = useAuth();
+  const { accessGroupId } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['programs-page', user?.id],
+    queryKey: ['programs-page', user?.id, accessGroupId, isAdmin],
     queryFn: async () => {
       // Fetch programs
       const { data: programs, error: pErr } = await supabase
