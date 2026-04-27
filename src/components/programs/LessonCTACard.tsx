@@ -60,7 +60,7 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
         justCompleted && "animate-scale-in"
       )}
     >
-      <div className="flex items-start gap-3 min-w-0">
+      <div className="flex items-center gap-3 min-w-0">
         <div
           className={cn(
             "h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0",
@@ -71,7 +71,7 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-foreground break-words">{cta.title}</h3>
+          <h3 className="text-sm font-semibold text-foreground break-words leading-tight">{cta.title}</h3>
           {cta.description && (
             <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{cta.description}</p>
           )}
