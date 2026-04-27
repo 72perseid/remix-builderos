@@ -1,4 +1,4 @@
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePrograms, type CourseWithProgress } from "@/hooks/usePrograms";
 import { Progress } from "@/components/ui/progress";
@@ -6,16 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
-import { LockedOverlay } from "@/components/paywall/LockedOverlay";
 import { cn } from "@/lib/utils";
 import coursePlaceholder from "@/assets/course-placeholder.jpg";
 
-function CourseCard({ course }: { course: CourseWithProgress }) {
+function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: boolean }) {
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
-      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 flex flex-col cursor-pointer"
+      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      className={cn(
+        "relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 flex flex-col",
+        locked
+          ? "cursor-not-allowed"
+          : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+      )}
     >
       <img
         src={course.thumbnail || coursePlaceholder}
