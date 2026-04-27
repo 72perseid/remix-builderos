@@ -1,65 +1,74 @@
-## Plan: Activate Layer-2 lesson access-group filtering
+## What I had wrong
 
-### Context
+I kept treating `isAdmin` as a special bypass alongside the enrollment booleans. That's not how the system is designed. Admin is just a role that controls who can open `/admin`. **Access to features is owned entirely by `access_groups` → `access_group_features`** (queried via the existing `access_group_features_view`). Whichever group a user is in determines what they unlock — admins unlock things because their group is mapped to those features, not because of a code-level shortcut.
 
-- 108 active lessons; 306 rows in `lesson_access_groups` — most lessons exist in 3 tier variants (Starter / Academy / Accelerator) plus a few Free.
-- Confirmed example: module `2e3e...a921` has two `How to Use Discord` lessons — one tagged `tier2` (Academy), one `tier3` (Accelerator).
-- Today the client ignores `lesson_access_groups`, so users see both copies (the screenshot's duplicate "How to Use Discord" cards).
-- Each user has exactly one `access_group_id` on their active enrollment (`useEnrollment` already fetches the active row — we'll extend it).
+## The single rule, used everywhere
 
-### Filtering rule
+For any gated surface (Programs, Calendar, Build/Project Board, Build/Artifacts, lesson CTAs, individual courses, individual calendars), the check is the same:
 
-A lesson is visible to the user when **either**:
-1. `lesson_access_groups` has no row for that lesson (untagged → visible to everyone with `programs_access`), OR
-2. `lesson_access_groups` has a row matching the user's enrollment `access_group_id`.
+> Does the current user's `access_group_id` have a row in `access_group_features_view` with the matching `feature_slug`?
 
-Admins (via `has_role admin`) bypass the filter and see every lesson.
+If yes → render. If no → render the blurred component + centered "talk to an expert" card (the same pattern Project Board and Artifacts already use).
 
-This eliminates duplicates because each tier variant is tagged to a different group, so only the user's tier passes.
+No `isAdmin` short-circuit. No `programs_access` / `calendar_access` / `build_access` boolean reads from the client. Those booleans stay in the DB for backend / trigger logic, but the client stops consulting them.
 
-### Code changes
+## Implementation
 
-**`src/hooks/useEnrollment.ts`**
-- Extend the select to include `access_group_id`.
-- Return `accessGroupId: string | null` alongside the existing booleans.
+### 1. One hook: `useUserFeatures`
 
-**`src/hooks/useCourseDetail.ts`**
-- Accept the user's `accessGroupId` (read via `useEnrollment` inside the hook) and `isAdmin` (via `useIsAdmin`).
-- After fetching `lessons`, fetch their `lesson_access_groups` rows in one query (`.in('lesson_id', lessonIds)`).
-- Build `lessonGroupsMap: lessonId -> Set<access_group_id>`.
-- Filter lessons: keep when `isAdmin`, or when the lesson has no rows in the map, or when the map's set contains `accessGroupId`.
-- Recompute `totalLessons`, `completedLessons`, and per-module progress from the filtered list (so progress reflects what the user actually sees).
-- Include `accessGroupId` and admin flag in the React Query `queryKey` so the cache splits per user/role.
+Reads the existing `access_group_features_view` filtered by the user's `enrollments.access_group_id`. Returns `{ has(slug: string): boolean, loading: boolean }`. Cached per access group.
 
-**`src/hooks/useLesson.ts`**
-- Same join in the existing course-modules query (extend the select to include `lesson_access_groups(access_group_id)`).
-- Filter both `siblings` (module-scoped list) and `courseLessons` (course-wide list used by the `Lesson X of N` counter and Next/Prev navigation) using the same rule.
-- This makes Next/Prev skip lessons the user can't see and keeps the counter accurate.
-- Direct lesson access by URL: if a user opens a lesson UUID outside their group, the lesson detail still loads (we don't block it explicitly — the visibility filter only affects listings/navigation). Acceptable for now; matches the deferred "browse-everywhere" stance for everything else. (Out of scope: hard 404 / paywall on direct nav.)
+That's the only access primitive the client needs.
 
-**`src/hooks/usePrograms.ts`** (Programs landing page)
-- Apply the same filter when computing per-course progress / lesson counts so cards reflect what the user actually has.
-- Will inspect the file first to confirm shape, then apply the same join + filter pattern.
+### 2. Standardise feature slugs
 
-### Memory update
+Use whatever is already in the `features` table. Based on the existing booleans the obvious slugs are `programs`, `calendar`, `build` (please confirm the exact strings you've seeded). Later, finer-grained slugs like `course.<unique_slug>`, `calendar.<id>`, `cta.<id>` can be added the same way without touching client code beyond the slug string passed in.
 
-**`mem://features/access/enrollment-model.md`** — flip the Programs Layer-2 status:
-- Update the "Programs feature inheritance" section to note `lesson_access_groups` is now ENFORCED in `useCourseDetail`, `useLesson`, and `usePrograms`. Untagged lessons are visible to all users with `programs_access`. CTAs (`cta_access_groups`) and other Layer-2 surfaces remain deferred.
-- Update the top-of-file summary line accordingly.
+For this round I'm only wiring the three coarse slugs that mirror today's behaviour: `programs`, `calendar`, `build`.
 
-### Files changed
+### 3. Apply the same blur+overlay everywhere
 
-| File | Change |
-|---|---|
-| `src/hooks/useEnrollment.ts` | Return `accessGroupId` |
-| `src/hooks/useCourseDetail.ts` | Fetch `lesson_access_groups`; filter lessons; recompute progress; admin bypass |
-| `src/hooks/useLesson.ts` | Same filter applied to `siblings` and `courseLessons` (counter + nav) |
-| `src/hooks/usePrograms.ts` | Same filter applied to course-level lesson counts/progress |
-| `mem://features/access/enrollment-model.md` | Mark Programs Layer-2 as ENFORCED |
+Reuse the exact pattern from `ProjectBoardPage` (lines 629–676): wrap content in `cn("...", isLocked && "blur-md select-none pointer-events-none")` with `aria-hidden`, and render a centered card overlay with icon, bullets, and a "Talk to an Expert" button routing to `/coaching`. Copy comes from `PaywallDialog`'s existing `PAYWALL_COPY` map.
 
-### Out of scope
+### 4. Pages to update
 
-- No DB / RLS changes (RLS already permits SELECT for all authenticated users on `lesson_access_groups` was empty in policy list — will rely on the implicit "RLS enabled, no SELECT policy = no rows" behavior; need to verify and add a SELECT policy `USING (true)` if reads return empty).
-- CTA filtering (`cta_access_groups`) stays deferred.
-- No hard block on direct lesson URLs outside the user's group (visibility-only filtering for now).
-- No admin UI for editing lesson access groups.
+- `ProgramsPage` → `isLocked = !features.has('programs')`. Drop `course_type === "paid"` split. One uniform grid behind the blur.
+- `CourseDetailPage` → same `isLocked` rule. Closes the direct-URL bypass.
+- `LessonPage` → same `isLocked` rule.
+- `CalendarPage` → `isLocked = !features.has('calendar')`. Replace the per-element soft-block with the full-page blur + overlay.
+- `ProjectBoardPage` → swap the existing `!isAdmin && !buildAccess` check for `!features.has('build')`. Visual unchanged.
+- `ArtifactsGrid` (and any other surface currently using `useEnrollment` + `useIsAdmin`) → same swap.
+
+After this change, `useEnrollment` and `useIsAdmin` calls on these surfaces are removed. `useIsAdmin` keeps existing only to gate the `/admin` route and the sidebar admin link — that's its only job.
+
+### 5. Loading safety
+
+Pages must wait for `useUserFeatures.loading === false` before deciding `isLocked`, otherwise free users briefly see unlocked content. Implementation: while loading, render a skeleton/spinner instead of either branch.
+
+### 6. Memory update
+
+`mem://features/access/enrollment-model.md`:
+- Single source of truth on the client = `access_group_features_view`.
+- The boolean columns on `enrollments` (`programs_access` etc.) remain in the DB for triggers/back-office logic but are no longer read by the client.
+- `isAdmin` is for the `/admin` route only, not for feature gating.
+
+## Files touched
+
+- `src/hooks/useUserFeatures.ts` (new)
+- `src/pages/ProgramsPage.tsx`
+- `src/pages/CourseDetailPage.tsx`
+- `src/pages/LessonPage.tsx`
+- `src/pages/CalendarPage.tsx`
+- `src/pages/ProjectBoardPage.tsx`
+- `src/components/dashboard/ArtifactsGrid.tsx`
+- `mem://features/access/enrollment-model.md`
+
+## What we're not doing yet
+
+- Per-course / per-CTA / per-calendar gating. Same hook, finer slugs — added in a future pass once you confirm the slug naming convention.
+- Removing the boolean columns from the DB. They stay; the client just stops reading them.
+- Any admin UI for editing `access_group_features` — DB-managed, as today.
+
+## One question before I implement
+
+What are the exact `feature_slug` strings already seeded in your `features` table for the three top-level surfaces? I need them verbatim. Likely candidates: `programs`, `calendar`, `build` — but if you've used something different (e.g. `programs_access`, `builder_suite`) I'll match it.
