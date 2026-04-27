@@ -26,6 +26,16 @@ export interface SiblingLesson {
   title: string;
   position: number;
   completed: boolean;
+  thumbnail: string | null;
+}
+
+export interface CourseLessonRef {
+  id: string;
+  title: string;
+  position: number;
+  moduleId: string;
+  completed: boolean;
+  thumbnail: string | null;
 }
 
 export interface LessonData {
@@ -43,7 +53,9 @@ export interface LessonData {
   resources: LessonResource[];
   ctas: LessonCTA[];
   siblings: SiblingLesson[];
+  courseLessons: CourseLessonRef[];
   currentIndex: number;
+  courseIndex: number;
   prevLessonId: string | null;
   nextLessonId: string | null;
   completed: boolean;
@@ -94,7 +106,7 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       // Fetch sibling lessons in same module
       const { data: siblings, error: sErr } = await supabase
         .from('lessons')
-        .select('id, title, position')
+        .select('id, title, position, thumbnail')
         .eq('module_id', lesson.module_id)
         .eq('is_active', true)
         .order('position');
@@ -103,26 +115,34 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       // Fetch all modules in the course + their lessons to compute cross-module prev/next
       const { data: courseModules, error: cmErr } = await supabase
         .from('modules')
-        .select('id, position, lessons(id, position, is_active)')
+        .select('id, position, lessons(id, title, position, thumbnail, is_active)')
         .eq('course_id', mod.course_id)
         .eq('is_active', true)
         .order('position');
       if (cmErr) throw cmErr;
 
-      const allLessons = (courseModules || [])
+      const courseLessonsList: CourseLessonRef[] = (courseModules || [])
         .slice()
         .sort((a, b) => a.position - b.position)
         .flatMap((m: any) =>
           ((m.lessons as any[]) || [])
             .filter((l) => l.is_active)
             .sort((a, b) => a.position - b.position)
-            .map((l) => l.id as string)
+            .map((l) => ({
+              id: l.id as string,
+              title: l.title as string,
+              position: l.position as number,
+              moduleId: m.id as string,
+              thumbnail: (l.thumbnail as string | null) ?? null,
+              completed: false, // filled in below
+            }))
         );
-      const flatIndex = allLessons.findIndex((id) => id === lessonId);
-      const prevLessonId = flatIndex > 0 ? allLessons[flatIndex - 1] : null;
+
+      const flatIndex = courseLessonsList.findIndex((l) => l.id === lessonId);
+      const prevLessonId = flatIndex > 0 ? courseLessonsList[flatIndex - 1].id : null;
       const nextLessonId =
-        flatIndex >= 0 && flatIndex < allLessons.length - 1
-          ? allLessons[flatIndex + 1]
+        flatIndex >= 0 && flatIndex < courseLessonsList.length - 1
+          ? courseLessonsList[flatIndex + 1].id
           : null;
 
       // Merge user_lesson_progress + activity_log lesson_completed events
@@ -134,10 +154,17 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         id: s.id,
         title: s.title,
         position: s.position,
+        thumbnail: (s as any).thumbnail ?? null,
         completed: completedSet.has(s.id),
       }));
 
+      const courseLessons: CourseLessonRef[] = courseLessonsList.map((l) => ({
+        ...l,
+        completed: completedSet.has(l.id),
+      }));
+
       const currentIndex = siblingsList.findIndex(s => s.id === lessonId);
+      const courseIndex = courseLessons.findIndex(l => l.id === lessonId);
 
       return {
         id: lesson.id,
@@ -154,7 +181,9 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         resources: (resourcesRes.data || []) as LessonResource[],
         ctas: (ctasRes.data || []) as LessonCTA[],
         siblings: siblingsList,
+        courseLessons,
         currentIndex,
+        courseIndex,
         prevLessonId,
         nextLessonId,
         completed: completedSet.has(lessonId!),
@@ -191,6 +220,9 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
                 completed: true,
                 siblings: prev.siblings.map((s) =>
                   s.id === lessonId ? { ...s, completed: true } : s
+                ),
+                courseLessons: prev.courseLessons.map((l) =>
+                  l.id === lessonId ? { ...l, completed: true } : l
                 ),
               }
             : prev
