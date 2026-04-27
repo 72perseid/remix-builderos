@@ -23,9 +23,13 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
     >
       <div className="relative">
         <img
-          src={course.thumbnail || coursePlaceholder}
+          src={course.thumbnail?.trim() ? course.thumbnail : coursePlaceholder}
           alt={course.course_name}
           loading="lazy"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (img.src !== coursePlaceholder) img.src = coursePlaceholder;
+          }}
           className={cn("w-full h-40 object-cover", locked && "blur-sm")}
         />
         {locked && (
@@ -96,9 +100,13 @@ function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; lo
     >
       <div className="md:w-2/5 relative">
         <img
-          src={course.thumbnail || coursePlaceholder}
+          src={course.thumbnail?.trim() ? course.thumbnail : coursePlaceholder}
           alt={course.course_name}
           loading="lazy"
+          onError={(e) => {
+            const img = e.currentTarget;
+            if (img.src !== coursePlaceholder) img.src = coursePlaceholder;
+          }}
           className={cn("w-full h-48 md:h-full object-cover", locked && "blur-sm")}
         />
         <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground gap-1">
