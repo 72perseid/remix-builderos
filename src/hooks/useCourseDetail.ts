@@ -41,9 +41,11 @@ export interface CourseDetail {
 
 export function useCourseDetail(courseId: string | undefined) {
   const { user } = useAuth();
+  const { accessGroupId } = useEnrollment();
+  const { isAdmin } = useIsAdmin();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['course-detail', courseId, user?.id],
+    queryKey: ['course-detail', courseId, user?.id, accessGroupId, isAdmin],
     queryFn: async () => {
       const { data: course, error: cErr } = await supabase
         .from('courses')
