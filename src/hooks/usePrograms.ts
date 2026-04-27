@@ -12,6 +12,7 @@ export interface CourseWithProgress {
   thumbnail: string | null;
   tags: string[] | null;
   course_type: string | null;
+  is_featured: boolean | null;
   program_id: string;
   totalLessons: number;
   completedLessons: number;
@@ -38,7 +39,7 @@ export function usePrograms() {
       // Fetch courses
       const { data: courses, error: cErr } = await supabase
         .from('courses')
-        .select('id, course_name, short_name, summary, thumbnail, tags, course_type, program_id')
+        .select('id, course_name, short_name, summary, thumbnail, tags, course_type, is_featured, program_id')
         .eq('is_active', true);
 
       if (cErr) throw cErr;
@@ -132,6 +133,7 @@ export function usePrograms() {
           thumbnail: c.thumbnail,
           tags: c.tags,
           course_type: c.course_type,
+          is_featured: (c as any).is_featured ?? false,
           program_id: c.program_id,
           totalLessons,
           completedLessons,
