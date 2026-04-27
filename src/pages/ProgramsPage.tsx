@@ -40,11 +40,11 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      onClick={() => navigate(`/programs/${course.id}`)}
       className={cn(
         "relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 flex flex-col",
         locked
-          ? "cursor-not-allowed"
+          ? "cursor-pointer"
           : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
       )}
     >
@@ -115,11 +115,11 @@ function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; lo
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      onClick={() => navigate(`/programs/${course.id}`)}
       className={cn(
         "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row",
         locked
-          ? "cursor-not-allowed"
+          ? "cursor-pointer"
           : "hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
       )}
     >
