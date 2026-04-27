@@ -50,8 +50,8 @@ export default function CalendarPage() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const { has, loading: featuresLoading } = useUserFeatures();
-  const isLocked = !has("calendar");
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
+  const isLocked = !featuresLoading && !hasUse('calendar');
 
   useEffect(() => {
     async function fetchEvents() {
