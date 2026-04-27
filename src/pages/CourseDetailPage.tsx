@@ -1,5 +1,8 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useCourseDetail, type ModuleDetail } from "@/hooks/useCourseDetail";
+import { useUserFeatures } from "@/hooks/useUserFeatures";
+import { LockedOverlay } from "@/components/paywall/LockedOverlay";
+import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -163,14 +166,17 @@ export default function CourseDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { course, loading } = useCourseDetail(courseId);
+  const { has, loading: featuresLoading } = useUserFeatures();
 
   const hashModuleId = location.hash.startsWith("#module-")
     ? location.hash.replace("#module-", "")
     : null;
 
-  if (loading) return <LoadingSkeleton />;
+  if (loading || featuresLoading) return <LoadingSkeleton />;
 
-  if (!course) {
+  const isLocked = !has("programs");
+
+  if (!course && !isLocked) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <h1 className="text-xl font-bold text-foreground mb-2">Course not found</h1>
@@ -182,7 +188,14 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="relative min-h-[calc(100vh-120px)]">
+      <div
+        className={cn(
+          "max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6",
+          isLocked && "blur-md select-none pointer-events-none"
+        )}
+        aria-hidden={isLocked}
+      >
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
         <button
