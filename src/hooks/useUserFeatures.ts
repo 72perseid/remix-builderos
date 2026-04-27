@@ -23,11 +23,14 @@ export function useUserFeatures() {
     queryKey: ['user-enrollment', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
+      // No status filter: the `enforce_enrollment_access` DB trigger already
+      // recomputes the *_access booleans from *_expires_at on every write, so
+      // the booleans are the source of truth. Filtering on status='active'
+      // would drop legitimate rows (default status is 'pending').
       const { data, error } = await supabase
         .from('enrollments')
         .select('access_group_id, build_access, calendar_access, programs_access')
         .eq('user_id', user.id)
-        .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
