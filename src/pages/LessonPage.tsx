@@ -71,8 +71,8 @@ export default function LessonPage() {
     );
   }
 
-  const courseTotal = lesson.courseLessons.length;
-  const courseIdx = lesson.courseIndex >= 0 ? lesson.courseIndex : 0;
+  const moduleTotal = lesson.siblings.length;
+  const moduleIdx = lesson.currentIndex >= 0 ? lesson.currentIndex : 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -114,7 +114,7 @@ export default function LessonPage() {
           </Button>
 
           <span className="text-sm font-medium text-primary px-2">
-            Lesson {courseIdx + 1} of {courseTotal}
+            Lesson {moduleIdx + 1} of {moduleTotal}
           </span>
 
           <Button
