@@ -50,7 +50,7 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
   return (
     <div
       className={cn(
-        "relative rounded-xl border p-4 flex items-center gap-4 transition-all duration-300",
+        "relative rounded-xl border p-4 flex flex-col gap-3 transition-all duration-300",
         isUpgrade
           ? completed
             ? "bg-gradient-to-r from-primary/15 to-primary/5 border-primary/40"
@@ -60,27 +60,29 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
         justCompleted && "animate-scale-in"
       )}
     >
-      <div
-        className={cn(
-          "h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0",
-          isUpgrade ? "bg-primary/20 text-primary" : "bg-muted text-foreground"
-        )}
-      >
-        <Icon className="h-5 w-5" />
-      </div>
+      <div className="flex items-start gap-3 min-w-0">
+        <div
+          className={cn(
+            "h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0",
+            isUpgrade ? "bg-primary/20 text-primary" : "bg-muted text-foreground"
+          )}
+        >
+          <Icon className="h-4 w-4" />
+        </div>
 
-      <div className="flex-1 min-w-0">
-        <h3 className="text-sm font-semibold text-foreground truncate">{cta.title}</h3>
-        {cta.description && (
-          <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{cta.description}</p>
-        )}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-foreground break-words">{cta.title}</h3>
+          {cta.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{cta.description}</p>
+          )}
+        </div>
       </div>
 
       <Button
         size="sm"
         variant={isUpgrade ? "default" : "outline"}
         onClick={handleClick}
-        className="flex-shrink-0 gap-1.5"
+        className="w-full gap-1.5"
       >
         {label}
         <ArrowRight className="h-3.5 w-3.5" />
