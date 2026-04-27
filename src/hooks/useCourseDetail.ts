@@ -66,7 +66,7 @@ export function useCourseDetail(courseId: string | undefined) {
 
       const moduleIds = (modules || []).map(m => m.id);
 
-      const { data: lessons, error: lErr } = await supabase
+      const { data: rawLessons, error: lErr } = await supabase
         .from('lessons')
         .select('id, title, description, thumbnail, position, module_id')
         .eq('is_active', true)
@@ -75,7 +75,33 @@ export function useCourseDetail(courseId: string | undefined) {
 
       if (lErr) throw lErr;
 
-      const lessonIds = (lessons || []).map(l => l.id);
+      const rawLessonIds = (rawLessons || []).map(l => l.id);
+
+      // Layer-2 access-group filtering: fetch lesson_access_groups for these lessons
+      const { data: lagRows, error: lagErr } = rawLessonIds.length > 0
+        ? await supabase
+            .from('lesson_access_groups')
+            .select('lesson_id, access_group_id')
+            .in('lesson_id', rawLessonIds)
+        : { data: [], error: null };
+      if (lagErr) throw lagErr;
+
+      const lessonGroupsMap = new Map<string, Set<string>>();
+      for (const row of lagRows || []) {
+        const set = lessonGroupsMap.get(row.lesson_id) ?? new Set<string>();
+        set.add(row.access_group_id);
+        lessonGroupsMap.set(row.lesson_id, set);
+      }
+
+      // Filter: admin sees all; otherwise show untagged lessons OR lessons tagged to user's group.
+      const lessons = (rawLessons || []).filter(l => {
+        if (isAdmin) return true;
+        const groups = lessonGroupsMap.get(l.id);
+        if (!groups || groups.size === 0) return true;
+        return accessGroupId ? groups.has(accessGroupId) : false;
+      });
+
+      const lessonIds = lessons.map(l => l.id);
 
       const [progressRes, activityCompletedRes, videosRes] = await Promise.all([
         supabase.from('user_lesson_progress').select('lesson_id').eq('user_id', user!.id),
