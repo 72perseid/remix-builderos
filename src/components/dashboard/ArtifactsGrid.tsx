@@ -78,10 +78,10 @@ export function ArtifactsGrid() {
   } = useArtifacts();
   const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
-  const { has: hasFeature } = useUserFeatures();
+  const { hasUse } = useUserFeatures();
   const navigate = useNavigate();
 
-  const canBuild = hasFeature('build');
+  const canBuild = hasUse('build');
 
   const handleNavigate = (route: string) => {
     if (canBuild) navigate(route);
