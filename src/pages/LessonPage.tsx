@@ -114,7 +114,7 @@ export default function LessonPage() {
           </Button>
 
           <span className="text-sm font-medium text-primary px-2">
-            Lesson {courseIdx + 1} of {courseTotal}
+            Lesson {moduleIdx + 1} of {moduleTotal}
           </span>
 
           <Button
