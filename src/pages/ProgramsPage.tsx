@@ -173,13 +173,17 @@ function LoadingSkeleton() {
 
 export default function ProgramsPage() {
   const { courses, loading: coursesLoading } = usePrograms();
-  const { has, loading: featuresLoading } = useUserFeatures();
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
 
   if (coursesLoading || featuresLoading) return <LoadingSkeleton />;
 
-  const isLocked = !has("programs");
+  const canUsePrograms = hasUse("programs");
+  const isCoursePaid = (c: CourseWithProgress) =>
+    (c.course_type ?? "").toLowerCase() === "paid";
+  const isCourseLocked = (c: CourseWithProgress) =>
+    isCoursePaid(c) && !canUsePrograms;
 
-  if (courses.length === 0 && !isLocked) {
+  if (courses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <div className="rounded-full bg-primary/10 p-4 mb-6">
@@ -194,41 +198,41 @@ export default function ProgramsPage() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-120px)]">
-      <div
-        className={cn(
-          "max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6",
-          isLocked && "blur-md select-none pointer-events-none"
-        )}
-        aria-hidden={isLocked}
-      >
-        <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Programs</h1>
-          <p className="text-sm text-muted-foreground">
-            Comprehensive programs and supplementary courses to take you from idea to launch.
-          </p>
-        </div>
-        <div className="space-y-8">
-          {courses.filter((c) => c.is_featured).length > 0 && (
-            <div className="space-y-4">
-              {courses
-                .filter((c) => c.is_featured)
-                .map((course) => (
-                  <FeaturedCourseCard key={course.id} course={course} />
-                ))}
-            </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground mb-1">Programs</h1>
+        <p className="text-sm text-muted-foreground">
+          Comprehensive programs and supplementary courses to take you from idea to launch.
+        </p>
+      </div>
+      <div className="space-y-8">
+        {courses.filter((c) => c.is_featured).length > 0 && (
+          <div className="space-y-4">
             {courses
-              .filter((c) => !c.is_featured)
+              .filter((c) => c.is_featured)
               .map((course) => (
-                <CourseCard key={course.id} course={course} />
+                <FeaturedCourseCard
+                  key={course.id}
+                  course={course}
+                  locked={isCourseLocked(course)}
+                />
               ))}
           </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {courses
+            .filter((c) => !c.is_featured)
+            .map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                locked={isCourseLocked(course)}
+              />
+            ))}
         </div>
       </div>
-
-      {isLocked && <LockedOverlay feature="programs" />}
     </div>
+  );
+}
   );
 }
