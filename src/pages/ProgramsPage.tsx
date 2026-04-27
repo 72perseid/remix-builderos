@@ -21,12 +21,19 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
           : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
       )}
     >
-      <img
-        src={course.thumbnail || coursePlaceholder}
-        alt={course.course_name}
-        loading="lazy"
-        className="w-full h-40 object-cover"
-      />
+      <div className="relative">
+        <img
+          src={course.thumbnail || coursePlaceholder}
+          alt={course.course_name}
+          loading="lazy"
+          className={cn("w-full h-40 object-cover", locked && "blur-sm")}
+        />
+        {locked && (
+          <Badge className="absolute top-2 left-2 bg-background/90 text-foreground border border-border gap-1 backdrop-blur-sm">
+            <Lock className="h-3 w-3" /> Premium
+          </Badge>
+        )}
+      </div>
       <div className="p-4 flex flex-col flex-1 gap-3">
         <div className="flex-1">
           {course.tags && course.tags.length > 0 && (
@@ -75,12 +82,17 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
   );
 }
 
-function FeaturedCourseCard({ course }: { course: CourseWithProgress }) {
+function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; locked?: boolean }) {
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
-      className="rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 flex flex-col md:flex-row cursor-pointer"
+      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      className={cn(
+        "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row",
+        locked
+          ? "cursor-not-allowed"
+          : "hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
+      )}
     >
       <div className="md:w-2/5 relative">
         <img
