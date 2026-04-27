@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnrollment } from '@/hooks/useEnrollment';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { isPaidCourse } from '@/lib/programAccess';
 
 export interface LessonDetail {
   id: string;
@@ -70,10 +71,7 @@ export function useCourseDetail(courseId: string | undefined) {
         progressPercent: 0,
       } as CourseDetail;
 
-      const isPaidValue = (value?: string | null) => (value ?? '').trim().toLowerCase() === 'paid';
-      const isPaidCourse = isPaidValue(coursePreview.course_type) || (coursePreview.tags ?? []).some(isPaidValue);
-
-      if (isPaidCourse) {
+      if (isPaidCourse(coursePreview)) {
         const { data: enrollment, error: eErr } = await supabase
           .from('enrollments')
           .select('programs_access')
