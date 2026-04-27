@@ -139,10 +139,10 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
 
       const { data: lagRows, error: lagErr } = candidateIdsArr.length > 0
         ? await supabase
-            .from('lesson_access_groups')
+            .from('access_groups_artifacts')
             .select('lesson_id, access_group_id')
             .in('lesson_id', candidateIdsArr)
-        : { data: [], error: null };
+        : { data: [] as { lesson_id: string; access_group_id: string }[], error: null };
       if (lagErr) throw lagErr;
 
       const lessonGroupsMap = new Map<string, Set<string>>();
