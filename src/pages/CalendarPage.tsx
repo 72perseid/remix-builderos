@@ -4,10 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarDays, ChevronLeft, ChevronRight, ExternalLink, MapPin, Video, Loader2, LayoutGrid, List } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useEnrollment } from "@/hooks/useEnrollment";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { usePaywall } from "@/hooks/usePaywall";
-import { PaywallDialog } from "@/components/paywall/PaywallDialog";
+import { useUserFeatures } from "@/hooks/useUserFeatures";
+import { LockedOverlay } from "@/components/paywall/LockedOverlay";
+import { cn } from "@/lib/utils";
 
 const CALENDAR_ID = "michael@ambitiouslabs.io";
 
@@ -51,16 +50,8 @@ export default function CalendarPage() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
-  const { calendarAccess } = useEnrollment();
-  const { isAdmin } = useIsAdmin();
-  const paywall = usePaywall();
-  const canViewEvents = isAdmin || calendarAccess;
-  const guard = (e: React.MouseEvent) => {
-    if (canViewEvents) return;
-    e.preventDefault();
-    e.stopPropagation();
-    paywall.open('calendar');
-  };
+  const { has, loading: featuresLoading } = useUserFeatures();
+  const isLocked = !has("calendar");
 
   useEffect(() => {
     async function fetchEvents() {
