@@ -51,6 +51,7 @@ export interface LessonData {
   courseName: string;
   courseId: string;
   courseType: string | null;
+  courseTags: string[] | null;
   videoUrl: string | null;
   videoId: string | null;
   resources: LessonResource[];
@@ -103,7 +104,7 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       // Fetch course
       const { data: course, error: cErr } = await supabase
         .from('courses')
-        .select('id, course_name, course_type')
+        .select('id, course_name, course_type, tags')
         .eq('id', mod.course_id)
         .single();
       if (cErr) throw cErr;
@@ -216,6 +217,7 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         courseName: course.course_name,
         courseId: course.id,
         courseType: (course as any).course_type ?? null,
+        courseTags: (course as any).tags ?? null,
         videoUrl: videoRes.data?.url || null,
         videoId: videoRes.data?.id || null,
         resources: (resourcesRes.data || []) as LessonResource[],
