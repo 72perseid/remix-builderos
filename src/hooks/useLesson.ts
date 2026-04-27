@@ -50,6 +50,8 @@ export interface LessonData {
   moduleEmoji: string | null;
   courseName: string;
   courseId: string;
+  courseType: string | null;
+  courseTags: string[] | null;
   videoUrl: string | null;
   videoId: string | null;
   resources: LessonResource[];
@@ -99,10 +101,10 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       if (moduleRes.error) throw moduleRes.error;
       const mod = moduleRes.data;
 
-      // Fetch course name
+      // Fetch course
       const { data: course, error: cErr } = await supabase
         .from('courses')
-        .select('id, course_name')
+        .select('id, course_name, course_type, tags')
         .eq('id', mod.course_id)
         .single();
       if (cErr) throw cErr;
@@ -138,10 +140,10 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
 
       const { data: lagRows, error: lagErr } = candidateIdsArr.length > 0
         ? await supabase
-            .from('lesson_access_groups')
+            .from('access_groups_artifacts')
             .select('lesson_id, access_group_id')
             .in('lesson_id', candidateIdsArr)
-        : { data: [], error: null };
+        : { data: [] as { lesson_id: string; access_group_id: string }[], error: null };
       if (lagErr) throw lagErr;
 
       const lessonGroupsMap = new Map<string, Set<string>>();
@@ -214,6 +216,8 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         moduleEmoji: mod.emoji,
         courseName: course.course_name,
         courseId: course.id,
+        courseType: (course as any).course_type ?? null,
+        courseTags: (course as any).tags ?? null,
         videoUrl: videoRes.data?.url || null,
         videoId: videoRes.data?.id || null,
         resources: (resourcesRes.data || []) as LessonResource[],

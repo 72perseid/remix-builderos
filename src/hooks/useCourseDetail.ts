@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnrollment } from '@/hooks/useEnrollment';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { isPaidCourse } from '@/lib/programAccess';
 
 export interface LessonDetail {
   id: string;
@@ -33,6 +34,8 @@ export interface CourseDetail {
   summary: string | null;
   thumbnail: string | null;
   tags: string[] | null;
+  course_type: string | null;
+  lockedPreview?: boolean;
   modules: ModuleDetail[];
   totalLessons: number;
   completedLessons: number;
@@ -49,11 +52,39 @@ export function useCourseDetail(courseId: string | undefined) {
     queryFn: async () => {
       const { data: course, error: cErr } = await supabase
         .from('courses')
-        .select('id, course_name, summary, thumbnail, tags')
+        .select('id, course_name, summary, thumbnail, tags, course_type')
         .eq('id', courseId!)
         .single();
 
       if (cErr) throw cErr;
+
+      const coursePreview = {
+        id: course.id,
+        course_name: course.course_name,
+        summary: course.summary,
+        thumbnail: course.thumbnail,
+        tags: course.tags,
+        course_type: (course as any).course_type ?? null,
+        modules: [],
+        totalLessons: 0,
+        completedLessons: 0,
+        progressPercent: 0,
+      } as CourseDetail;
+
+      if (isPaidCourse(coursePreview)) {
+        const { data: enrollment, error: eErr } = await supabase
+          .from('enrollments')
+          .select('programs_access')
+          .eq('user_id', user!.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (eErr) throw eErr;
+
+        if (enrollment?.programs_access !== true) {
+          return { ...coursePreview, lockedPreview: true } as CourseDetail;
+        }
+      }
 
       const { data: modules, error: mErr } = await supabase
         .from('modules')
@@ -80,10 +111,10 @@ export function useCourseDetail(courseId: string | undefined) {
       // Layer-2 access-group filtering: fetch lesson_access_groups for these lessons
       const { data: lagRows, error: lagErr } = rawLessonIds.length > 0
         ? await supabase
-            .from('lesson_access_groups')
+            .from('access_groups_artifacts')
             .select('lesson_id, access_group_id')
             .in('lesson_id', rawLessonIds)
-        : { data: [], error: null };
+        : { data: [] as { lesson_id: string; access_group_id: string }[], error: null };
       if (lagErr) throw lagErr;
 
       const lessonGroupsMap = new Map<string, Set<string>>();
@@ -192,6 +223,7 @@ export function useCourseDetail(courseId: string | undefined) {
         summary: course.summary,
         thumbnail: course.thumbnail,
         tags: course.tags,
+        course_type: (course as any).course_type ?? null,
         modules: modulesWithProgress,
         totalLessons: totalAll,
         completedLessons: completedAll,

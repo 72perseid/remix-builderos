@@ -109,6 +109,39 @@ export type Database = {
         }
         Relationships: []
       }
+      access_groups_artifacts: {
+        Row: {
+          access_group_id: string
+          created_at: string
+          lesson_id: string
+        }
+        Insert: {
+          access_group_id: string
+          created_at?: string
+          lesson_id: string
+        }
+        Update: {
+          access_group_id?: string
+          created_at?: string
+          lesson_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_access_groups_access_group_id_fkey"
+            columns: ["access_group_id"]
+            isOneToOne: false
+            referencedRelation: "access_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_access_groups_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_log: {
         Row: {
           created_at: string
@@ -424,6 +457,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          is_featured: boolean | null
           main_video_url: string | null
           old_course_id: number | null
           program_id: string
@@ -439,6 +473,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_featured?: boolean | null
           main_video_url?: string | null
           old_course_id?: number | null
           program_id: string
@@ -454,6 +489,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          is_featured?: boolean | null
           main_video_url?: string | null
           old_course_id?: number | null
           program_id?: string
@@ -681,39 +717,6 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
-      }
-      lesson_access_groups: {
-        Row: {
-          access_group_id: string
-          created_at: string
-          lesson_id: string
-        }
-        Insert: {
-          access_group_id: string
-          created_at?: string
-          lesson_id: string
-        }
-        Update: {
-          access_group_id?: string
-          created_at?: string
-          lesson_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_access_groups_access_group_id_fkey"
-            columns: ["access_group_id"]
-            isOneToOne: false
-            referencedRelation: "access_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lesson_access_groups_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       lessons: {
         Row: {

@@ -6,8 +6,7 @@ import { useTasks } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag, Lock, Sparkles, Check } from 'lucide-react';
 import { CoachCTA } from '@/components/dashboard/CoachCTA';
-import { useEnrollment } from '@/hooks/useEnrollment';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay, KanbanMoveEvent } from '@/components/ui/kanban';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -306,9 +305,8 @@ export default function ProjectBoardPage() {
   } = useArtifact('kanban');
   const { profile } = useProfile();
   const isOnboarded = profile?.onboarded === true;
-  const { buildAccess } = useEnrollment();
-  const { isAdmin } = useIsAdmin();
-  const isLocked = !isAdmin && !buildAccess;
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
+  const isLocked = !featuresLoading && !hasUse('build');
 
   const { 
     tasks, 
