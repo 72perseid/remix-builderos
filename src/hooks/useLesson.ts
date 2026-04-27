@@ -125,12 +125,44 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         .order('position');
       if (cmErr) throw cmErr;
 
+      // Layer-2 access-group filtering: collect all lesson ids in the course + module siblings,
+      // then fetch lesson_access_groups in one query.
+      const allCandidateIds = new Set<string>();
+      for (const s of siblings || []) allCandidateIds.add(s.id);
+      for (const m of courseModules || []) {
+        for (const l of (m.lessons as any[]) || []) {
+          if (l?.is_active) allCandidateIds.add(l.id as string);
+        }
+      }
+      const candidateIdsArr = Array.from(allCandidateIds);
+
+      const { data: lagRows, error: lagErr } = candidateIdsArr.length > 0
+        ? await supabase
+            .from('lesson_access_groups')
+            .select('lesson_id, access_group_id')
+            .in('lesson_id', candidateIdsArr)
+        : { data: [], error: null };
+      if (lagErr) throw lagErr;
+
+      const lessonGroupsMap = new Map<string, Set<string>>();
+      for (const row of lagRows || []) {
+        const set = lessonGroupsMap.get(row.lesson_id) ?? new Set<string>();
+        set.add(row.access_group_id);
+        lessonGroupsMap.set(row.lesson_id, set);
+      }
+      const isVisible = (id: string) => {
+        if (isAdmin) return true;
+        const groups = lessonGroupsMap.get(id);
+        if (!groups || groups.size === 0) return true;
+        return accessGroupId ? groups.has(accessGroupId) : false;
+      };
+
       const courseLessonsList: CourseLessonRef[] = (courseModules || [])
         .slice()
         .sort((a, b) => a.position - b.position)
         .flatMap((m: any) =>
           ((m.lessons as any[]) || [])
-            .filter((l) => l.is_active)
+            .filter((l) => l.is_active && isVisible(l.id as string))
             .sort((a, b) => a.position - b.position)
             .map((l) => ({
               id: l.id as string,
