@@ -305,8 +305,8 @@ export default function ProjectBoardPage() {
   } = useArtifact('kanban');
   const { profile } = useProfile();
   const isOnboarded = profile?.onboarded === true;
-  const { has: hasFeature, loading: featuresLoading } = useUserFeatures();
-  const isLocked = !featuresLoading && !hasFeature('build');
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
+  const isLocked = !featuresLoading && !hasUse('build');
 
   const { 
     tasks, 

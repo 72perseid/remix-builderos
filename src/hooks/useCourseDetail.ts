@@ -33,6 +33,7 @@ export interface CourseDetail {
   summary: string | null;
   thumbnail: string | null;
   tags: string[] | null;
+  course_type: string | null;
   modules: ModuleDetail[];
   totalLessons: number;
   completedLessons: number;
@@ -49,7 +50,7 @@ export function useCourseDetail(courseId: string | undefined) {
     queryFn: async () => {
       const { data: course, error: cErr } = await supabase
         .from('courses')
-        .select('id, course_name, summary, thumbnail, tags')
+        .select('id, course_name, summary, thumbnail, tags, course_type')
         .eq('id', courseId!)
         .single();
 
@@ -192,6 +193,7 @@ export function useCourseDetail(courseId: string | undefined) {
         summary: course.summary,
         thumbnail: course.thumbnail,
         tags: course.tags,
+        course_type: (course as any).course_type ?? null,
         modules: modulesWithProgress,
         totalLessons: totalAll,
         completedLessons: completedAll,

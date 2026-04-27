@@ -1,4 +1,4 @@
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Sparkles, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePrograms, type CourseWithProgress } from "@/hooks/usePrograms";
 import { Progress } from "@/components/ui/progress";
@@ -6,23 +6,34 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
-import { LockedOverlay } from "@/components/paywall/LockedOverlay";
 import { cn } from "@/lib/utils";
 import coursePlaceholder from "@/assets/course-placeholder.jpg";
 
-function CourseCard({ course }: { course: CourseWithProgress }) {
+function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: boolean }) {
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
-      className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 flex flex-col cursor-pointer"
+      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      className={cn(
+        "relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 flex flex-col",
+        locked
+          ? "cursor-not-allowed"
+          : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
+      )}
     >
-      <img
-        src={course.thumbnail || coursePlaceholder}
-        alt={course.course_name}
-        loading="lazy"
-        className="w-full h-40 object-cover"
-      />
+      <div className="relative">
+        <img
+          src={course.thumbnail || coursePlaceholder}
+          alt={course.course_name}
+          loading="lazy"
+          className={cn("w-full h-40 object-cover", locked && "blur-sm")}
+        />
+        {locked && (
+          <Badge className="absolute top-2 left-2 bg-background/90 text-foreground border border-border gap-1 backdrop-blur-sm">
+            <Lock className="h-3 w-3" /> Premium
+          </Badge>
+        )}
+      </div>
       <div className="p-4 flex flex-col flex-1 gap-3">
         <div className="flex-1">
           {course.tags && course.tags.length > 0 && (
@@ -71,23 +82,33 @@ function CourseCard({ course }: { course: CourseWithProgress }) {
   );
 }
 
-function FeaturedCourseCard({ course }: { course: CourseWithProgress }) {
+function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; locked?: boolean }) {
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
-      className="rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 flex flex-col md:flex-row cursor-pointer"
+      onClick={() => !locked && navigate(`/programs/${course.id}`)}
+      className={cn(
+        "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row",
+        locked
+          ? "cursor-not-allowed"
+          : "hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
+      )}
     >
       <div className="md:w-2/5 relative">
         <img
           src={course.thumbnail || coursePlaceholder}
           alt={course.course_name}
           loading="lazy"
-          className="w-full h-48 md:h-full object-cover"
+          className={cn("w-full h-48 md:h-full object-cover", locked && "blur-sm")}
         />
         <Badge className="absolute top-3 left-3 bg-primary/90 text-primary-foreground gap-1">
           <Sparkles className="h-3 w-3" /> Featured
         </Badge>
+        {locked && (
+          <Badge className="absolute top-3 right-3 bg-background/90 text-foreground border border-border gap-1 backdrop-blur-sm">
+            <Lock className="h-3 w-3" /> Premium
+          </Badge>
+        )}
       </div>
       <div className="md:w-3/5 p-6 flex flex-col gap-4">
         <div className="flex-1">
@@ -152,13 +173,17 @@ function LoadingSkeleton() {
 
 export default function ProgramsPage() {
   const { courses, loading: coursesLoading } = usePrograms();
-  const { has, loading: featuresLoading } = useUserFeatures();
+  const { hasUse, loading: featuresLoading } = useUserFeatures();
 
   if (coursesLoading || featuresLoading) return <LoadingSkeleton />;
 
-  const isLocked = !has("programs");
+  const canUsePrograms = hasUse("programs");
+  const isCoursePaid = (c: CourseWithProgress) =>
+    (c.course_type ?? "").toLowerCase() === "paid";
+  const isCourseLocked = (c: CourseWithProgress) =>
+    isCoursePaid(c) && !canUsePrograms;
 
-  if (courses.length === 0 && !isLocked) {
+  if (courses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6">
         <div className="rounded-full bg-primary/10 p-4 mb-6">
@@ -173,41 +198,40 @@ export default function ProgramsPage() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-120px)]">
-      <div
-        className={cn(
-          "max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6",
-          isLocked && "blur-md select-none pointer-events-none"
-        )}
-        aria-hidden={isLocked}
-      >
-        <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Programs</h1>
-          <p className="text-sm text-muted-foreground">
-            Comprehensive programs and supplementary courses to take you from idea to launch.
-          </p>
-        </div>
-        <div className="space-y-8">
-          {courses.filter((c) => c.is_featured).length > 0 && (
-            <div className="space-y-4">
-              {courses
-                .filter((c) => c.is_featured)
-                .map((course) => (
-                  <FeaturedCourseCard key={course.id} course={course} />
-                ))}
-            </div>
-          )}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground mb-1">Programs</h1>
+        <p className="text-sm text-muted-foreground">
+          Comprehensive programs and supplementary courses to take you from idea to launch.
+        </p>
+      </div>
+      <div className="space-y-8">
+        {courses.filter((c) => c.is_featured).length > 0 && (
+          <div className="space-y-4">
             {courses
-              .filter((c) => !c.is_featured)
+              .filter((c) => c.is_featured)
               .map((course) => (
-                <CourseCard key={course.id} course={course} />
+                <FeaturedCourseCard
+                  key={course.id}
+                  course={course}
+                  locked={isCourseLocked(course)}
+                />
               ))}
           </div>
+        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {courses
+            .filter((c) => !c.is_featured)
+            .map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                locked={isCourseLocked(course)}
+              />
+            ))}
         </div>
       </div>
-
-      {isLocked && <LockedOverlay feature="programs" />}
     </div>
   );
 }
+
