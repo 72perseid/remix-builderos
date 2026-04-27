@@ -25,6 +25,7 @@ import { useRef, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { LessonCTACard } from "@/components/programs/LessonCTACard";
 import { LessonThumbnail } from "@/components/programs/LessonThumbnail";
+import { isPaidCourse } from "@/lib/programAccess";
 
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -64,8 +65,7 @@ export default function LessonPage() {
     );
   }
 
-  const isPaidCourse = (lesson?.courseType ?? "").toLowerCase() === "paid";
-  const isLocked = isPaidCourse && !hasUse("programs");
+  const isLocked = isPaidCourse({ course_type: lesson?.courseType, tags: lesson?.courseTags }) && !hasUse("programs");
 
   if (!lesson && !isLocked) {
     return (
