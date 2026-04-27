@@ -52,12 +52,36 @@ export function usePrograms() {
       if (mErr) throw mErr;
 
       // Fetch lessons
-      const { data: lessons, error: lErr } = await supabase
+      const { data: rawLessons, error: lErr } = await supabase
         .from('lessons')
         .select('id, module_id')
         .eq('is_active', true);
 
       if (lErr) throw lErr;
+
+      // Layer-2 access-group filtering
+      const rawLessonIds = (rawLessons || []).map(l => l.id);
+      const { data: lagRows, error: lagErr } = rawLessonIds.length > 0
+        ? await supabase
+            .from('lesson_access_groups')
+            .select('lesson_id, access_group_id')
+            .in('lesson_id', rawLessonIds)
+        : { data: [], error: null };
+      if (lagErr) throw lagErr;
+
+      const lessonGroupsMap = new Map<string, Set<string>>();
+      for (const row of lagRows || []) {
+        const set = lessonGroupsMap.get(row.lesson_id) ?? new Set<string>();
+        set.add(row.access_group_id);
+        lessonGroupsMap.set(row.lesson_id, set);
+      }
+
+      const lessons = (rawLessons || []).filter(l => {
+        if (isAdmin) return true;
+        const groups = lessonGroupsMap.get(l.id);
+        if (!groups || groups.size === 0) return true;
+        return accessGroupId ? groups.has(accessGroupId) : false;
+      });
 
       // Fetch user progress + lesson_completed activity events
       const [progressRes, activityRes] = await Promise.all([
