@@ -15,7 +15,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const isProjectBoard = location.pathname === '/project-board';
   const hideTopNav = location.pathname === '/coaching' || location.pathname === '/1on1-coaching' || location.pathname === '/calendar' || location.pathname.startsWith('/programs') || location.pathname === '/admin';
-  const hideSidebar = location.pathname.startsWith('/programs');
+  const hideSidebar = /^\/programs\/[^/]+/.test(location.pathname);
 
   return (
     <ChatProvider>
