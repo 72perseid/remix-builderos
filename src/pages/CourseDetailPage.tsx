@@ -164,7 +164,7 @@ export default function CourseDetailPage() {
   const location = useLocation();
   const { course, loading } = useCourseDetail(courseId);
 
-  const openModuleId = location.hash.startsWith("#module-")
+  const hashModuleId = location.hash.startsWith("#module-")
     ? location.hash.replace("#module-", "")
     : null;
 
