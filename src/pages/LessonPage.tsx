@@ -330,6 +330,9 @@ export default function LessonPage() {
           </Tabs>
         </div>
       </div>
+      </div>
+
+      {isLocked && <LockedOverlay feature="programs" />}
     </div>
   );
 }
