@@ -44,8 +44,82 @@ export default function CoachingPage() {
 
   const selectedTier = pricingTiers[selectedTierIndex];
 
-  const handleSelectSupportPack = () => setView('form');
-  const handleBack = () => setView('plans');
+type View = 'plans' | 'inquiry' | 'calendly';
+type PackageKey = 'support' | 'dfy';
+
+export default function CoachingPage() {
+  const [view, setView] = useState<View>('plans');
+  const [selectedTierIndex, setSelectedTierIndex] = useState(1);
+  const [selectedPackage, setSelectedPackage] = useState<PackageKey>('support');
+
+  const { user } = useAuth();
+  const { profile } = useProfile();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const selectedTier = pricingTiers[selectedTierIndex];
+  const isSupport = selectedPackage === 'support';
+  const packageLabel = isSupport ? `Support Pack — ${selectedTier.label}` : 'Done For You';
+
+  // Prefill name/email from profile/user when available
+  useEffect(() => {
+    if (!name) {
+      const full = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
+      if (full) setName(full);
+    }
+    if (!email) {
+      const e = profile?.email ?? user?.email;
+      if (e) setEmail(e);
+    }
+  }, [profile, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openInquiry = (pkg: PackageKey) => {
+    setSelectedPackage(pkg);
+    setErrors({});
+    setView('inquiry');
+  };
+
+  const handleBack = () => {
+    if (view === 'calendly') setView('inquiry');
+    else if (view === 'inquiry') setView('plans');
+  };
+
+  const handleSubmitInquiry = async () => {
+    setErrors({});
+    const payload = {
+      name,
+      email,
+      package: selectedPackage,
+      hours: isSupport ? selectedTier.hours : null,
+      message,
+    };
+    const parsed = coachingLeadSchema.safeParse(payload);
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      parsed.error.issues.forEach((i) => {
+        const k = i.path[0]?.toString() ?? 'form';
+        if (!fieldErrors[k]) fieldErrors[k] = i.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await submitCoachingLead(parsed.data);
+      toast.success("Thanks! We've received your inquiry.");
+      setView('calendly');
+    } catch (err) {
+      console.error('Lead submit failed:', err);
+      toast.error("Couldn't submit your inquiry. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const slideVariants = {
     enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
