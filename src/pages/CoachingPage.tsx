@@ -36,14 +36,6 @@ const pricingTiers = [
   { hours: 40, price: 3600, displayPrice: '$3.6K', originalPrice: '$4K', label: '40 Hours', perHour: 90, discount: '10% off' },
 ];
 
-type View = 'plans' | 'form';
-
-export default function CoachingPage() {
-  const [view, setView] = useState<View>('plans');
-  const [selectedTierIndex, setSelectedTierIndex] = useState(1);
-
-  const selectedTier = pricingTiers[selectedTierIndex];
-
 type View = 'plans' | 'inquiry' | 'calendly';
 type PackageKey = 'support' | 'dfy';
 
