@@ -215,20 +215,13 @@ export function ArtifactsGrid() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Landing Copy — linked to Landing Page Generator */}
-            <div
+            <ArtifactCard
+              title="Landing Copy"
+              description="Generate compelling landing page copy for your product."
+              status="available"
+              upgradeRequired={!canBuild}
               onClick={() => canBuild ? navigate('/landing-page') : navigate('/coaching')}
-              className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 p-5 pt-10 min-h-[180px] flex flex-col cursor-pointer hover:border-primary/40 transition-colors"
-            >
-              <div className="mb-3">
-                <div className="relative inline-flex">
-                  <div className="relative flex items-center justify-center w-12 h-12 rounded-xl border bg-primary/10 border-primary/20">
-                    <Type className="w-7 h-7 text-white" />
-                  </div>
-                </div>
-              </div>
-              <h3 className="text-base font-semibold text-foreground mb-1.5 mt-auto">Landing Copy</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">Generate compelling landing page copy for your product.</p>
-            </div>
+            />
             {/* Coming Soon cards */}
             {[
               { title: 'Social Content', description: 'Instagram content aligned with your brand.', icon: <Instagram className="w-7 h-7 text-white" /> },
