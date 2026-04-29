@@ -52,6 +52,8 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/update-password" element={<UpdatePasswordPage />} />
+
             <Route path="/onboarding" element={
               <ProtectedRoute>
                 <OnboardingPage />
