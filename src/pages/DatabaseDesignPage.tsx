@@ -24,7 +24,7 @@ interface DatabaseDesignContent {
   };
 }
 
-export default function DatabaseDesignPage() {
+function DatabaseDesignPageInner() {
   const { data: artifact, loading: artifactLoading } = useArtifact('db_design');
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -204,5 +204,13 @@ export default function DatabaseDesignPage() {
 
       <ArtifactCopilot context="database" heading="DB Architect" isOpen={copilotOpen} onToggle={() => setCopilotOpen(false)} />
     </div>
+  );
+}
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function DatabaseDesignPage() {
+  return (
+    <BuildLockedPage>
+      <DatabaseDesignPageInner />
+    </BuildLockedPage>
   );
 }

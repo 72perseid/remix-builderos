@@ -13,6 +13,13 @@ interface ArtifactCardProps {
   completion?: number | null;
   onClick?: () => void;
   className?: string;
+  /**
+   * When true, the card is rendered as locked-behind-paywall: shows an
+   * "Upgrade" pill, replaces the status badge with an upgrade prompt,
+   * hides the completion bar. The click handler still fires (route it
+   * to /coaching).
+   */
+  upgradeRequired?: boolean;
 }
 
 const statusConfig = {
@@ -65,8 +72,8 @@ const getCardIcon = (title: string): ReactNode => {
   }
 };
 
-export function ArtifactCard({ title, description, status, completion, onClick, className }: ArtifactCardProps) {
-  const isClickable = status === "available" || status === "completed" || status === "ready" || status === "locked";
+export function ArtifactCard({ title, description, status, completion, onClick, className, upgradeRequired }: ArtifactCardProps) {
+  const isClickable = upgradeRequired || status === "available" || status === "completed" || status === "ready" || status === "locked";
   const config = statusConfig[status];
 
   return (
@@ -75,11 +82,19 @@ export function ArtifactCard({ title, description, status, completion, onClick, 
       className={cn(
         "group relative overflow-hidden rounded-2xl bg-card border border-slate-700/50",
         isClickable && "cursor-pointer hover:border-slate-600/70",
-        status === "locked" && "opacity-60",
-        status === "loading" && "animate-pulse",
+        (status === "locked" || upgradeRequired) && "opacity-70",
+        status === "loading" && !upgradeRequired && "animate-pulse",
         className
       )}
     >
+      {/* Upgrade pill */}
+      {upgradeRequired && (
+        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 bg-primary/15 text-primary text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full border border-primary/30">
+          <Lock className="h-3 w-3" />
+          Upgrade
+        </div>
+      )}
+
       {/* Content */}
       <div className="relative p-5 pt-10 min-h-[180px] flex flex-col">
         {/* Icon with glow effect */}
@@ -87,9 +102,11 @@ export function ArtifactCard({ title, description, status, completion, onClick, 
           <div className="relative inline-flex">
             <div className={cn(
               "relative flex items-center justify-center w-12 h-12 rounded-xl border transition-colors duration-300",
-              status === "completed" 
-                ? "bg-green-500/10 border-green-500/20 group-hover:border-green-500/40"
-                : "bg-primary/10 border-primary/20 group-hover:border-primary/40"
+              upgradeRequired
+                ? "bg-muted/40 border-border"
+                : status === "completed" 
+                  ? "bg-green-500/10 border-green-500/20 group-hover:border-green-500/40"
+                  : "bg-primary/10 border-primary/20 group-hover:border-primary/40"
             )}>
               {getCardIcon(title)}
             </div>
@@ -97,15 +114,22 @@ export function ArtifactCard({ title, description, status, completion, onClick, 
         </div>
 
         {/* Status badge */}
-        <div className={cn("flex items-center gap-1.5 mb-2", config.color)}>
-          {config.icon}
-          <span className="text-xs font-medium">{config.label}</span>
-        </div>
+        {upgradeRequired ? (
+          <div className="flex items-center gap-1.5 mb-2 text-primary">
+            <Lock className="h-3.5 w-3.5" />
+            <span className="text-xs font-medium">Upgrade required</span>
+          </div>
+        ) : (
+          <div className={cn("flex items-center gap-1.5 mb-2", config.color)}>
+            {config.icon}
+            <span className="text-xs font-medium">{config.label}</span>
+          </div>
+        )}
 
         {/* Title */}
         <h3 className={cn(
           "text-base font-semibold mb-1.5 transition-colors duration-300",
-          status === "locked" ? "text-slate-400" : "text-white group-hover:text-primary"
+          status === "locked" || upgradeRequired ? "text-slate-300" : "text-white group-hover:text-primary"
         )}>
           {title}
         </h3>
@@ -113,13 +137,13 @@ export function ArtifactCard({ title, description, status, completion, onClick, 
         {/* Description */}
         <p className={cn(
           "text-sm leading-relaxed flex-1",
-          status === "locked" ? "text-slate-500" : "text-secondary-foreground"
+          status === "locked" || upgradeRequired ? "text-slate-500" : "text-secondary-foreground"
         )}>
           {description}
         </p>
 
         {/* Progress indicator */}
-        {completion != null && (
+        {!upgradeRequired && completion != null && (
           <div className="mt-3 space-y-1.5">
             <Progress value={completion} className="h-1.5" />
             <p className="text-xs text-muted-foreground">

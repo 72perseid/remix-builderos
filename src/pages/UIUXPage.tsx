@@ -35,7 +35,7 @@ function parseArtifactContent(rawContent: unknown): any {
   return null;
 }
 
-export default function UIUXPage() {
+function UIUXPageInner() {
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('ui_ux');
   const { selectedAppId } = useProjectContext();
 
@@ -241,5 +241,14 @@ export default function UIUXPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function UIUXPage() {
+  return (
+    <BuildLockedPage>
+      <UIUXPageInner />
+    </BuildLockedPage>
   );
 }

@@ -8,6 +8,7 @@ import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
+import { canAccessArtifact } from '@/lib/artifactAccess';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -84,7 +85,7 @@ export function ArtifactsGrid() {
   const canBuild = hasUse('build');
 
   const handleNavigate = (route: string) => {
-    if (canBuild) navigate(route);
+    navigate(route);
   };
 
 
@@ -183,14 +184,20 @@ export function ArtifactsGrid() {
                   <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
                 </div>
               ) : (
-                <ArtifactCard 
-                  key={card.type} 
-                  title={card.title} 
-                  description={card.description} 
-                  status={getCardStatus(card.type)} 
-                  completion={completionMap[card.type]}
-                  onClick={() => handleNavigate(card.route)}
-                />
+                (() => {
+                  const allowed = canAccessArtifact(card.type, canBuild);
+                  return (
+                    <ArtifactCard 
+                      key={card.type} 
+                      title={card.title} 
+                      description={card.description} 
+                      status={getCardStatus(card.type)} 
+                      completion={completionMap[card.type]}
+                      upgradeRequired={!allowed}
+                      onClick={() => allowed ? handleNavigate(card.route) : navigate('/coaching')}
+                    />
+                  );
+                })()
               )
             ))}
           </div>
@@ -209,7 +216,7 @@ export function ArtifactsGrid() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Landing Copy — linked to Landing Page Generator */}
             <div
-              onClick={() => handleNavigate('/landing-page')}
+              onClick={() => canBuild ? navigate('/landing-page') : navigate('/coaching')}
               className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 p-5 pt-10 min-h-[180px] flex flex-col cursor-pointer hover:border-primary/40 transition-colors"
             >
               <div className="mb-3">
