@@ -117,6 +117,16 @@ export default {
             boxShadow: "0 0 0 4px hsl(var(--primary) / 0), 0 0 12px 2px hsl(var(--primary) / 0.5)",
           },
         },
+        "glow-once": {
+          "0%, 100%": {
+            boxShadow: "0 0 0 0 hsl(var(--primary) / 0)",
+            borderColor: "hsl(var(--border))",
+          },
+          "50%": {
+            boxShadow: "0 0 24px 4px hsl(var(--primary) / 0.6)",
+            borderColor: "hsl(var(--primary) / 0.7)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -125,6 +135,7 @@ export default {
         "slide-in": "slide-in 0.3s ease-out",
         flicker: "flicker 3s ease-in-out infinite",
         "border-pulse": "border-pulse 2s ease-in-out infinite",
+        "glow-once": "glow-once 1.5s ease-in-out 1",
       },
     },
   },
