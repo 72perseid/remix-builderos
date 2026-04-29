@@ -275,7 +275,7 @@ export default function LessonPage() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="progress" className="mt-4">
+            <TabsContent value="progress" className="mt-4 space-y-3">
               {lesson.completed ? (
                 <div className="w-full flex items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-500">
                   <CheckCircle2 className="h-4 w-4" />
@@ -300,32 +300,31 @@ export default function LessonPage() {
                   )}
                 </Button>
               )}
+              {lesson.completed &&
+                lesson.ctas?.map((cta) => (
+                  <LessonCTACard key={cta.id} cta={cta} completed={lesson.completed} />
+                ))}
             </TabsContent>
 
             <TabsContent value="resources" className="mt-4 space-y-3">
-              {(lesson.ctas?.length ?? 0) === 0 && lesson.resources.length === 0 ? (
+              {lesson.resources.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-6">
                   No resources for this lesson.
                 </p>
               ) : (
-                <>
-                  {lesson.ctas?.map((cta) => (
-                    <LessonCTACard key={cta.id} cta={cta} completed={lesson.completed} />
-                  ))}
-                  {lesson.resources.map((r) => (
-                    <a
-                      key={r.id}
-                      href={r.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border hover:bg-muted/40 transition-colors group"
-                    >
-                      <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                      <span className="text-sm text-foreground truncate flex-1">{r.title}</span>
-                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </a>
-                  ))}
-                </>
+                lesson.resources.map((r) => (
+                  <a
+                    key={r.id}
+                    href={r.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2.5 p-2.5 rounded-lg border border-border hover:bg-muted/40 transition-colors group"
+                  >
+                    <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="text-sm text-foreground truncate flex-1">{r.title}</span>
+                    <ExternalLink className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </a>
+                ))
               )}
             </TabsContent>
           </Tabs>
