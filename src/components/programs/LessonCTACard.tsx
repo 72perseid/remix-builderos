@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ExternalLink, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface LessonCTA {
   id: string;
