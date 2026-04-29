@@ -35,7 +35,7 @@ function parseArtifactContent(rawContent: unknown): any {
   return null;
 }
 
-export default function UIUXPage() {
+function UIUXPageInner() {
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('ui_ux');
   const { selectedAppId } = useProjectContext();
 

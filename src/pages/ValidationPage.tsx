@@ -27,7 +27,7 @@ interface ValidationContent {
   user_personas?: Persona[];
 }
 
-export default function ValidationPage() {
+function ValidationPageInner() {
   const { data: artifact, loading, error, refetch: refetchArtifact } = useArtifact('validation');
   const { selectedAppId } = useProjectContext();
 

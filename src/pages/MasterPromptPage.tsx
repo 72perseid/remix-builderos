@@ -64,7 +64,7 @@ function parsePromptContent(rawContent: unknown): string | null {
   return null;
 }
 
-export default function MasterPromptPage() {
+function MasterPromptPageInner() {
   const navigate = useNavigate();
   const { data: artifact, loading: artifactLoading, refetch: refetchArtifact } = useArtifact('master_prompt');
   const { artifacts: allArtifacts, loading: artifactsLoading } = useArtifacts();

@@ -24,7 +24,7 @@ interface DatabaseDesignContent {
   };
 }
 
-export default function DatabaseDesignPage() {
+function DatabaseDesignPageInner() {
   const { data: artifact, loading: artifactLoading } = useArtifact('db_design');
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copied, setCopied] = useState(false);

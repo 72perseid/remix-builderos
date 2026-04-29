@@ -40,7 +40,7 @@ interface ProductBriefContent {
   core_value_proposition?: string;
 }
 
-export default function ProductBriefPage() {
+function ProductBriefPageInner() {
   const { data: artifact, loading, error, refetch: refetchArtifact } = useArtifact('product_brief');
   const { selectedAppId } = useProjectContext();
 
