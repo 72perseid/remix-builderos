@@ -67,6 +67,10 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
   const [timezone, setTimezone] = useState('');
+  const [location, setLocation] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [visibility, setVisibility] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -75,6 +79,10 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
       setLastName(profile.last_name || '');
       setBio(profile.bio || '');
       setTimezone(profile.timezone || '');
+      setLocation(profile.location || '');
+      setLinkedin(profile.linkedin_profile || '');
+      setTwitter(profile.twitter_profile || '');
+      setVisibility(profile.visibility ?? false);
     }
   }, [profile]);
 
@@ -82,7 +90,11 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
     firstName !== (profile?.first_name || '') ||
     lastName !== (profile?.last_name || '') ||
     bio !== (profile?.bio || '') ||
-    timezone !== (profile?.timezone || '');
+    timezone !== (profile?.timezone || '') ||
+    location !== (profile?.location || '') ||
+    linkedin !== (profile?.linkedin_profile || '') ||
+    twitter !== (profile?.twitter_profile || '') ||
+    visibility !== (profile?.visibility ?? false);
 
   const displayName = firstName && lastName
     ? `${firstName} ${lastName}`
@@ -114,7 +126,16 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
   const handleSave = async () => {
     setSaving(true);
-    const result = await updateProfile({ first_name: firstName, last_name: lastName, bio, timezone });
+    const result = await updateProfile({
+      first_name: firstName,
+      last_name: lastName,
+      bio,
+      timezone,
+      location: location || null,
+      linkedin_profile: linkedin || null,
+      twitter_profile: twitter || null,
+      visibility,
+    });
     if (result?.success) { toast.success('Profile saved'); }
     else { toast.error(result?.error || 'Failed to save profile'); }
     setSaving(false);
