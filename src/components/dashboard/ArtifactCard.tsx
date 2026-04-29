@@ -13,6 +13,13 @@ interface ArtifactCardProps {
   completion?: number | null;
   onClick?: () => void;
   className?: string;
+  /**
+   * When true, the card is rendered as locked-behind-paywall: shows an
+   * "Upgrade" pill, replaces the status badge with an upgrade prompt,
+   * hides the completion bar. The click handler still fires (route it
+   * to /coaching).
+   */
+  upgradeRequired?: boolean;
 }
 
 const statusConfig = {
