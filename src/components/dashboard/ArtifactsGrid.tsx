@@ -184,14 +184,20 @@ export function ArtifactsGrid() {
                   <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
                 </div>
               ) : (
-                <ArtifactCard 
-                  key={card.type} 
-                  title={card.title} 
-                  description={card.description} 
-                  status={getCardStatus(card.type)} 
-                  completion={completionMap[card.type]}
-                  onClick={() => handleNavigate(card.route)}
-                />
+                (() => {
+                  const allowed = canAccessArtifact(card.type, canBuild);
+                  return (
+                    <ArtifactCard 
+                      key={card.type} 
+                      title={card.title} 
+                      description={card.description} 
+                      status={getCardStatus(card.type)} 
+                      completion={completionMap[card.type]}
+                      upgradeRequired={!allowed}
+                      onClick={() => allowed ? handleNavigate(card.route) : navigate('/coaching')}
+                    />
+                  );
+                })()
               )
             ))}
           </div>
