@@ -56,8 +56,7 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
             ? "bg-gradient-to-r from-primary/15 to-primary/5 border-primary/40"
             : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20"
           : "bg-card border-border",
-        completed && "border-primary/60 animate-border-pulse",
-        justCompleted && "animate-scale-in"
+        justCompleted && "animate-glow-once"
       )}
     >
       <div className="flex items-center gap-3 min-w-0">
