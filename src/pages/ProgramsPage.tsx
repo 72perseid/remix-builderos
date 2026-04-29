@@ -14,7 +14,10 @@ function ProgramCardLockOverlay() {
   const navigate = useNavigate();
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 p-4">
+    <div
+      className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="w-full max-w-[240px] rounded-xl border border-border bg-card/95 p-4 text-center shadow-2xl backdrop-blur">
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
           <Lock className="h-5 w-5 text-primary" />
