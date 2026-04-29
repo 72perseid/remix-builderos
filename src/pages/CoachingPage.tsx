@@ -177,7 +177,7 @@ export default function CoachingPage() {
               >
                 <Card
                   className="relative overflow-hidden rounded-2xl p-8 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
-                  onClick={handleSelectSupportPack}
+                  onClick={() => openInquiry('support')}
                 >
                   <div className="space-y-7 flex-1">
                     <div>
