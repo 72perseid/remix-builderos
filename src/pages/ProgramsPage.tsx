@@ -43,11 +43,14 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
+      onClick={() => {
+        if (locked) return;
+        navigate(`/programs/${course.id}`);
+      }}
       className={cn(
         "relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 flex flex-col",
         locked
-          ? "cursor-pointer"
+          ? "cursor-default"
           : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
       )}
     >
