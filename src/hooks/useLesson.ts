@@ -84,11 +84,12 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       if (lErr) throw lErr;
 
       // Fetch module + course in parallel
-      const [moduleRes, videoRes, resourcesRes, ctasRes, progressRes, activityRes] = await Promise.all([
+      const [moduleRes, videoRes, resourcesRes, ctasRes, ctaAgRes, progressRes, activityRes] = await Promise.all([
         supabase.from('modules').select('id, title, emoji, course_id').eq('id', lesson.module_id).single(),
         supabase.from('videos').select('id, url').eq('lesson_id', lessonId!).limit(1).maybeSingle(),
         supabase.from('resources').select('id, title, url, resource_type, position').eq('lesson_id', lessonId!).order('position'),
         supabase.from('ctas').select('id, cta_type, title, description, cta_label, url, position').eq('lesson_id', lessonId!).order('position'),
+        supabase.from('cta_access_groups').select('cta_id, access_group_id'),
         supabase.from('user_lesson_progress').select('lesson_id').eq('user_id', user!.id),
         supabase
           .from('activity_log')
@@ -97,6 +98,24 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
           .eq('event_type', 'lesson_completed')
           .eq('entity_type', 'lesson'),
       ]);
+      if (ctaAgRes.error) throw ctaAgRes.error;
+
+      // Build cta -> access group set, then filter using the same admin/untagged/match rules as lessons
+      const lessonCtaIds = new Set((ctasRes.data || []).map((c) => c.id));
+      const ctaGroupsMap = new Map<string, Set<string>>();
+      for (const row of (ctaAgRes.data || []) as { cta_id: string; access_group_id: string }[]) {
+        if (!lessonCtaIds.has(row.cta_id)) continue;
+        const set = ctaGroupsMap.get(row.cta_id) ?? new Set<string>();
+        set.add(row.access_group_id);
+        ctaGroupsMap.set(row.cta_id, set);
+      }
+      const isCtaVisible = (id: string) => {
+        if (isAdmin) return true;
+        const groups = ctaGroupsMap.get(id);
+        if (!groups || groups.size === 0) return true;
+        return accessGroupId ? groups.has(accessGroupId) : false;
+      };
+      const filteredCtas = (ctasRes.data || []).filter((c) => isCtaVisible(c.id));
 
       if (moduleRes.error) throw moduleRes.error;
       const mod = moduleRes.data;
