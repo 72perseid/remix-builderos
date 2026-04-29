@@ -26,7 +26,7 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
   useEffect(() => {
     if (completed) {
       setJustCompleted(true);
-      const t = setTimeout(() => setJustCompleted(false), 1200);
+      const t = setTimeout(() => setJustCompleted(false), 1500);
       return () => clearTimeout(t);
     }
   }, [completed]);
