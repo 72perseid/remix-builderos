@@ -85,7 +85,7 @@ export function ArtifactsGrid() {
   const canBuild = hasUse('build');
 
   const handleNavigate = (route: string) => {
-    if (canBuild) navigate(route);
+    navigate(route);
   };
 
 
