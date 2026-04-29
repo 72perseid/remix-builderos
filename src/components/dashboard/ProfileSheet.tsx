@@ -252,6 +252,69 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Location</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    placeholder="City, Country"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">LinkedIn</Label>
+                <div className="relative">
+                  <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={linkedin}
+                    onChange={e => setLinkedin(e.target.value)}
+                    placeholder="https://linkedin.com/in/username"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Twitter / X</Label>
+                <div className="relative">
+                  <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={twitter}
+                    onChange={e => setTwitter(e.target.value)}
+                    placeholder="https://twitter.com/username"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Discord — read-only */}
+              {profile?.discord_username && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5" />
+                    Discord
+                  </Label>
+                  <div className="flex items-center h-10 px-3 rounded-md border border-border bg-secondary/40 opacity-60">
+                    <span className="text-sm text-muted-foreground">{profile.discord_username}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Visibility toggle */}
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div className="space-y-0.5 pr-4">
+                  <Label className="text-foreground">Public Profile</Label>
+                  <p className="text-xs text-muted-foreground">Allow other members to see your profile.</p>
+                </div>
+                <Switch checked={visibility} onCheckedChange={setVisibility} />
+              </div>
             </section>
 
             {/* Footer actions */}
