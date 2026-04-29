@@ -282,7 +282,7 @@ export default function CoachingPage() {
 
                   <Button
                     className="mt-8 w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => setView('form')}
+                    onClick={() => openInquiry('dfy')}
                   >
                     Talk to Us
                     <ArrowRight className="h-4 w-4" />
