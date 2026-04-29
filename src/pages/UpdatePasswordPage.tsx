@@ -10,7 +10,7 @@ import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon.png';
 
-export default function ResetPasswordPage() {
+export default function UpdatePasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
