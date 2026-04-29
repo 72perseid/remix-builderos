@@ -292,10 +292,93 @@ export default function CoachingPage() {
             </motion.div>
           )}
 
-          {/* ── Calendly booking view ── */}
-          {view === 'form' && (
+          {/* ── Inquiry form view ── */}
+          {view === 'inquiry' && (
             <motion.div
-              key="form"
+              key="inquiry"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="max-w-xl mx-auto w-full"
+            >
+              <h2 className="text-xl font-extrabold text-white mb-1 text-center">Tell us about you</h2>
+              <p className="text-sm text-slate-400 mb-5 text-center">
+                Selected: <span className="text-blue-400 font-medium">{packageLabel}</span>
+                {isSupport && <> — {selectedTier.displayPrice} USD</>}
+              </p>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="lead-name" className="text-slate-300">Name</Label>
+                  <Input
+                    id="lead-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your full name"
+                    maxLength={100}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  />
+                  {errors.name && <p className="text-xs text-red-400">{errors.name}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="lead-email" className="text-slate-300">Email</Label>
+                  <Input
+                    id="lead-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    maxLength={255}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  />
+                  {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="lead-message" className="text-slate-300">
+                    Message <span className="text-slate-500 font-normal">(optional)</span>
+                  </Label>
+                  <Textarea
+                    id="lead-message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Anything we should know before the call?"
+                    maxLength={1000}
+                    rows={4}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 resize-none"
+                  />
+                  {errors.message && <p className="text-xs text-red-400">{errors.message}</p>}
+                </div>
+
+                <Button
+                  className="w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={handleSubmitInquiry}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending…
+                    </>
+                  ) : (
+                    <>
+                      Continue to Booking
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Calendly booking view ── */}
+          {view === 'calendly' && (
+            <motion.div
+              key="calendly"
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -306,7 +389,8 @@ export default function CoachingPage() {
             >
               <h2 className="text-xl font-extrabold text-white mb-1 text-center">Book a Call</h2>
               <p className="text-sm text-slate-400 mb-5 text-center">
-                You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — {selectedTier?.displayPrice} USD
+                You selected <span className="text-blue-400 font-medium">{packageLabel}</span>
+                {isSupport && <> — {selectedTier.displayPrice} USD</>}
               </p>
               <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02]">
                 <iframe
