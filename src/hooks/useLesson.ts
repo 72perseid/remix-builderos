@@ -240,7 +240,7 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
         videoUrl: videoRes.data?.url || null,
         videoId: videoRes.data?.id || null,
         resources: (resourcesRes.data || []) as LessonResource[],
-        ctas: (ctasRes.data || []) as LessonCTA[],
+        ctas: filteredCtas as LessonCTA[],
         siblings: siblingsList,
         courseLessons,
         currentIndex,
