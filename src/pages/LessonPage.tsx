@@ -246,6 +246,7 @@ export default function LessonPage() {
                 className="w-full h-full"
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={handleTimeUpdate}
+                onEnded={handleVideoEnded}
               />
             </div>
           ) : (
