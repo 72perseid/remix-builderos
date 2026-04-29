@@ -54,6 +54,10 @@ export default function CalendarPage() {
   const isLocked = !featuresLoading && !hasUse('calendar');
 
   useEffect(() => {
+    // Skip fetching when the user can't use the calendar — keeps the locked
+    // state stable so content underneath doesn't grow and push the centered
+    // LockedOverlay out of view.
+    if (featuresLoading || isLocked) return;
     async function fetchEvents() {
       try {
         const { data, error: fnError } = await supabase.functions.invoke(
@@ -74,7 +78,7 @@ export default function CalendarPage() {
       }
     }
     fetchEvents();
-  }, []);
+  }, [featuresLoading, isLocked]);
 
   const eventsByDate = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
