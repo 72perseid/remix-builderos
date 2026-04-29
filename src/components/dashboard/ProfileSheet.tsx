@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, Trash2, Upload, Mail, Lock, Loader2, LogOut } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Camera, Trash2, Upload, Mail, Lock, Loader2, LogOut, MapPin, Linkedin, Twitter } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserAccessGroup } from '@/hooks/useUserAccessGroup';
@@ -66,6 +67,10 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const [lastName, setLastName] = useState('');
   const [bio, setBio] = useState('');
   const [timezone, setTimezone] = useState('');
+  const [location, setLocation] = useState('');
+  const [linkedin, setLinkedin] = useState('');
+  const [twitter, setTwitter] = useState('');
+  const [visibility, setVisibility] = useState(false);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -74,6 +79,10 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
       setLastName(profile.last_name || '');
       setBio(profile.bio || '');
       setTimezone(profile.timezone || '');
+      setLocation(profile.location || '');
+      setLinkedin(profile.linkedin_profile || '');
+      setTwitter(profile.twitter_profile || '');
+      setVisibility(profile.visibility ?? false);
     }
   }, [profile]);
 
@@ -81,7 +90,11 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
     firstName !== (profile?.first_name || '') ||
     lastName !== (profile?.last_name || '') ||
     bio !== (profile?.bio || '') ||
-    timezone !== (profile?.timezone || '');
+    timezone !== (profile?.timezone || '') ||
+    location !== (profile?.location || '') ||
+    linkedin !== (profile?.linkedin_profile || '') ||
+    twitter !== (profile?.twitter_profile || '') ||
+    visibility !== (profile?.visibility ?? false);
 
   const displayName = firstName && lastName
     ? `${firstName} ${lastName}`
@@ -113,7 +126,16 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
   const handleSave = async () => {
     setSaving(true);
-    const result = await updateProfile({ first_name: firstName, last_name: lastName, bio, timezone });
+    const result = await updateProfile({
+      first_name: firstName,
+      last_name: lastName,
+      bio,
+      timezone,
+      location: location || null,
+      linkedin_profile: linkedin || null,
+      twitter_profile: twitter || null,
+      visibility,
+    });
     if (result?.success) { toast.success('Profile saved'); }
     else { toast.error(result?.error || 'Failed to save profile'); }
     setSaving(false);
@@ -229,6 +251,69 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Location */}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Location</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={location}
+                    onChange={e => setLocation(e.target.value)}
+                    placeholder="City, Country"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">LinkedIn</Label>
+                <div className="relative">
+                  <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={linkedin}
+                    onChange={e => setLinkedin(e.target.value)}
+                    placeholder="https://linkedin.com/in/username"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Twitter / X</Label>
+                <div className="relative">
+                  <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={twitter}
+                    onChange={e => setTwitter(e.target.value)}
+                    placeholder="https://twitter.com/username"
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              {/* Discord — read-only */}
+              {profile?.discord_username && (
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground flex items-center gap-1.5">
+                    <Lock className="h-3.5 w-3.5" />
+                    Discord
+                  </Label>
+                  <div className="flex items-center h-10 px-3 rounded-md border border-border bg-secondary/40 opacity-60">
+                    <span className="text-sm text-muted-foreground">{profile.discord_username}</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Visibility toggle */}
+              <div className="flex items-center justify-between rounded-md border border-border p-3">
+                <div className="space-y-0.5 pr-4">
+                  <Label className="text-foreground">Public Profile</Label>
+                  <p className="text-xs text-muted-foreground">Allow other members to see your profile.</p>
+                </div>
+                <Switch checked={visibility} onCheckedChange={setVisibility} />
               </div>
             </section>
 

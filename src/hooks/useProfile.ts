@@ -151,6 +151,10 @@ export function useProfile() {
     last_name?: string;
     bio?: string;
     timezone?: string;
+    location?: string | null;
+    linkedin_profile?: string | null;
+    twitter_profile?: string | null;
+    visibility?: boolean;
   }) => {
     if (!user?.id) return { error: 'Not authenticated' };
 
