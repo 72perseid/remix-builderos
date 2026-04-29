@@ -48,6 +48,16 @@ export default function LessonPage() {
     }
   };
 
+  const handleVideoEnded = useCallback(async () => {
+    if (lesson?.completed || markComplete.isPending) return;
+    try {
+      await markComplete.mutateAsync();
+      toast.success("Lesson marked as completed!");
+    } catch {
+      // silent — manual button remains as fallback
+    }
+  }, [lesson?.completed, markComplete]);
+
   const goToLesson = (id: string) => {
     setAllLessonsOpen(false);
     navigate(`/programs/${courseId}/lessons/${id}`);
