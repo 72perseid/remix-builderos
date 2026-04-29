@@ -273,7 +273,7 @@ export function useLesson(courseId: string | undefined, lessonId: string | undef
       // Optimistically flip completed flags so the UI updates instantly,
       // before the background refetch resolves.
       queryClient.setQueryData<LessonData | undefined>(
-        ['lesson-detail', courseId, lessonId, user?.id],
+        ['lesson-detail', courseId, lessonId, user?.id, accessGroupId, isAdmin],
         (prev) =>
           prev
             ? {
