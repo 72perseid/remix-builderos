@@ -159,7 +159,17 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
 
             {/* Personal Info */}
             <section className="space-y-4">
-              <h2 className="text-base font-semibold text-primary">Personal Information</h2>
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base font-semibold text-primary">Personal Information</h2>
+                {accessGroup && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-primary/10 text-primary border border-primary/20 font-medium"
+                  >
+                    {accessGroup.name}
+                  </Badge>
+                )}
+              </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
