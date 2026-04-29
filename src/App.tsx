@@ -10,6 +10,7 @@ import { DashboardLayout } from "@/layouts/DashboardLayout";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import UpdatePasswordPage from "./pages/UpdatePasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import Dashboard from "./pages/Dashboard";
 import AppIdeaPage from "./pages/AppIdeaPage";
