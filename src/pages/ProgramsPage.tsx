@@ -121,11 +121,14 @@ function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; lo
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
+      onClick={() => {
+        if (locked) return;
+        navigate(`/programs/${course.id}`);
+      }}
       className={cn(
-        "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row",
+        "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row relative",
         locked
-          ? "cursor-pointer"
+          ? "cursor-default"
           : "hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
       )}
     >
