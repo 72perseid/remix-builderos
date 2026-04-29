@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Camera, Trash2, Upload, Mail, Lock, Loader2, LogOut } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserAccessGroup } from '@/hooks/useUserAccessGroup';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 interface ProfileSheetProps {
