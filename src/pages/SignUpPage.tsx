@@ -49,6 +49,7 @@ export default function SignUpPage() {
   });
 
   useEffect(() => {
+    if (justSignedUp) return;
     if (!loading && !profileLoading && isAuthenticated && onboardingProfile !== undefined) {
       if (onboardingProfile?.onboarded === false) {
         navigate('/onboarding', { replace: true });
@@ -56,7 +57,7 @@ export default function SignUpPage() {
         navigate('/project-board', { replace: true });
       }
     }
-  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate]);
+  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate, justSignedUp]);
 
   const validateForm = () => {
     try {
