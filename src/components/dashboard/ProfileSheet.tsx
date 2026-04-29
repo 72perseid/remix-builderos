@@ -59,6 +59,7 @@ export function ProfileSheet({ open, onOpenChange }: ProfileSheetProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { profile, uploading, uploadProfileImage, deleteProfileImage, updateProfile } = useProfile();
+  const { accessGroup } = useUserAccessGroup();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [firstName, setFirstName] = useState('');
