@@ -85,11 +85,16 @@ export default function SignUpPage() {
     try {
       const { error } = await signUp(email, password, { first_name: firstName, last_name: lastName });
       if (error) {
-        toast.error(error.message.includes('already registered')
+        toast.error(error.message.includes('already registered') || error.message.toLowerCase().includes('already')
           ? 'This email is already registered. Please sign in instead.'
           : error.message);
+        setErrors({ email: error.message.toLowerCase().includes('already')
+          ? 'This email is already registered.'
+          : error.message });
       } else {
-        toast.success('Check your email to confirm your account!');
+        setJustSignedUp(true);
+        toast.success('Account created! Please check your email to confirm, then log in.');
+        navigate('/login', { replace: true });
       }
     } catch {
       toast.error('An unexpected error occurred. Please try again.');
