@@ -28,6 +28,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [justSignedUp, setJustSignedUp] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { user, signUp, isAuthenticated, loading } = useAuth();
