@@ -130,7 +130,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-120px)]">
+    <div className={cn("relative min-h-[calc(100vh-120px)]", isLocked && "h-[calc(100vh-120px)] overflow-hidden")}>
       <div
         className={cn(
           "p-4 sm:p-6 max-w-5xl mx-auto space-y-4",
