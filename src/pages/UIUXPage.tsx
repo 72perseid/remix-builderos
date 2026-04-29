@@ -243,3 +243,12 @@ function UIUXPageInner() {
     </div>
   );
 }
+
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function UIUXPage() {
+  return (
+    <BuildLockedPage>
+      <UIUXPageInner />
+    </BuildLockedPage>
+  );
+}

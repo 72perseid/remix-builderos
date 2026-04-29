@@ -228,3 +228,11 @@ function ProductBriefPageInner() {
     </div>
   );
 }
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function ProductBriefPage() {
+  return (
+    <BuildLockedPage>
+      <ProductBriefPageInner />
+    </BuildLockedPage>
+  );
+}

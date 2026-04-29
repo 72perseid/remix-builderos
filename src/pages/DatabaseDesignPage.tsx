@@ -206,3 +206,11 @@ function DatabaseDesignPageInner() {
     </div>
   );
 }
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function DatabaseDesignPage() {
+  return (
+    <BuildLockedPage>
+      <DatabaseDesignPageInner />
+    </BuildLockedPage>
+  );
+}

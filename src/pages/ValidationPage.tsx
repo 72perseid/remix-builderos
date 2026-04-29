@@ -161,3 +161,11 @@ function ValidationPageInner() {
     </div>
   );
 }
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function ValidationPage() {
+  return (
+    <BuildLockedPage>
+      <ValidationPageInner />
+    </BuildLockedPage>
+  );
+}

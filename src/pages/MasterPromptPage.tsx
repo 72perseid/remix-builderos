@@ -317,3 +317,11 @@ function MasterPromptPageInner() {
     </div>);
 
 }
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function MasterPromptPage() {
+  return (
+    <BuildLockedPage>
+      <MasterPromptPageInner />
+    </BuildLockedPage>
+  );
+}
