@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ExternalLink, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface LessonCTA {
   id: string;
@@ -36,6 +37,23 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
   const label = cta.cta_label || (isUpgrade ? "Learn More" : "Open");
 
   const handleClick = () => {
+    // Fire-and-forget activity log; never block navigation
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getUser();
+        const userId = data.user?.id;
+        if (!userId) return;
+        await supabase.from("activity_log").insert({
+          user_id: userId,
+          event_type: "cta_clicked",
+          entity_type: "cta",
+          entity_id: cta.id,
+        });
+      } catch (err) {
+        console.warn("Failed to log cta_clicked", err);
+      }
+    })();
+
     if (isUpgrade) {
       if (cta.url) {
         window.open(cta.url, "_blank", "noopener,noreferrer");
