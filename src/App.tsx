@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AccessGate } from "@/components/AccessGate";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
@@ -62,52 +63,72 @@ const App = () => (
             <Route path="/" element={<Navigate to="/project-board" replace />} />
             <Route path="/artifacts" element={
               <ProtectedRoute>
-                <DashboardLayout><Dashboard /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><Dashboard /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/app-idea" element={
               <ProtectedRoute>
-                <DashboardLayout><AppIdeaPage /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><AppIdeaPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/project-board" element={
               <ProtectedRoute>
-                <DashboardLayout><ProjectBoardPage /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><ProjectBoardPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/business-model" element={
               <ProtectedRoute>
-                <BusinessModelPage />
+                <AccessGate require="build">
+                  <BusinessModelPage />
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/database-design" element={
               <ProtectedRoute>
-                <DashboardLayout><DatabaseDesignPage /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><DatabaseDesignPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/validation" element={
               <ProtectedRoute>
-                <ValidationPage />
+                <AccessGate require="build">
+                  <ValidationPage />
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/product-brief" element={
               <ProtectedRoute>
-                <ProductBriefPage />
+                <AccessGate require="build">
+                  <ProductBriefPage />
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/ui-ux" element={
               <ProtectedRoute>
-                <UIUXPage />
+                <AccessGate require="build">
+                  <UIUXPage />
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/master-prompt" element={
               <ProtectedRoute>
-                <DashboardLayout><MasterPromptPage /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><MasterPromptPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/app-details" element={
               <ProtectedRoute>
-                <DashboardLayout><AppDetailsPage /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><AppDetailsPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/coaching" element={
@@ -119,12 +140,16 @@ const App = () => (
             <Route path="/lp/:slug" element={<PublicLandingPage />} />
             <Route path="/landing-page" element={
               <ProtectedRoute>
-                <DashboardLayout><LandingPageGeneratorPage /></DashboardLayout>
+                <AccessGate require="build">
+                  <DashboardLayout><LandingPageGeneratorPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/calendar" element={
               <ProtectedRoute>
-                <DashboardLayout><CalendarPage /></DashboardLayout>
+                <AccessGate require="calendar">
+                  <DashboardLayout><CalendarPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/1on1-coaching" element={
@@ -134,17 +159,23 @@ const App = () => (
             } />
             <Route path="/programs" element={
               <ProtectedRoute>
-                <DashboardLayout><ProgramsPage /></DashboardLayout>
+                <AccessGate require="programs">
+                  <DashboardLayout><ProgramsPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/programs/:courseId" element={
               <ProtectedRoute>
-                <DashboardLayout><CourseDetailPage /></DashboardLayout>
+                <AccessGate require="programs">
+                  <DashboardLayout><CourseDetailPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/programs/:courseId/lessons/:lessonId" element={
               <ProtectedRoute>
-                <DashboardLayout><LessonPage /></DashboardLayout>
+                <AccessGate require="programs">
+                  <DashboardLayout><LessonPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/booking-success" element={<BookingSuccessPage />} />
