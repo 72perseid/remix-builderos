@@ -173,7 +173,9 @@ const App = () => (
             } />
             <Route path="/programs/:courseId/lessons/:lessonId" element={
               <ProtectedRoute>
-                <DashboardLayout><LessonPage /></DashboardLayout>
+                <AccessGate require="programs">
+                  <DashboardLayout><LessonPage /></DashboardLayout>
+                </AccessGate>
               </ProtectedRoute>
             } />
             <Route path="/booking-success" element={<BookingSuccessPage />} />
