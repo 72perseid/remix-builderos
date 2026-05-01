@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import RootRedirect from "@/components/RootRedirect";
 import { ProjectProvider } from "@/contexts/ProjectContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
@@ -60,7 +59,7 @@ const App = () => (
                 <OnboardingPage />
               </ProtectedRoute>
             } />
-            <Route path="/" element={<RootRedirect />} />
+            <Route path="/" element={<Navigate to="/project-board" replace />} />
             <Route path="/artifacts" element={
               <ProtectedRoute>
                 <DashboardLayout><Dashboard /></DashboardLayout>

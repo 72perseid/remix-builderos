@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useFirstAccessibleRoute } from '@/hooks/useFirstAccessibleRoute';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,7 +34,6 @@ export default function LoginPage() {
 
   const { user, signIn, forgotPassword, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const { route: firstAccessibleRoute, loading: accessLoading } = useFirstAccessibleRoute();
 
   const { data: onboardingProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['auth-onboarding-check', user?.id],
@@ -52,14 +50,14 @@ export default function LoginPage() {
   });
 
   useEffect(() => {
-    if (!loading && !profileLoading && !accessLoading && isAuthenticated && onboardingProfile !== undefined) {
+    if (!loading && !profileLoading && isAuthenticated && onboardingProfile !== undefined) {
       if (onboardingProfile?.onboarded === false) {
         navigate('/onboarding', { replace: true });
       } else {
-        navigate(firstAccessibleRoute, { replace: true });
+        navigate('/project-board', { replace: true });
       }
     }
-  }, [isAuthenticated, loading, profileLoading, accessLoading, onboardingProfile, firstAccessibleRoute, navigate]);
+  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate]);
 
   const switchView = (nextView: AuthView) => {
     setView(nextView);
