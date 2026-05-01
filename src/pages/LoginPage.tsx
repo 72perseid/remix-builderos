@@ -49,15 +49,41 @@ export default function LoginPage() {
     enabled: !!user?.id && isAuthenticated,
   });
 
+  // Pull entitlement to decide post-login destination (spec: auth-session TC-5)
+  const { data: postLoginEnrollment, isLoading: enrollmentLoading } = useQuery({
+    queryKey: ['auth-enrollment-check', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from('enrollments')
+        .select('build_access')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id && isAuthenticated,
+  });
+
   useEffect(() => {
-    if (!loading && !profileLoading && isAuthenticated && onboardingProfile !== undefined) {
+    if (
+      !loading &&
+      !profileLoading &&
+      !enrollmentLoading &&
+      isAuthenticated &&
+      onboardingProfile !== undefined
+    ) {
       if (onboardingProfile?.onboarded === false) {
         navigate('/onboarding', { replace: true });
-      } else {
+      } else if (postLoginEnrollment?.build_access) {
         navigate('/project-board', { replace: true });
+      } else {
+        navigate('/coaching', { replace: true });
       }
     }
-  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate]);
+  }, [isAuthenticated, loading, profileLoading, enrollmentLoading, onboardingProfile, postLoginEnrollment, navigate]);
 
   const switchView = (nextView: AuthView) => {
     setView(nextView);
