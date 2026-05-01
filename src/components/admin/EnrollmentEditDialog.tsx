@@ -89,9 +89,9 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
       access_group_id: accessGroupId || null,
       product_id: productId ? Number(productId) : null,
       status,
-      build_expires_at: fromInputDate(buildExp),
-      calendar_expires_at: fromInputDate(calendarExp),
-      programs_expires_at: fromInputDate(programsExp),
+      build_expires_at: toIso(buildExp),
+      calendar_expires_at: toIso(calendarExp),
+      programs_expires_at: toIso(programsExp),
     };
 
     if (isEdit) {
