@@ -150,33 +150,36 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
             </Select>
           </div>
 
-          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
-            <div className="flex items-center justify-between">
+          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+            <div className="space-y-0.5">
               <h4 className="text-sm font-semibold">Access expiration dates</h4>
               <p className="text-xs text-muted-foreground">
-                Access flags are derived automatically.
+                Access flags are derived automatically from these dates.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               {([
-                { label: 'Build expires', value: buildExp, set: setBuildExp },
-                { label: 'Calendar expires', value: calendarExp, set: setCalendarExp },
-                { label: 'Programs expires', value: programsExp, set: setProgramsExp },
+                { label: 'Build', value: buildExp, set: setBuildExp },
+                { label: 'Calendar', value: calendarExp, set: setCalendarExp },
+                { label: 'Programs', value: programsExp, set: setProgramsExp },
               ] as const).map(({ label, value, set }) => (
-                <div key={label} className="space-y-1.5">
-                  <Label className="text-xs">{label}</Label>
+                <div key={label} className="space-y-1.5 min-w-0">
+                  <Label className="text-xs text-muted-foreground">{label}</Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         type="button"
                         variant="outline"
+                        size="sm"
                         className={cn(
-                          'w-full justify-start text-left font-normal',
+                          'w-full justify-start text-left font-normal px-2.5 truncate',
                           !value && 'text-muted-foreground'
                         )}
                       >
-                        <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
-                        {value ? format(value, 'PPP') : <span>Pick a date</span>}
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                        <span className="truncate">
+                          {value ? format(value, 'MMM d, yyyy') : 'Pick date'}
+                        </span>
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
