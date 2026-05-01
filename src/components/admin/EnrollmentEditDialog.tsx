@@ -150,23 +150,62 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
             </Select>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label>Build expires</Label>
-              <Input type="date" value={buildExp} onChange={(e) => setBuildExp(e.target.value)} />
+          <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-semibold">Access expiration dates</h4>
+              <p className="text-xs text-muted-foreground">
+                Access flags are derived automatically.
+              </p>
             </div>
-            <div>
-              <Label>Calendar expires</Label>
-              <Input type="date" value={calendarExp} onChange={(e) => setCalendarExp(e.target.value)} />
-            </div>
-            <div>
-              <Label>Programs expires</Label>
-              <Input type="date" value={programsExp} onChange={(e) => setProgramsExp(e.target.value)} />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {([
+                { label: 'Build expires', value: buildExp, set: setBuildExp },
+                { label: 'Calendar expires', value: calendarExp, set: setCalendarExp },
+                { label: 'Programs expires', value: programsExp, set: setProgramsExp },
+              ] as const).map(({ label, value, set }) => (
+                <div key={label} className="space-y-1.5">
+                  <Label className="text-xs">{label}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !value && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4 opacity-70" />
+                        {value ? format(value, 'PPP') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={value}
+                        onSelect={(d) => set(d ?? undefined)}
+                        initialFocus
+                        className={cn('p-3 pointer-events-auto')}
+                      />
+                      {value && (
+                        <div className="p-2 border-t border-border">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => set(undefined)}
+                          >
+                            Clear date
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              ))}
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Access flags are derived automatically from expiry dates.
-          </p>
         </div>
 
         <DialogFooter>
