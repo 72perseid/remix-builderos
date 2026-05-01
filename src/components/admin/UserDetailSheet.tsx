@@ -97,6 +97,16 @@ export function UserDetailSheet({ userId, onOpenChange }: Props) {
                           </Badge>
                           <span className="text-xs text-muted-foreground">{e.enrollment_method}</span>
                         </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <div className="text-muted-foreground">Access group</div>
+                            <div className="font-medium">{e.access_group_name ?? '—'}</div>
+                          </div>
+                          <div>
+                            <div className="text-muted-foreground">Product</div>
+                            <div className="font-medium">{e.product_name ?? '—'}</div>
+                          </div>
+                        </div>
                         <div className="grid grid-cols-3 gap-2 text-xs">
                           <div>
                             <div className="text-muted-foreground">Build</div>
