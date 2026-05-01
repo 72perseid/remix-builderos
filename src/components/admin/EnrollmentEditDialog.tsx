@@ -22,13 +22,13 @@ interface Props {
   enrollment: any | null;
 }
 
-function toInputDate(d: string | null) {
-  if (!d) return '';
-  return new Date(d).toISOString().slice(0, 10);
+function toDate(d: string | null | undefined): Date | undefined {
+  if (!d) return undefined;
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? undefined : dt;
 }
-function fromInputDate(s: string): string | null {
-  if (!s) return null;
-  return new Date(s + 'T00:00:00').toISOString();
+function toIso(d: Date | undefined): string | null {
+  return d ? d.toISOString() : null;
 }
 
 export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }: Props) {
@@ -37,19 +37,20 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
   const [accessGroupId, setAccessGroupId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
   const [status, setStatus] = useState<string>('active');
-  const [buildExp, setBuildExp] = useState<string>('');
-  const [calendarExp, setCalendarExp] = useState<string>('');
-  const [programsExp, setProgramsExp] = useState<string>('');
+  const [buildExp, setBuildExp] = useState<Date | undefined>(undefined);
+  const [calendarExp, setCalendarExp] = useState<Date | undefined>(undefined);
+  const [programsExp, setProgramsExp] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;
     setAccessGroupId(enrollment?.access_group_id ?? '');
     setProductId(enrollment?.product_id?.toString() ?? '');
     setStatus(enrollment?.status ?? 'active');
-    setBuildExp(toInputDate(enrollment?.build_expires_at ?? null));
-    setCalendarExp(toInputDate(enrollment?.calendar_expires_at ?? null));
-    setProgramsExp(toInputDate(enrollment?.programs_expires_at ?? null));
+    setBuildExp(toDate(enrollment?.build_expires_at));
+    setCalendarExp(toDate(enrollment?.calendar_expires_at));
+    setProgramsExp(toDate(enrollment?.programs_expires_at));
   }, [open, enrollment]);
+
 
   const { data: accessGroups } = useQuery({
     queryKey: ['admin-access-groups'],
