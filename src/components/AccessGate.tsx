@@ -18,7 +18,7 @@ interface AccessGateProps {
  */
 export function AccessGate({ require, fallback = '/coaching', children }: AccessGateProps) {
   const { hasUse, loading } = useUserFeatures();
-  const { isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { isAdmin, loading: adminLoading } = useIsAdmin();
 
   if (loading || adminLoading) {
     return (
