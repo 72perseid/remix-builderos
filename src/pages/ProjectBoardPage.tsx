@@ -1183,6 +1183,41 @@ export default function ProjectBoardPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Rename Column Dialog */}
+      <Dialog open={renameColumnId !== null} onOpenChange={(open) => !open && setRenameColumnId(null)}>
+        <DialogContent className="bg-card border-slate-700/50 text-white sm:max-w-sm">
+          <DialogTitle className="text-base">Rename column</DialogTitle>
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveRename(); }}
+            placeholder="Column name"
+            className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setRenameColumnId(null)} className="text-slate-400 hover:text-white">Cancel</Button>
+            <Button onClick={handleSaveRename} disabled={!renameValue.trim()}>Save</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clear Column Confirm */}
+      <AlertDialog open={clearColumnId !== null} onOpenChange={(open) => !open && setClearColumnId(null)}>
+        <AlertDialogContent className="bg-card border-slate-700/50 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all cards?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This will permanently delete every card in {clearColumnId ? getColumnTitle(clearColumnId) : 'this column'}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-700/50 text-slate-200 hover:bg-slate-700 border-slate-600">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmClearColumn} className="bg-red-500 hover:bg-red-600 text-white">Delete all</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Coach CTA */}
       <div className="px-6 pb-6">
         <CoachCTA message="Not sure how to prioritize this?" ctaLabel="Talk to an Expert" />
