@@ -9,7 +9,7 @@ import { CoachCTA } from '@/components/dashboard/CoachCTA';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { cn } from '@/lib/utils';
 import { Kanban, KanbanBoard, KanbanColumn, KanbanColumnContent, KanbanItem, KanbanOverlay, KanbanMoveEvent } from '@/components/ui/kanban';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -677,6 +677,7 @@ export default function ProjectBoardPage() {
       {/* Add Card Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="bg-card border-slate-700/50 text-white sm:max-w-sm p-0 gap-0">
+          <DialogTitle className="sr-only">Add card to {activeColumn?.title || 'column'}</DialogTitle>
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-slate-400">
@@ -702,6 +703,7 @@ export default function ProjectBoardPage() {
       {/* Edit Card Dialog - Refined Two-Column Layout */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="bg-[#1a2332] border-slate-700/50 text-white sm:max-w-2xl p-0 gap-0 max-h-[85vh] overflow-hidden shadow-2xl [&>button]:hidden">
+          <DialogTitle className="sr-only">Edit {editingCard?.title || 'card'}</DialogTitle>
           {editingCard && <div className="flex flex-col max-h-[85vh]">
               {/* Header */}
               <div className="p-5 pb-4 border-b border-slate-700/30">
