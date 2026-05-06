@@ -225,22 +225,45 @@ interface TaskColumnProps {
   cards: KanbanCard[];
   onAddCard: (columnId: TaskStatus) => void;
   onEditCard: (card: KanbanCard, columnId: TaskStatus) => void;
+  onRenameColumn: (columnId: TaskStatus) => void;
+  onClearColumn: (columnId: TaskStatus) => void;
 }
 function TaskColumn({
   columnId,
   title,
   cards,
   onAddCard,
-  onEditCard
+  onEditCard,
+  onRenameColumn,
+  onClearColumn,
 }: TaskColumnProps) {
   return <KanbanColumn value={columnId} className="flex-shrink-0 w-[272px] bg-card/80 backdrop-blur-sm rounded-xl border border-slate-700/50 flex flex-col max-h-[calc(100vh-180px)]" disabled>
       {/* Column Header */}
       <div className="p-2 px-3">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-white text-sm">{title}</h3>
-          <button className="p-1 hover:bg-white/10 rounded transition-colors">
-            <MoreHorizontal className="w-4 h-4 text-slate-400" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 hover:bg-white/10 rounded transition-colors" aria-label="Column actions">
+                <MoreHorizontal className="w-4 h-4 text-slate-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44 bg-[#1a2332] border-slate-700 text-slate-200">
+              <DropdownMenuItem onClick={() => onRenameColumn(columnId)} className="cursor-pointer focus:bg-slate-700/60 focus:text-white">
+                <Pencil className="w-4 h-4 mr-2" />
+                Rename column
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-slate-700/60" />
+              <DropdownMenuItem
+                onClick={() => onClearColumn(columnId)}
+                disabled={cards.length === 0}
+                className="cursor-pointer text-red-400 focus:bg-red-500/15 focus:text-red-400"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear all cards
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
