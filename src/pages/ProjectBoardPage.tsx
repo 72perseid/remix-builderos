@@ -677,6 +677,7 @@ export default function ProjectBoardPage() {
       {/* Add Card Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="bg-card border-slate-700/50 text-white sm:max-w-sm p-0 gap-0">
+          <DialogTitle className="sr-only">Add card to {activeColumn?.title || 'column'}</DialogTitle>
           <div className="p-3">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-slate-400">
