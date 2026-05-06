@@ -1228,6 +1228,7 @@ export type Database = {
       }
     }
     Functions: {
+      delete_app: { Args: { _app_id: string }; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
