@@ -95,31 +95,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const deleteApp = useCallback(async (appId: string) => {
     try {
-      // 1. Delete tasks
-      await supabase.from('tasks').delete().eq('app_idea_id', appId);
-
-      // 2. Delete artifacts
-      await supabase.from('artifacts').delete().eq('app_idea_id', appId);
-
-      // 3. Delete chat_messages for sessions belonging to this app
-      const { data: appSessions } = await supabase
-        .from('chat_sessions')
-        .select('id')
-        .eq('app_idea_id', appId);
-
-      if (appSessions && appSessions.length > 0) {
-        const sessionIds = appSessions.map(s => s.id);
-        await supabase.from('chat_messages').delete().in('session_id', sessionIds);
-      }
-
-      // 4. Delete chat_sessions
-      await supabase.from('chat_sessions').delete().eq('app_idea_id', appId);
-
-      // 5. Delete artifacts
-      await supabase.from('artifacts').delete().eq('app_idea_id', appId);
-
-      // 9. Delete the app itself
-      const { error } = await supabase.from('app_ideas').delete().eq('id', appId);
+      const { error } = await supabase.rpc('delete_app', { _app_id: appId });
       if (error) throw error;
 
       // If the deleted app was selected, clear selection
