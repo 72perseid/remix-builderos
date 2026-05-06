@@ -686,7 +686,7 @@ export default function ProjectBoardPage() {
         <div className={cn("flex-1 flex flex-col", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
           <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id} onMove={handleMove}>
             <KanbanBoard className="flex-1 gap-3">
-              {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
+              {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={getColumnTitle(config.id)} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} onRenameColumn={handleRenameColumn} onClearColumn={handleRequestClearColumn} />)}
             </KanbanBoard>
             <KanbanOverlay>
               {({ value }) => {
