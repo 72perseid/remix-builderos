@@ -4,7 +4,8 @@ import { useArtifact } from '@/hooks/useArtifact';
 import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
 import { useTasks } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag, Lock, Sparkles, Check } from 'lucide-react';
+import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag, Lock, Sparkles, Check, Pencil } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { CoachCTA } from '@/components/dashboard/CoachCTA';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { cn } from '@/lib/utils';
@@ -224,22 +225,45 @@ interface TaskColumnProps {
   cards: KanbanCard[];
   onAddCard: (columnId: TaskStatus) => void;
   onEditCard: (card: KanbanCard, columnId: TaskStatus) => void;
+  onRenameColumn: (columnId: TaskStatus) => void;
+  onClearColumn: (columnId: TaskStatus) => void;
 }
 function TaskColumn({
   columnId,
   title,
   cards,
   onAddCard,
-  onEditCard
+  onEditCard,
+  onRenameColumn,
+  onClearColumn,
 }: TaskColumnProps) {
   return <KanbanColumn value={columnId} className="flex-shrink-0 w-[272px] bg-card/80 backdrop-blur-sm rounded-xl border border-slate-700/50 flex flex-col max-h-[calc(100vh-180px)]" disabled>
       {/* Column Header */}
       <div className="p-2 px-3">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-white text-sm">{title}</h3>
-          <button className="p-1 hover:bg-white/10 rounded transition-colors">
-            <MoreHorizontal className="w-4 h-4 text-slate-400" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 hover:bg-white/10 rounded transition-colors" aria-label="Column actions">
+                <MoreHorizontal className="w-4 h-4 text-slate-400" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44 bg-[#1a2332] border-slate-700 text-slate-200">
+              <DropdownMenuItem onClick={() => onRenameColumn(columnId)} className="cursor-pointer focus:bg-slate-700/60 focus:text-white">
+                <Pencil className="w-4 h-4 mr-2" />
+                Rename column
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-slate-700/60" />
+              <DropdownMenuItem
+                onClick={() => onClearColumn(columnId)}
+                disabled={cards.length === 0}
+                className="cursor-pointer text-red-400 focus:bg-red-500/15 focus:text-red-400"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Clear all cards
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -410,6 +434,41 @@ export default function ProjectBoardPage() {
 
   // Deadline picker state
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
+
+  // Column rename / clear state
+  const [columnTitleOverrides, setColumnTitleOverrides] = useState<Partial<Record<TaskStatus, string>>>({});
+  const [renameColumnId, setRenameColumnId] = useState<TaskStatus | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [clearColumnId, setClearColumnId] = useState<TaskStatus | null>(null);
+
+  const getColumnTitle = useCallback(
+    (id: TaskStatus) => columnTitleOverrides[id] ?? COLUMN_CONFIG.find(c => c.id === id)?.title ?? '',
+    [columnTitleOverrides]
+  );
+
+  const handleRenameColumn = useCallback((columnId: TaskStatus) => {
+    setRenameColumnId(columnId);
+    setRenameValue(columnTitleOverrides[columnId] ?? COLUMN_CONFIG.find(c => c.id === columnId)?.title ?? '');
+  }, [columnTitleOverrides]);
+
+  const handleSaveRename = useCallback(() => {
+    if (!renameColumnId || !renameValue.trim()) return;
+    setColumnTitleOverrides(prev => ({ ...prev, [renameColumnId]: renameValue.trim() }));
+    setRenameColumnId(null);
+    toast.success('Column renamed');
+  }, [renameColumnId, renameValue]);
+
+  const handleRequestClearColumn = useCallback((columnId: TaskStatus) => {
+    setClearColumnId(columnId);
+  }, []);
+
+  const handleConfirmClearColumn = useCallback(() => {
+    if (!clearColumnId) return;
+    const cardsInCol = columns[clearColumnId] || [];
+    cardsInCol.forEach(c => deleteTask(c.id));
+    toast.success(`Cleared ${cardsInCol.length} card${cardsInCol.length === 1 ? '' : 's'}`);
+    setClearColumnId(null);
+  }, [clearColumnId, columns, deleteTask]);
 
   const navigate = useNavigate();
   const totalCards = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
@@ -627,7 +686,7 @@ export default function ProjectBoardPage() {
         <div className={cn("flex-1 flex flex-col", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
           <Kanban<KanbanCard> value={columns} onValueChange={handleColumnsChange} getItemValue={item => item.id} onMove={handleMove}>
             <KanbanBoard className="flex-1 gap-3">
-              {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={config.title} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} />)}
+              {COLUMN_CONFIG.map(config => <TaskColumn key={config.id} columnId={config.id} title={getColumnTitle(config.id)} cards={columns[config.id] || []} onAddCard={handleOpenAddDialog} onEditCard={handleEditCard} onRenameColumn={handleRenameColumn} onClearColumn={handleRequestClearColumn} />)}
             </KanbanBoard>
             <KanbanOverlay>
               {({ value }) => {
@@ -1123,6 +1182,41 @@ export default function ProjectBoardPage() {
             </div>}
         </DialogContent>
       </Dialog>
+
+      {/* Rename Column Dialog */}
+      <Dialog open={renameColumnId !== null} onOpenChange={(open) => !open && setRenameColumnId(null)}>
+        <DialogContent className="bg-card border-slate-700/50 text-white sm:max-w-sm">
+          <DialogTitle className="text-base">Rename column</DialogTitle>
+          <Input
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveRename(); }}
+            placeholder="Column name"
+            className="bg-[#1a2332] border-slate-700/50 text-white placeholder:text-slate-500"
+            autoFocus
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setRenameColumnId(null)} className="text-slate-400 hover:text-white">Cancel</Button>
+            <Button onClick={handleSaveRename} disabled={!renameValue.trim()}>Save</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Clear Column Confirm */}
+      <AlertDialog open={clearColumnId !== null} onOpenChange={(open) => !open && setClearColumnId(null)}>
+        <AlertDialogContent className="bg-card border-slate-700/50 text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all cards?</AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              This will permanently delete every card in {clearColumnId ? getColumnTitle(clearColumnId) : 'this column'}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-slate-700/50 text-slate-200 hover:bg-slate-700 border-slate-600">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmClearColumn} className="bg-red-500 hover:bg-red-600 text-white">Delete all</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Coach CTA */}
       <div className="px-6 pb-6">
