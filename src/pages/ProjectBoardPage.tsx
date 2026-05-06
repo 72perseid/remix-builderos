@@ -435,6 +435,41 @@ export default function ProjectBoardPage() {
   // Deadline picker state
   const [isDeadlineOpen, setIsDeadlineOpen] = useState(false);
 
+  // Column rename / clear state
+  const [columnTitleOverrides, setColumnTitleOverrides] = useState<Partial<Record<TaskStatus, string>>>({});
+  const [renameColumnId, setRenameColumnId] = useState<TaskStatus | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [clearColumnId, setClearColumnId] = useState<TaskStatus | null>(null);
+
+  const getColumnTitle = useCallback(
+    (id: TaskStatus) => columnTitleOverrides[id] ?? COLUMN_CONFIG.find(c => c.id === id)?.title ?? '',
+    [columnTitleOverrides]
+  );
+
+  const handleRenameColumn = useCallback((columnId: TaskStatus) => {
+    setRenameColumnId(columnId);
+    setRenameValue(columnTitleOverrides[columnId] ?? COLUMN_CONFIG.find(c => c.id === columnId)?.title ?? '');
+  }, [columnTitleOverrides]);
+
+  const handleSaveRename = useCallback(() => {
+    if (!renameColumnId || !renameValue.trim()) return;
+    setColumnTitleOverrides(prev => ({ ...prev, [renameColumnId]: renameValue.trim() }));
+    setRenameColumnId(null);
+    toast.success('Column renamed');
+  }, [renameColumnId, renameValue]);
+
+  const handleRequestClearColumn = useCallback((columnId: TaskStatus) => {
+    setClearColumnId(columnId);
+  }, []);
+
+  const handleConfirmClearColumn = useCallback(() => {
+    if (!clearColumnId) return;
+    const cardsInCol = columns[clearColumnId] || [];
+    cardsInCol.forEach(c => deleteTask(c.id));
+    toast.success(`Cleared ${cardsInCol.length} card${cardsInCol.length === 1 ? '' : 's'}`);
+    setClearColumnId(null);
+  }, [clearColumnId, columns, deleteTask]);
+
   const navigate = useNavigate();
   const totalCards = Object.values(columns).reduce((acc, col) => acc + col.length, 0);
   
