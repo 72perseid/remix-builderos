@@ -1,10 +1,18 @@
-import { useState } from 'react';
-import { CheckCircle2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { CheckCircle2, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import logoIcon from '@/assets/logo-icon.png';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { submitCoachingLead, coachingLeadSchema } from '@/lib/leads';
+import { z } from 'zod';
 
 const supportFeatures = [
   'Async expert reviews of your plans',
@@ -28,16 +36,82 @@ const pricingTiers = [
   { hours: 40, price: 3600, displayPrice: '$3.6K', originalPrice: '$4K', label: '40 Hours', perHour: 90, discount: '10% off' },
 ];
 
-type View = 'plans' | 'form';
+type View = 'plans' | 'inquiry' | 'calendly';
+type PackageKey = 'support' | 'dfy';
 
 export default function CoachingPage() {
   const [view, setView] = useState<View>('plans');
   const [selectedTierIndex, setSelectedTierIndex] = useState(1);
+  const [selectedPackage, setSelectedPackage] = useState<PackageKey>('support');
+
+  const { user } = useAuth();
+  const { profile } = useProfile();
+
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
 
   const selectedTier = pricingTiers[selectedTierIndex];
+  const isSupport = selectedPackage === 'support';
+  const packageLabel = isSupport ? `Support Pack — ${selectedTier.label}` : 'Done For You';
 
-  const handleSelectSupportPack = () => setView('form');
-  const handleBack = () => setView('plans');
+  // Prefill name/email from profile/user when available
+  useEffect(() => {
+    if (!name) {
+      const full = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ').trim();
+      if (full) setName(full);
+    }
+    if (!email) {
+      const e = profile?.email ?? user?.email;
+      if (e) setEmail(e);
+    }
+  }, [profile, user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openInquiry = (pkg: PackageKey) => {
+    setSelectedPackage(pkg);
+    setErrors({});
+    setView('inquiry');
+  };
+
+  const handleBack = () => {
+    if (view === 'calendly') setView('inquiry');
+    else if (view === 'inquiry') setView('plans');
+  };
+
+  const handleSubmitInquiry = async () => {
+    setErrors({});
+    const payload = {
+      name,
+      email,
+      package: selectedPackage,
+      hours: isSupport ? selectedTier.hours : null,
+      message,
+    };
+    const parsed = coachingLeadSchema.safeParse(payload);
+    if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      parsed.error.issues.forEach((i) => {
+        const k = i.path[0]?.toString() ?? 'form';
+        if (!fieldErrors[k]) fieldErrors[k] = i.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await submitCoachingLead(parsed.data);
+      toast.success("Thanks! We've received your inquiry.");
+      setView('calendly');
+    } catch (err) {
+      console.error('Lead submit failed:', err);
+      toast.error("Couldn't submit your inquiry. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const slideVariants = {
     enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
@@ -103,7 +177,7 @@ export default function CoachingPage() {
               >
                 <Card
                   className="relative overflow-hidden rounded-2xl p-8 flex flex-col backdrop-blur-sm transition-shadow duration-300 cursor-pointer bg-white/[0.04] border-white/10 hover:shadow-[0_0_25px_rgba(148,163,184,0.1)] h-full"
-                  onClick={handleSelectSupportPack}
+                  onClick={() => openInquiry('support')}
                 >
                   <div className="space-y-7 flex-1">
                     <div>
@@ -208,7 +282,7 @@ export default function CoachingPage() {
 
                   <Button
                     className="mt-8 w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
-                    onClick={() => setView('form')}
+                    onClick={() => openInquiry('dfy')}
                   >
                     Talk to Us
                     <ArrowRight className="h-4 w-4" />
@@ -218,10 +292,93 @@ export default function CoachingPage() {
             </motion.div>
           )}
 
-          {/* ── Calendly booking view ── */}
-          {view === 'form' && (
+          {/* ── Inquiry form view ── */}
+          {view === 'inquiry' && (
             <motion.div
-              key="form"
+              key="inquiry"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+              className="max-w-xl mx-auto w-full"
+            >
+              <h2 className="text-xl font-extrabold text-white mb-1 text-center">Tell us about you</h2>
+              <p className="text-sm text-slate-400 mb-5 text-center">
+                Selected: <span className="text-blue-400 font-medium">{packageLabel}</span>
+                {isSupport && <> — {selectedTier.displayPrice} USD</>}
+              </p>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="lead-name" className="text-slate-300">Name</Label>
+                  <Input
+                    id="lead-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your full name"
+                    maxLength={100}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  />
+                  {errors.name && <p className="text-xs text-red-400">{errors.name}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="lead-email" className="text-slate-300">Email</Label>
+                  <Input
+                    id="lead-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    maxLength={255}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
+                  />
+                  {errors.email && <p className="text-xs text-red-400">{errors.email}</p>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="lead-message" className="text-slate-300">
+                    Message <span className="text-slate-500 font-normal">(optional)</span>
+                  </Label>
+                  <Textarea
+                    id="lead-message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Anything we should know before the call?"
+                    maxLength={1000}
+                    rows={4}
+                    className="bg-white/5 border-white/10 text-white placeholder:text-slate-500 resize-none"
+                  />
+                  {errors.message && <p className="text-xs text-red-400">{errors.message}</p>}
+                </div>
+
+                <Button
+                  className="w-full gap-2 bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={handleSubmitInquiry}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Sending…
+                    </>
+                  ) : (
+                    <>
+                      Continue to Booking
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Calendly booking view ── */}
+          {view === 'calendly' && (
+            <motion.div
+              key="calendly"
               custom={direction}
               variants={slideVariants}
               initial="enter"
@@ -232,7 +389,8 @@ export default function CoachingPage() {
             >
               <h2 className="text-xl font-extrabold text-white mb-1 text-center">Book a Call</h2>
               <p className="text-sm text-slate-400 mb-5 text-center">
-                You selected <span className="text-blue-400 font-medium">{selectedTier?.label}</span> — {selectedTier?.displayPrice} USD
+                You selected <span className="text-blue-400 font-medium">{packageLabel}</span>
+                {isSupport && <> — {selectedTier.displayPrice} USD</>}
               </p>
               <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02]">
                 <iframe

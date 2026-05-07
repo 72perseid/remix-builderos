@@ -27,7 +27,7 @@ interface ValidationContent {
   user_personas?: Persona[];
 }
 
-export default function ValidationPage() {
+function ValidationPageInner() {
   const { data: artifact, loading, error, refetch: refetchArtifact } = useArtifact('validation');
   const { selectedAppId } = useProjectContext();
 
@@ -159,5 +159,13 @@ export default function ValidationPage() {
         </div>
       </div>
     </div>
+  );
+}
+import { BuildLockedPage } from '@/components/paywall/BuildLockedPage';
+export default function ValidationPage() {
+  return (
+    <BuildLockedPage>
+      <ValidationPageInner />
+    </BuildLockedPage>
   );
 }

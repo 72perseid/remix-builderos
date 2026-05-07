@@ -14,7 +14,10 @@ function ProgramCardLockOverlay() {
   const navigate = useNavigate();
 
   return (
-    <div className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 p-4">
+    <div
+      className="absolute inset-0 z-20 flex items-center justify-center bg-background/45 p-4"
+      onClick={(e) => e.stopPropagation()}
+    >
       <div className="w-full max-w-[240px] rounded-xl border border-border bg-card/95 p-4 text-center shadow-2xl backdrop-blur">
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-primary/20 bg-primary/10">
           <Lock className="h-5 w-5 text-primary" />
@@ -40,11 +43,14 @@ function CourseCard({ course, locked }: { course: CourseWithProgress; locked?: b
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
+      onClick={() => {
+        if (locked) return;
+        navigate(`/programs/${course.id}`);
+      }}
       className={cn(
         "relative rounded-xl border border-border bg-card overflow-hidden transition-all duration-300 flex flex-col",
         locked
-          ? "cursor-pointer"
+          ? "cursor-default"
           : "hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
       )}
     >
@@ -115,11 +121,14 @@ function FeaturedCourseCard({ course, locked }: { course: CourseWithProgress; lo
   const navigate = useNavigate();
   return (
     <div
-      onClick={() => navigate(`/programs/${course.id}`)}
+      onClick={() => {
+        if (locked) return;
+        navigate(`/programs/${course.id}`);
+      }}
       className={cn(
-        "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row",
+        "rounded-2xl border border-primary/30 bg-gradient-to-br from-card via-card to-primary/5 overflow-hidden transition-all duration-300 flex flex-col md:flex-row relative",
         locked
-          ? "cursor-pointer"
+          ? "cursor-default"
           : "hover:border-primary/60 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/10 cursor-pointer"
       )}
     >

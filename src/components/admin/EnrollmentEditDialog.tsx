@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import {
   useCreateEnrollment,
   useUpdateEnrollment,
@@ -18,13 +22,13 @@ interface Props {
   enrollment: any | null;
 }
 
-function toInputDate(d: string | null) {
-  if (!d) return '';
-  return new Date(d).toISOString().slice(0, 10);
+function toDate(d: string | null | undefined): Date | undefined {
+  if (!d) return undefined;
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? undefined : dt;
 }
-function fromInputDate(s: string): string | null {
-  if (!s) return null;
-  return new Date(s + 'T00:00:00').toISOString();
+function toIso(d: Date | undefined): string | null {
+  return d ? d.toISOString() : null;
 }
 
 export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }: Props) {
@@ -33,19 +37,20 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
   const [accessGroupId, setAccessGroupId] = useState<string>('');
   const [productId, setProductId] = useState<string>('');
   const [status, setStatus] = useState<string>('active');
-  const [buildExp, setBuildExp] = useState<string>('');
-  const [calendarExp, setCalendarExp] = useState<string>('');
-  const [programsExp, setProgramsExp] = useState<string>('');
+  const [buildExp, setBuildExp] = useState<Date | undefined>(undefined);
+  const [calendarExp, setCalendarExp] = useState<Date | undefined>(undefined);
+  const [programsExp, setProgramsExp] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     if (!open) return;
     setAccessGroupId(enrollment?.access_group_id ?? '');
     setProductId(enrollment?.product_id?.toString() ?? '');
     setStatus(enrollment?.status ?? 'active');
-    setBuildExp(toInputDate(enrollment?.build_expires_at ?? null));
-    setCalendarExp(toInputDate(enrollment?.calendar_expires_at ?? null));
-    setProgramsExp(toInputDate(enrollment?.programs_expires_at ?? null));
+    setBuildExp(toDate(enrollment?.build_expires_at));
+    setCalendarExp(toDate(enrollment?.calendar_expires_at));
+    setProgramsExp(toDate(enrollment?.programs_expires_at));
   }, [open, enrollment]);
+
 
   const { data: accessGroups } = useQuery({
     queryKey: ['admin-access-groups'],
@@ -84,9 +89,9 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
       access_group_id: accessGroupId || null,
       product_id: productId ? Number(productId) : null,
       status,
-      build_expires_at: fromInputDate(buildExp),
-      calendar_expires_at: fromInputDate(calendarExp),
-      programs_expires_at: fromInputDate(programsExp),
+      build_expires_at: toIso(buildExp),
+      calendar_expires_at: toIso(calendarExp),
+      programs_expires_at: toIso(programsExp),
     };
 
     if (isEdit) {
@@ -145,23 +150,65 @@ export function EnrollmentEditDialog({ open, onOpenChange, userId, enrollment }:
             </Select>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label>Build expires</Label>
-              <Input type="date" value={buildExp} onChange={(e) => setBuildExp(e.target.value)} />
+          <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+            <div className="space-y-0.5">
+              <h4 className="text-sm font-semibold">Access expiration dates</h4>
+              <p className="text-xs text-muted-foreground">
+                Access flags are derived automatically from these dates.
+              </p>
             </div>
-            <div>
-              <Label>Calendar expires</Label>
-              <Input type="date" value={calendarExp} onChange={(e) => setCalendarExp(e.target.value)} />
-            </div>
-            <div>
-              <Label>Programs expires</Label>
-              <Input type="date" value={programsExp} onChange={(e) => setProgramsExp(e.target.value)} />
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { label: 'Build', value: buildExp, set: setBuildExp },
+                { label: 'Calendar', value: calendarExp, set: setCalendarExp },
+                { label: 'Programs', value: programsExp, set: setProgramsExp },
+              ] as const).map(({ label, value, set }) => (
+                <div key={label} className="space-y-1.5 min-w-0">
+                  <Label className="text-xs text-muted-foreground">{label}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          'w-full justify-start text-left font-normal px-2.5 truncate',
+                          !value && 'text-muted-foreground'
+                        )}
+                      >
+                        <CalendarIcon className="mr-1.5 h-3.5 w-3.5 shrink-0 opacity-70" />
+                        <span className="truncate">
+                          {value ? format(value, 'MMM d, yyyy') : 'Pick date'}
+                        </span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={value}
+                        onSelect={(d) => set(d ?? undefined)}
+                        initialFocus
+                        className={cn('p-3 pointer-events-auto')}
+                      />
+                      {value && (
+                        <div className="p-2 border-t border-border">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full"
+                            onClick={() => set(undefined)}
+                          >
+                            Clear date
+                          </Button>
+                        </div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              ))}
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Access flags are derived automatically from expiry dates.
-          </p>
         </div>
 
         <DialogFooter>

@@ -8,6 +8,7 @@ import { useArtifacts } from '@/hooks/useArtifacts';
 import { useProfile } from '@/hooks/useProfile';
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
+import { canAccessArtifact } from '@/lib/artifactAccess';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
 interface ArtifactCardConfig {
@@ -84,7 +85,7 @@ export function ArtifactsGrid() {
   const canBuild = hasUse('build');
 
   const handleNavigate = (route: string) => {
-    if (canBuild) navigate(route);
+    navigate(route);
   };
 
 
@@ -183,14 +184,20 @@ export function ArtifactsGrid() {
                   <p className="text-sm text-slate-500 leading-relaxed">{card.description}</p>
                 </div>
               ) : (
-                <ArtifactCard 
-                  key={card.type} 
-                  title={card.title} 
-                  description={card.description} 
-                  status={getCardStatus(card.type)} 
-                  completion={completionMap[card.type]}
-                  onClick={() => handleNavigate(card.route)}
-                />
+                (() => {
+                  const allowed = canAccessArtifact(card.type, canBuild);
+                  return (
+                    <ArtifactCard 
+                      key={card.type} 
+                      title={card.title} 
+                      description={card.description} 
+                      status={getCardStatus(card.type)} 
+                      completion={completionMap[card.type]}
+                      upgradeRequired={!allowed}
+                      onClick={() => allowed ? handleNavigate(card.route) : navigate('/coaching')}
+                    />
+                  );
+                })()
               )
             ))}
           </div>
@@ -208,20 +215,13 @@ export function ArtifactsGrid() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Landing Copy — linked to Landing Page Generator */}
-            <div
-              onClick={() => handleNavigate('/landing-page')}
-              className="relative overflow-hidden rounded-2xl bg-card border border-slate-700/50 p-5 pt-10 min-h-[180px] flex flex-col cursor-pointer hover:border-primary/40 transition-colors"
-            >
-              <div className="mb-3">
-                <div className="relative inline-flex">
-                  <div className="relative flex items-center justify-center w-12 h-12 rounded-xl border bg-primary/10 border-primary/20">
-                    <Type className="w-7 h-7 text-white" />
-                  </div>
-                </div>
-              </div>
-              <h3 className="text-base font-semibold text-foreground mb-1.5 mt-auto">Landing Copy</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">Generate compelling landing page copy for your product.</p>
-            </div>
+            <ArtifactCard
+              title="Landing Copy"
+              description="Generate compelling landing page copy for your product."
+              status="available"
+              upgradeRequired={!canBuild}
+              onClick={() => canBuild ? navigate('/landing-page') : navigate('/coaching')}
+            />
             {/* Coming Soon cards */}
             {[
               { title: 'Social Content', description: 'Instagram content aligned with your brand.', icon: <Instagram className="w-7 h-7 text-white" /> },

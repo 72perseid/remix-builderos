@@ -1,58 +1,43 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Loader2, Mail, CheckCircle } from 'lucide-react';
+import { z } from 'zod';
 import logoHorizontal from '@/assets/logo-horizontal.png';
 import logoIcon from '@/assets/logo-icon.png';
 
-export default function ResetPasswordPage() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isReady, setIsReady] = useState(false);
-  const [done, setDone] = useState(false);
-  const { updatePassword } = useAuth();
-  const navigate = useNavigate();
+const emailSchema = z.string().email('Please enter a valid email');
 
-  // Supabase sends the recovery token via URL hash — we listen for the
-  // PASSWORD_RECOVERY event to know the session is valid.
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsReady(true);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+export default function ResetPasswordPage() {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const { forgotPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match.');
+    const parsed = emailSchema.safeParse(email);
+    if (!parsed.success) {
+      setError(parsed.error.errors[0].message);
       return;
     }
 
     setIsLoading(true);
     try {
-      const { error } = await updatePassword(password);
-      if (error) {
-        toast.error(error.message);
+      const { error: resetError } = await forgotPassword(email);
+      if (resetError) {
+        toast.error(resetError.message);
+        setError(resetError.message);
       } else {
-        setDone(true);
-        toast.success('Password updated successfully!');
-        setTimeout(() => navigate('/login', { replace: true }), 3000);
+        setSent(true);
+        toast.success('Password reset link sent! Check your email.');
       }
     } catch {
       toast.error('An unexpected error occurred.');
@@ -70,95 +55,66 @@ export default function ResetPasswordPage() {
             <img src={logoHorizontal} alt="Ambitious Labs" className="h-10" />
           </div>
 
-          {done ? (
+          {sent ? (
             <div className="flex flex-col items-center gap-4 py-8 text-center">
               <CheckCircle className="w-16 h-16 text-green-500" />
-              <h1 className="text-2xl font-bold text-white">Password Updated!</h1>
-              <p className="text-slate-400">Redirecting you to login…</p>
+              <h1 className="text-2xl font-bold text-white">Check your email</h1>
+              <p className="text-slate-400">
+                We sent a password reset link to <span className="text-white">{email}</span>.
+              </p>
+              <Link to="/login" className="text-sm text-blue-500 hover:text-blue-400 mt-4">
+                Back to login
+              </Link>
             </div>
           ) : (
             <>
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold text-white">Set new password</h1>
+                <h1 className="text-3xl font-bold text-white">Reset your password</h1>
                 <p className="text-slate-400">
-                  {isReady
-                    ? 'Choose a new password for your account.'
-                    : 'Verifying your reset link…'}
+                  Enter your email and we'll send you a reset link.
                 </p>
               </div>
 
-              {isReady && (
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-slate-400 text-sm">New Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="New password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg pr-12 focus:border-blue-500 focus:ring-blue-500/20"
-                        disabled={isLoading}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-500 hover:text-white hover:bg-slate-700/50"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-slate-400 text-sm">Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg pl-10 focus:border-blue-500 focus:ring-blue-500/20"
+                      disabled={isLoading}
+                    />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-slate-400 text-sm">Confirm Password</Label>
-                    <div className="relative">
-                      <Input
-                        id="confirmPassword"
-                        type={showConfirm ? 'text' : 'password'}
-                        placeholder="Confirm new password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500 h-12 rounded-lg pr-12 focus:border-blue-500 focus:ring-blue-500/20"
-                        disabled={isLoading}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-slate-500 hover:text-white hover:bg-slate-700/50"
-                        onClick={() => setShowConfirm(!showConfirm)}
-                      >
-                        {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Updating…
-                      </>
-                    ) : (
-                      'Update Password'
-                    )}
-                  </Button>
-                </form>
-              )}
-
-              {!isReady && (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                  {error && <p className="text-sm text-red-400">{error}</p>}
                 </div>
-              )}
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Sending…
+                    </>
+                  ) : (
+                    'Send Reset Link'
+                  )}
+                </Button>
+              </form>
+
+              <div className="text-center">
+                <Link to="/login" className="text-sm text-slate-400 hover:text-white transition-colors">
+                  Remember your password?{' '}
+                  <span className="text-blue-500 hover:text-blue-400">Log In</span>
+                </Link>
+              </div>
             </>
           )}
         </div>

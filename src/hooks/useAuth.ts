@@ -14,6 +14,18 @@ export function useAuth() {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Update last_seen on sign-in / token refresh (defer to avoid deadlock)
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+          const userId = session.user.id;
+          setTimeout(() => {
+            supabase
+              .from('profiles')
+              .update({ last_seen: new Date().toISOString() })
+              .eq('id', userId)
+              .then(() => {});
+          }, 0);
+        }
       }
     );
 
@@ -56,7 +68,7 @@ export function useAuth() {
 
   const forgotPassword = useCallback(async (email: string) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/update-password`,
     });
     return { data, error };
   }, []);

@@ -28,6 +28,7 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [justSignedUp, setJustSignedUp] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { user, signUp, isAuthenticated, loading } = useAuth();
@@ -48,6 +49,7 @@ export default function SignUpPage() {
   });
 
   useEffect(() => {
+    if (justSignedUp) return;
     if (!loading && !profileLoading && isAuthenticated && onboardingProfile !== undefined) {
       if (onboardingProfile?.onboarded === false) {
         navigate('/onboarding', { replace: true });
@@ -55,7 +57,7 @@ export default function SignUpPage() {
         navigate('/project-board', { replace: true });
       }
     }
-  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate]);
+  }, [isAuthenticated, loading, profileLoading, onboardingProfile, navigate, justSignedUp]);
 
   const validateForm = () => {
     try {
@@ -83,11 +85,16 @@ export default function SignUpPage() {
     try {
       const { error } = await signUp(email, password, { first_name: firstName, last_name: lastName });
       if (error) {
-        toast.error(error.message.includes('already registered')
+        toast.error(error.message.includes('already registered') || error.message.toLowerCase().includes('already')
           ? 'This email is already registered. Please sign in instead.'
           : error.message);
+        setErrors({ email: error.message.toLowerCase().includes('already')
+          ? 'This email is already registered.'
+          : error.message });
       } else {
-        toast.success('Check your email to confirm your account!');
+        setJustSignedUp(true);
+        toast.success('Account created! Please check your email to confirm, then log in.');
+        navigate('/login', { replace: true });
       }
     } catch {
       toast.error('An unexpected error occurred. Please try again.');

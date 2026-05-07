@@ -1,74 +1,61 @@
-## What I had wrong
+# Plan: Coaching Lead Capture
 
-I kept treating `isAdmin` as a special bypass alongside the enrollment booleans. That's not how the system is designed. Admin is just a role that controls who can open `/admin`. **Access to features is owned entirely by `access_groups` → `access_group_features`** (queried via the existing `access_group_features_view`). Whichever group a user is in determines what they unlock — admins unlock things because their group is mapped to those features, not because of a code-level shortcut.
+Add a real inquiry form on `/coaching` so submitted interest creates a row in the `leads` table, with `user_id` populated when the visitor is logged in.
 
-## The single rule, used everywhere
+## What changes for the user
 
-For any gated surface (Programs, Calendar, Build/Project Board, Build/Artifacts, lesson CTAs, individual courses, individual calendars), the check is the same:
+- On `/coaching`, clicking **Get Support** or **Talk to Us** opens a short inquiry form (name, email, optional message) before the Calendly embed.
+- The selected package (Support Pack / Done For You) and hour tier are auto-filled and shown read-only.
+- After submitting, a confirmation appears and the existing Calendly iframe is shown so the user can still book.
+- Logged-in users have name/email pre-filled from their profile and the lead is linked to their account.
 
-> Does the current user's `access_group_id` have a row in `access_group_features_view` with the matching `feature_slug`?
+## UI flow
 
-If yes → render. If no → render the blurred component + centered "talk to an expert" card (the same pattern Project Board and Artifacts already use).
+```text
+[Plans view]  →  click CTA  →  [Inquiry form]  →  submit  →  [Calendly view + success toast]
+```
 
-No `isAdmin` short-circuit. No `programs_access` / `calendar_access` / `build_access` boolean reads from the client. Those booleans stay in the DB for backend / trigger logic, but the client stops consulting them.
+The current two-view state machine (`plans` / `form`) becomes three views: `plans` → `inquiry` → `calendly`. Back button returns to the previous step.
 
-## Implementation
+## Form fields
 
-### 1. One hook: `useUserFeatures`
+| Field    | Type                | Required | Source                                       |
+|----------|---------------------|----------|----------------------------------------------|
+| name     | text                | yes      | user input (prefilled from profile if logged in) |
+| email    | email               | yes      | user input (prefilled from profile if logged in) |
+| package  | "support" / "dfy"   | yes      | set by which CTA was clicked                 |
+| hours    | number (10/20/40)   | only for Support Pack | from selected tier                  |
+| message  | textarea            | no       | user input                                   |
 
-Reads the existing `access_group_features_view` filtered by the user's `enrollments.access_group_id`. Returns `{ has(slug: string): boolean, loading: boolean }`. Cached per access group.
+Validation with `zod`: name 1–100 chars, email valid + ≤255 chars, message ≤1000 chars.
 
-That's the only access primitive the client needs.
+## Data write
 
-### 2. Standardise feature slugs
+Insert into `public.leads` via the Supabase client:
 
-Use whatever is already in the `features` table. Based on the existing booleans the obvious slugs are `programs`, `calendar`, `build` (please confirm the exact strings you've seeded). Later, finer-grained slugs like `course.<unique_slug>`, `calendar.<id>`, `cta.<id>` can be added the same way without touching client code beyond the slug string passed in.
+```ts
+{ name, email, package, hours, message, user_id: session?.user.id ?? null }
+```
 
-For this round I'm only wiring the three coarse slugs that mirror today's behaviour: `programs`, `calendar`, `build`.
+RLS already allows authenticated users to insert their own leads. For anonymous submissions we will keep `user_id` null — this requires a small RLS adjustment (see Technical notes).
 
-### 3. Apply the same blur+overlay everywhere
+## Files to change
 
-Reuse the exact pattern from `ProjectBoardPage` (lines 629–676): wrap content in `cn("...", isLocked && "blur-md select-none pointer-events-none")` with `aria-hidden`, and render a centered card overlay with icon, bullets, and a "Talk to an Expert" button routing to `/coaching`. Copy comes from `PaywallDialog`'s existing `PAYWALL_COPY` map.
+- `src/pages/CoachingPage.tsx` — add `inquiry` view, form, submit handler, prefill from `useAuth` + `useProfile`, success toast, then transition to `calendly` view.
+- `src/lib/leads.ts` (new) — small helper `submitCoachingLead(input)` with zod schema + supabase insert.
 
-### 4. Pages to update
+## Technical notes
 
-- `ProgramsPage` → `isLocked = !features.has('programs')`. Drop `course_type === "paid"` split. One uniform grid behind the blur.
-- `CourseDetailPage` → same `isLocked` rule. Closes the direct-URL bypass.
-- `LessonPage` → same `isLocked` rule.
-- `CalendarPage` → `isLocked = !features.has('calendar')`. Replace the per-element soft-block with the full-page blur + overlay.
-- `ProjectBoardPage` → swap the existing `!isAdmin && !buildAccess` check for `!features.has('build')`. Visual unchanged.
-- `ArtifactsGrid` (and any other surface currently using `useEnrollment` + `useIsAdmin`) → same swap.
+- Current `leads` RLS: `INSERT` requires `auth.uid() = user_id` and `SELECT` requires the same. Anonymous submissions will fail. Two options:
+  1. Keep authenticated-only — gate the form so anonymous users see a "Sign in to inquire" message.
+  2. Allow anonymous inserts — add an `INSERT` policy on `leads` for `anon` role with `WITH CHECK (user_id IS NULL)`.
+- Recommend option 1 for now to match existing security posture (no new public-write surface). Anonymous visitors get a CTA to sign in.
+- Use `supabase.auth.getSession()` (or existing `useAuth` hook) to resolve `user_id` at submit time.
+- Show inline field errors and a top-level error if the insert fails; success uses the existing `sonner` toast.
+- Memory `mem://features/coaching-page/booking-flow` will be updated to reflect the new pre-Calendly inquiry step.
 
-After this change, `useEnrollment` and `useIsAdmin` calls on these surfaces are removed. `useIsAdmin` keeps existing only to gate the `/admin` route and the sidebar admin link — that's its only job.
+## Out of scope
 
-### 5. Loading safety
-
-Pages must wait for `useUserFeatures.loading === false` before deciding `isLocked`, otherwise free users briefly see unlocked content. Implementation: while loading, render a skeleton/spinner instead of either branch.
-
-### 6. Memory update
-
-`mem://features/access/enrollment-model.md`:
-- Single source of truth on the client = `access_group_features_view`.
-- The boolean columns on `enrollments` (`programs_access` etc.) remain in the DB for triggers/back-office logic but are no longer read by the client.
-- `isAdmin` is for the `/admin` route only, not for feature gating.
-
-## Files touched
-
-- `src/hooks/useUserFeatures.ts` (new)
-- `src/pages/ProgramsPage.tsx`
-- `src/pages/CourseDetailPage.tsx`
-- `src/pages/LessonPage.tsx`
-- `src/pages/CalendarPage.tsx`
-- `src/pages/ProjectBoardPage.tsx`
-- `src/components/dashboard/ArtifactsGrid.tsx`
-- `mem://features/access/enrollment-model.md`
-
-## What we're not doing yet
-
-- Per-course / per-CTA / per-calendar gating. Same hook, finer slugs — added in a future pass once you confirm the slug naming convention.
-- Removing the boolean columns from the DB. They stay; the client just stops reading them.
-- Any admin UI for editing `access_group_features` — DB-managed, as today.
-
-## One question before I implement
-
-What are the exact `feature_slug` strings already seeded in your `features` table for the three top-level surfaces? I need them verbatim. Likely candidates: `programs`, `calendar`, `build` — but if you've used something different (e.g. `programs_access`, `builder_suite`) I'll match it.
+- No email notification / webhook on new lead (can be added later via edge function trigger).
+- No admin UI to view leads.
+- No changes to `/one-on-one-coaching` (separate spec).
