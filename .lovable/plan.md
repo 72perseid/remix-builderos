@@ -1,61 +1,38 @@
-# Plan: Coaching Lead Capture
+## Goal
+On `/programs`, free / no-access users (no `programs` USE) should:
+- **Still see and use free courses normally** (click to open, track progress).
+- See **paid courses** rendered as a blurred section with **one shared centered "Unlock our Programs" overlay** on top — matching the screenshot pattern.
 
-Add a real inquiry form on `/coaching` so submitted interest creates a row in the `leads` table, with `user_id` populated when the visitor is logged in.
+Paid users (with `programs` USE) keep seeing everything unlocked.
 
-## What changes for the user
+## Approach
+Split the courses into `freeCourses` and `paidCourses` using the existing `isPaidCourse()` helper. Render the free ones as today, then render the paid ones inside a relatively-positioned wrapper that — when the user lacks `programs` USE — applies `blur-md select-none pointer-events-none` to the paid grid and stacks a single centered `LockedOverlay feature="programs"` card on top (same component used on `/project-board`, with the requested "Unlock our Programs" copy + "Talk to an Expert" CTA → `/coaching`).
 
-- On `/coaching`, clicking **Get Support** or **Talk to Us** opens a short inquiry form (name, email, optional message) before the Calendly embed.
-- The selected package (Support Pack / Done For You) and hour tier are auto-filled and shown read-only.
-- After submitting, a confirmation appears and the existing Calendly iframe is shown so the user can still book.
-- Logged-in users have name/email pre-filled from their profile and the lead is linked to their account.
+## Changes (single file: `src/pages/ProgramsPage.tsx`)
 
-## UI flow
+1. Remove the per-card lock UI:
+   - Delete the `ProgramCardLockOverlay` component.
+   - Remove the `locked` prop and all its branches from `CourseCard` and `FeaturedCourseCard` (no blur wrapper, no overlay, no click guard).
+   - Drop the `Lock` icon import.
 
-```text
-[Plans view]  →  click CTA  →  [Inquiry form]  →  submit  →  [Calendly view + success toast]
-```
+2. Import `LockedOverlay` from `@/components/paywall/LockedOverlay`.
 
-The current two-view state machine (`plans` / `form`) becomes three views: `plans` → `inquiry` → `calendly`. Back button returns to the previous step.
+3. In `ProgramsPage`:
+   - Keep `useUserFeatures` and compute `canUsePrograms = hasUse('programs')`.
+   - Partition non-featured courses: `freeCourses = courses.filter(c => !c.is_featured && !isPaidCourse(c))`, `paidCourses = courses.filter(c => !c.is_featured && isPaidCourse(c))`.
+   - Do the same partition for featured courses (`featuredFree`, `featuredPaid`).
+   - Render order:
+     1. Featured free cards (unchanged).
+     2. Free non-featured grid (unchanged).
+     3. **Paid section** — rendered only if `paidCourses.length + featuredPaid.length > 0`:
+        - Heading e.g. `Premium Programs`.
+        - Wrapper `<div className="relative">` containing the featured-paid + paid grid.
+        - If `!canUsePrograms`: add `blur-md select-none pointer-events-none` + `aria-hidden` to the inner content, and absolutely-position `<LockedOverlay feature="programs" />` inside the wrapper (the existing `LockedOverlay` already uses `absolute inset-0`).
+        - If `canUsePrograms`: render the inner content with no blur and no overlay.
 
-## Form fields
-
-| Field    | Type                | Required | Source                                       |
-|----------|---------------------|----------|----------------------------------------------|
-| name     | text                | yes      | user input (prefilled from profile if logged in) |
-| email    | email               | yes      | user input (prefilled from profile if logged in) |
-| package  | "support" / "dfy"   | yes      | set by which CTA was clicked                 |
-| hours    | number (10/20/40)   | only for Support Pack | from selected tier                  |
-| message  | textarea            | no       | user input                                   |
-
-Validation with `zod`: name 1–100 chars, email valid + ≤255 chars, message ≤1000 chars.
-
-## Data write
-
-Insert into `public.leads` via the Supabase client:
-
-```ts
-{ name, email, package, hours, message, user_id: session?.user.id ?? null }
-```
-
-RLS already allows authenticated users to insert their own leads. For anonymous submissions we will keep `user_id` null — this requires a small RLS adjustment (see Technical notes).
-
-## Files to change
-
-- `src/pages/CoachingPage.tsx` — add `inquiry` view, form, submit handler, prefill from `useAuth` + `useProfile`, success toast, then transition to `calendly` view.
-- `src/lib/leads.ts` (new) — small helper `submitCoachingLead(input)` with zod schema + supabase insert.
-
-## Technical notes
-
-- Current `leads` RLS: `INSERT` requires `auth.uid() = user_id` and `SELECT` requires the same. Anonymous submissions will fail. Two options:
-  1. Keep authenticated-only — gate the form so anonymous users see a "Sign in to inquire" message.
-  2. Allow anonymous inserts — add an `INSERT` policy on `leads` for `anon` role with `WITH CHECK (user_id IS NULL)`.
-- Recommend option 1 for now to match existing security posture (no new public-write surface). Anonymous visitors get a CTA to sign in.
-- Use `supabase.auth.getSession()` (or existing `useAuth` hook) to resolve `user_id` at submit time.
-- Show inline field errors and a top-level error if the insert fails; success uses the existing `sonner` toast.
-- Memory `mem://features/coaching-page/booking-flow` will be updated to reflect the new pre-Calendly inquiry step.
+4. Keep the empty-state branch for when there are zero courses total. If only paid courses exist for a free user, the page still renders the heading + blurred grid + overlay (no empty state).
 
 ## Out of scope
-
-- No email notification / webhook on new lead (can be added later via edge function trigger).
-- No admin UI to view leads.
-- No changes to `/one-on-one-coaching` (separate spec).
+- No routing, sidebar, or DB changes.
+- `CourseDetailPage` lesson-level gating is unchanged (separate concern).
+- `isPaidCourse` / `programAccess.ts` stay as-is.
