@@ -31,6 +31,7 @@ const dfyFeatures = [
 ];
 
 const pricingTiers = [
+  { hours: 5, price: 500, displayPrice: '$500', originalPrice: null, label: '5 Hours', perHour: 100, discount: null },
   { hours: 10, price: 1000, displayPrice: '$1K', originalPrice: null, label: '10 Hours', perHour: 100, discount: null },
   { hours: 20, price: 1800, displayPrice: '$1.8K', originalPrice: '$2K', label: '20 Hours', perHour: 90, discount: '10% off' },
   { hours: 40, price: 3600, displayPrice: '$3.6K', originalPrice: '$4K', label: '40 Hours', perHour: 90, discount: '10% off' },
@@ -256,7 +257,7 @@ export default function CoachingPage() {
                       {/* Price */}
                       <div className="flex items-baseline gap-1.5">
                         <span className="text-xs font-medium text-slate-400">From</span>
-                        <span className="text-4xl font-extrabold text-white">$10k</span>
+                        <span className="text-4xl font-extrabold text-white">$5k</span>
                         <span className="text-sm text-slate-400">USD</span>
                       </div>
                       {/* Spacer to align with Support Pack strikethrough when discounted tier selected */}
