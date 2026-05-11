@@ -394,7 +394,7 @@ export default function CoachingPage() {
               </p>
               <div className="rounded-2xl overflow-hidden border border-white/10 bg-white/[0.02]">
                 <iframe
-                  src="https://calendly.com/ambitious-labs-private-coaching/tugce-private-technical-coaching"
+                  src="https://calendly.com/jeika-ambitiouslabs/30min"
                   width="100%"
                   height="650"
                   frameBorder="0"
