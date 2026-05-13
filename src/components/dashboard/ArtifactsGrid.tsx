@@ -172,10 +172,10 @@ export function ArtifactsGrid() {
       </div>
       {/* Architect Banner — sends users with progress to their next artifact page (where the Copilot lives) instead of back into onboarding */}
       <ArchitectBanner
-        onStartBuilding={() => (hasAnyData ? navigate(continueRoute) : navigate('/onboarding?mode=setup'))}
+        onStartBuilding={() => (hasAnyData ? navigate(continueCTA.route) : navigate('/onboarding?mode=setup'))}
         hasData={hasAnyData}
-        ctaLabel={hasAnyData ? 'Continue Building' : 'Start Building'}
-        ctaIcon="rocket"
+        ctaLabel={hasAnyData ? continueCTA.label : 'Start Building'}
+        ctaIcon={hasAnyData ? continueCTA.icon : 'rocket'}
       />
 
 
