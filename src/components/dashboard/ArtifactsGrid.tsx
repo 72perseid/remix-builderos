@@ -101,7 +101,7 @@ export function ArtifactsGrid() {
     product_brief: selectedApp?.pb_completion ?? null,
     ui_ux: selectedApp?.ux_completion ?? null,
   };
-  const isOnboarded = profile?.onboarded === true;
+  
 
   // Check if user has any artifact progress (existence OR any non-zero completion)
   const hasAnyCompletion = Object.values(completionMap).some((v) => (v ?? 0) > 0);
