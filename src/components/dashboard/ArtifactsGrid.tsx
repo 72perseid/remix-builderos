@@ -104,8 +104,9 @@ export function ArtifactsGrid() {
   };
   const isOnboarded = profile?.onboarded === true;
 
-  // Check if user has any artifacts
-  const hasAnyData = artifacts.length > 0;
+  // Check if user has any artifact progress (existence OR any non-zero completion)
+  const hasAnyCompletion = Object.values(completionMap).some((v) => (v ?? 0) > 0);
+  const hasAnyData = artifacts.length > 0 || hasAnyCompletion;
   
   const getCardStatus = (type: ArtifactType): ArtifactStatus => {
     if (loading) return 'loading';
@@ -150,10 +151,13 @@ export function ArtifactsGrid() {
         <h1 className="text-2xl font-bold text-foreground">Artifacts</h1>
         <p className="text-muted-foreground mt-1">Generate and manage your project's key documents and deliverables</p>
       </div>
-      {/* Architect Banner - hidden after onboarding */}
-      {!isOnboarded && (
-        <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
-      )}
+      {/* Architect Banner — routes to Copilot once any progress exists, else into onboarding */}
+      <ArchitectBanner
+        onStartBuilding={() => (hasAnyData ? openChat() : navigate('/onboarding?mode=setup'))}
+        hasData={hasAnyData}
+        ctaLabel={hasAnyData ? 'Open Copilot' : 'Start Building'}
+        ctaIcon={hasAnyData ? 'chat' : 'rocket'}
+      />
 
 
       {/* Single column layout with Feature Planning and Launching */}
