@@ -200,12 +200,6 @@ export default function ProgramsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground mb-1">Programs</h1>
-        <p className="text-sm text-muted-foreground">
-          Comprehensive programs and supplementary courses to take you from idea to launch.
-        </p>
-      </div>
       <div className="space-y-10">
         {flagshipCourses.length > 0 && (
           <section className="space-y-4">
@@ -215,7 +209,7 @@ export default function ProgramsPage() {
                 Our signature accelerator programs designed to transform your app idea into a thriving business
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {flagshipCourses.map((course) => {
                 const locked = isPaidCourse(course) && !canUsePrograms;
                 return (
