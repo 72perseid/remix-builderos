@@ -1,24 +1,31 @@
 ## Goal
 
-Stop the BuilderOS Architect banner from sending users back into the onboarding chat once they already have artifact progress. Keep it visible as a useful entry point, but route it to the existing Copilot sidebar instead.
+Make the BuilderOS Architect banner CTA on `/artifacts` always lead somewhere meaningful, regardless of tier or completion state. Today, free users with a completed Business Model loop back to that same page, and premium users with everything done also fall back to BM — both are dead ends.
 
-## Behavior
+## Behavior matrix
 
-In `src/components/dashboard/ArtifactsGrid.tsx`, the banner currently renders only when `!isOnboarded` and always navigates to `/onboarding?mode=setup`. Change to:
+| User state | CTA label | Destination |
+|---|---|---|
+| No artifact progress yet | Start Building | `/onboarding?mode=setup` (unchanged) |
+| Free + BM incomplete (<100%) | Continue Building | `/business-model` |
+| Free + BM complete (100%) | Unlock the Builder Suite | `/coaching` |
+| Premium + any planning artifact incomplete | Continue Building | First incomplete in BM → UV → PB → UI/UX |
+| Premium + all planning artifacts complete | Go to Project Board | `/project-board` |
 
-- **Always render** the banner on the Artifacts page (drop the `!isOnboarded` gate).
-- **Two CTA modes**, decided by `hasAnyData` (already computed as `artifacts.length > 0`) OR any non-zero completion in `completionMap`:
-  - **No progress yet** → CTA label "Start Building", action navigates to `/onboarding?mode=setup` (current behavior).
-  - **Has progress** → CTA label "Open Copilot", action calls `useChatContext().openChat()` — opens the right-side Copilot sidebar, no onboarding re-entry.
-- Banner copy stays driven by the existing `hasData` prop in `ArchitectBanner` (already shows the "artifacts are ready… refine or regenerate" variant when true).
+The banner copy already swaps based on `hasData`, so no string change there beyond the CTA label/icon.
 
-## Files
+## Files to change
 
-- `src/components/dashboard/ArtifactsGrid.tsx` — replace the `onStartBuilding` handler with a conditional that calls `openChat()` when there's progress, else `navigate('/onboarding?mode=setup')`. Remove the `!isOnboarded` wrapper so onboarded users still see the banner (now safely pointing at Copilot).
-- `src/components/dashboard/ArchitectBanner.tsx` — accept an optional `ctaLabel` prop (defaults to current "Start Building" / "Continue Building" logic) so the "has progress" state can render "Open Copilot" with a more appropriate icon (keep `Rocket` or switch to `MessageSquare` — minor).
+- `src/components/dashboard/ArtifactsGrid.tsx`
+  - Replace the current `continueRoute` IIFE with a small helper that returns `{ route, label, icon }` based on `canBuild` + `completionMap`.
+  - Pass the resolved `label` and `icon` into `ArchitectBanner` (props already exist: `ctaLabel`, `ctaIcon`).
+  - For the free-tier-complete case, use `ctaIcon="chat"` swapped to a lock/sparkle feel — actually reuse existing `'rocket'` icon for "Go to Project Board" and add a third icon option for upsell.
 
-No changes to data fetching, routing config, onboarding flow, or business logic.
+- `src/components/dashboard/ArchitectBanner.tsx`
+  - Extend `ctaIcon` union to `'rocket' | 'chat' | 'lock'` and import `Lock` from `lucide-react`. Map `'lock'` → `Lock` icon (used for the upsell CTA).
 
-## Why this fixes the bug
+No changes to data fetching, access gating, or routing config.
 
-The reported confusion is: completed onboarding → clicked banner → dropped back into onboarding chat. After this change, the only way back into `/onboarding` from the banner is when the app genuinely has zero artifact progress, which is the only state where re-entering onboarding is safe.
+## Why this fixes it
+
+Every state now has a forward action: build more, unlock more, or move to the next phase. No more clicking "Continue Building" and landing on the page you just finished.
