@@ -1,12 +1,16 @@
 import { Button } from '@/components/ui/button';
-import { Sparkles, Rocket } from 'lucide-react';
+import { Sparkles, Rocket, MessageSquare } from 'lucide-react';
 
 interface ArchitectBannerProps {
   onStartBuilding: () => void;
   hasData?: boolean;
+  ctaLabel?: string;
+  ctaIcon?: 'rocket' | 'chat';
 }
 
-export function ArchitectBanner({ onStartBuilding, hasData }: ArchitectBannerProps) {
+export function ArchitectBanner({ onStartBuilding, hasData, ctaLabel, ctaIcon }: ArchitectBannerProps) {
+  const Icon = ctaIcon === 'chat' ? MessageSquare : Rocket;
+  const label = ctaLabel ?? (hasData ? 'Continue Building' : 'Start Building');
   return (
     <div className="relative overflow-hidden rounded-xl border border-slate-700/50 bg-card p-6 mb-6">
       {/* Background decoration */}
