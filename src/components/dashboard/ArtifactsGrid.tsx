@@ -5,7 +5,7 @@ import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { ArtifactExportButton } from "./ArtifactExportButton";
 import { useArtifacts } from '@/hooks/useArtifacts';
-import { useProfile } from '@/hooks/useProfile';
+
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
 import { useChatContext } from '@/contexts/ChatContext';
