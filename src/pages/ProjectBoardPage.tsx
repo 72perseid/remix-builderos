@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import { useArtifact } from '@/hooks/useArtifact';
-import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
+
 import { useTasks } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag, Lock, Sparkles, Check, Pencil } from 'lucide-react';
@@ -673,14 +673,6 @@ export default function ProjectBoardPage() {
   }
   
   return <div className="h-full flex flex-col p-6">
-      {/* Architect Banner - hidden after onboarding */}
-      {!isOnboarded && (
-        <ArchitectBanner 
-          onStartBuilding={() => navigate('/onboarding?mode=setup')} 
-          hasData={totalCards > 0} 
-        />
-      )}
-      
       {/* Kanban Board */}
       <div className="relative flex-1 flex flex-col">
         <div className={cn("flex-1 flex flex-col", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
