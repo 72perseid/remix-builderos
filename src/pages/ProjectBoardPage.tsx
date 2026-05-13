@@ -673,14 +673,6 @@ export default function ProjectBoardPage() {
   }
   
   return <div className="h-full flex flex-col p-6">
-      {/* Architect Banner - hidden after onboarding */}
-      {!isOnboarded && (
-        <ArchitectBanner 
-          onStartBuilding={() => navigate('/onboarding?mode=setup')} 
-          hasData={totalCards > 0} 
-        />
-      )}
-      
       {/* Kanban Board */}
       <div className="relative flex-1 flex flex-col">
         <div className={cn("flex-1 flex flex-col", isLocked && "blur-md select-none pointer-events-none")} aria-hidden={isLocked}>
