@@ -240,9 +240,12 @@ export default function LessonPage() {
           {lesson.videoUrl ? (
             <div className="rounded-xl overflow-hidden border border-border bg-black aspect-video">
               <video
+                key={lesson.videoUrl}
                 ref={videoRef}
                 src={lesson.videoUrl}
                 controls
+                autoPlay
+                playsInline
                 className="w-full h-full"
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={handleTimeUpdate}
