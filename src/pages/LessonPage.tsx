@@ -447,6 +447,21 @@ export default function LessonPage() {
       </div>
 
       {isLocked && <LockedOverlay feature="programs" />}
+
+      <AlertDialog open={confirmDialogOpen} onOpenChange={(open) => { if (!open) handleConfirmNo(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Did you complete this step?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirm you've finished the action so we can mark your progress.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleConfirmNo}>Not yet</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmYes}>Yes, I did</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
