@@ -40,8 +40,8 @@ export function ArchitectBanner({ onStartBuilding, hasData, ctaLabel, ctaIcon }:
           size="lg"
           className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-lg shadow-blue-500/20 transition-all hover:shadow-blue-500/30"
         >
-          <Rocket className="h-4 w-4 mr-2" />
-          {hasData ? 'Continue Building' : 'Start Building'}
+          <Icon className="h-4 w-4 mr-2" />
+          {label}
         </Button>
       </div>
     </div>
