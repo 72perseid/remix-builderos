@@ -1,38 +1,47 @@
 ## Goal
-On `/programs`, free / no-access users (no `programs` USE) should:
-- **Still see and use free courses normally** (click to open, track progress).
-- See **paid courses** rendered as a blurred section with **one shared centered "Unlock our Programs" overlay** on top — matching the screenshot pattern.
+Make `hasUse('programs')` correctly return `false` for free-tier users so the "Premium Programs" section on `/programs` blurs with the `LockedOverlay` for them. Paid users (with their own `programs_access = true` from a paid product) are unaffected.
 
-Paid users (with `programs` USE) keep seeing everything unlocked.
+## Root cause recap
+- `handle_new_user` enrolls every signup in the `Free` product.
+- The `Free` product currently has a non-zero `programs_duration_days`, so the `enforce_enrollment_access` trigger sets `programs_expires_at` far in the future and flips `programs_access = true`.
+- Result: every free user passes `hasUse('programs')` → no blur, ever.
 
-## Approach
-Split the courses into `freeCourses` and `paidCourses` using the existing `isPaidCourse()` helper. Render the free ones as today, then render the paid ones inside a relatively-positioned wrapper that — when the user lacks `programs` USE — applies `blur-md select-none pointer-events-none` to the paid grid and stacks a single centered `LockedOverlay feature="programs"` card on top (same component used on `/project-board`, with the requested "Unlock our Programs" copy + "Talk to an Expert" CTA → `/coaching`).
+## Changes (database only — one migration)
 
-## Changes (single file: `src/pages/ProgramsPage.tsx`)
+1. **Schema-safe data update on `products`** — set the Free product's `programs_duration_days` to `0` so future signups get no programs USE:
+   ```sql
+   UPDATE public.products
+   SET programs_duration_days = 0
+   WHERE product_name = 'Free';
+   ```
 
-1. Remove the per-card lock UI:
-   - Delete the `ProgramCardLockOverlay` component.
-   - Remove the `locked` prop and all its branches from `CourseCard` and `FeaturedCourseCard` (no blur wrapper, no overlay, no click guard).
-   - Drop the `Lock` icon import.
+2. **Backfill existing Free-product enrollments** — revoke programs USE for users who only have the Free product:
+   ```sql
+   UPDATE public.enrollments e
+   SET programs_expires_at = NULL
+   FROM public.products p
+   WHERE e.product_id = p.id
+     AND p.product_name = 'Free';
+   ```
+   The existing `enforce_enrollment_access` trigger fires on UPDATE and will recompute `programs_access = false` automatically (since `programs_expires_at IS NULL`).
 
-2. Import `LockedOverlay` from `@/components/paywall/LockedOverlay`.
+3. **Safety net** — re-run `enforce_enrollment_access` over every row so any drift is corrected:
+   ```sql
+   UPDATE public.enrollments SET updated_at = now();
+   ```
+   (Trigger fires on UPDATE; booleans realign with their `*_expires_at` columns.)
 
-3. In `ProgramsPage`:
-   - Keep `useUserFeatures` and compute `canUsePrograms = hasUse('programs')`.
-   - Partition non-featured courses: `freeCourses = courses.filter(c => !c.is_featured && !isPaidCourse(c))`, `paidCourses = courses.filter(c => !c.is_featured && isPaidCourse(c))`.
-   - Do the same partition for featured courses (`featuredFree`, `featuredPaid`).
-   - Render order:
-     1. Featured free cards (unchanged).
-     2. Free non-featured grid (unchanged).
-     3. **Paid section** — rendered only if `paidCourses.length + featuredPaid.length > 0`:
-        - Heading e.g. `Premium Programs`.
-        - Wrapper `<div className="relative">` containing the featured-paid + paid grid.
-        - If `!canUsePrograms`: add `blur-md select-none pointer-events-none` + `aria-hidden` to the inner content, and absolutely-position `<LockedOverlay feature="programs" />` inside the wrapper (the existing `LockedOverlay` already uses `absolute inset-0`).
-        - If `canUsePrograms`: render the inner content with no blur and no overlay.
+## What stays unchanged
+- No frontend changes. `ProgramsPage.tsx`, `useUserFeatures`, `LockedOverlay`, `isPaidCourse` all stay as-is.
+- Paid users with a non-Free product enrollment keep their `programs_access = true` because we only null out enrollments tied to the Free product.
+- `handle_new_user` keeps the same INSERT shape; with `programs_duration_days = 0` the new user's `programs_expires_at` will be `now()` → trigger sets `programs_access = false` immediately.
 
-4. Keep the empty-state branch for when there are zero courses total. If only paid courses exist for a free user, the page still renders the heading + blurred grid + overlay (no empty state).
+## Verification after running
+- Re-query: every Free-only user should show `programs_access = false`. Test-premium / paid users remain `true`.
+- Open `/programs` as `test-free@builderos.test` → free course visible and clickable, "Premium Programs" section visible below with blur + "Unlock our Programs" overlay.
+- Open `/programs` as `test-premium@builderos.test` or admin → both sections fully unlocked.
 
 ## Out of scope
-- No routing, sidebar, or DB changes.
-- `CourseDetailPage` lesson-level gating is unchanged (separate concern).
-- `isPaidCourse` / `programAccess.ts` stay as-is.
+- Changing the access-group / REACH layer.
+- Modifying the `Free` product's `build_duration_days` or `calendar_duration_days` (already 0 in current behavior — those gates already work).
+- Any UI copy or layout changes.
