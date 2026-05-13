@@ -64,6 +64,7 @@ export function LessonCTACard({ cta, completed, variant = "default", onClicked }
       }
     } else if (cta.url) {
       window.open(cta.url, "_blank", "noopener,noreferrer");
+    }
     onClicked?.();
   };
 
