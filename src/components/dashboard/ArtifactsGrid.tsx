@@ -105,7 +105,24 @@ export function ArtifactsGrid() {
   // Check if user has any artifact progress (existence OR any non-zero completion)
   const hasAnyCompletion = Object.values(completionMap).some((v) => (v ?? 0) > 0);
   const hasAnyData = artifacts.length > 0 || hasAnyCompletion;
-  
+
+  // Decide where the banner CTA should go when the user already has progress.
+  // Free tier (no build access) can only access business_model — always send
+  // them there. Paid users go to the first incomplete planning artifact.
+  const PLANNING_ORDER: { type: ArtifactType; route: string }[] = [
+    { type: 'business_model', route: '/business-model' },
+    { type: 'validation', route: '/validation' },
+    { type: 'product_brief', route: '/product-brief' },
+    { type: 'ui_ux', route: '/ui-ux' },
+  ];
+  const continueRoute = (() => {
+    if (!canBuild) return '/business-model';
+    const next = PLANNING_ORDER.find(
+      (s) => (completionMap[s.type] ?? 0) < 100,
+    );
+    return next?.route ?? '/business-model';
+  })();
+
   const getCardStatus = (type: ArtifactType): ArtifactStatus => {
     if (loading) return 'loading';
     const artifact = artifacts.find(a => a.type === type);
@@ -149,12 +166,12 @@ export function ArtifactsGrid() {
         <h1 className="text-2xl font-bold text-foreground">Artifacts</h1>
         <p className="text-muted-foreground mt-1">Generate and manage your project's key documents and deliverables</p>
       </div>
-      {/* Architect Banner — routes to Copilot once any progress exists, else into onboarding */}
+      {/* Architect Banner — sends users with progress to their next artifact page (where the Copilot lives) instead of back into onboarding */}
       <ArchitectBanner
-        onStartBuilding={() => (hasAnyData ? openChat() : navigate('/onboarding?mode=setup'))}
+        onStartBuilding={() => (hasAnyData ? navigate(continueRoute) : navigate('/onboarding?mode=setup'))}
         hasData={hasAnyData}
-        ctaLabel={hasAnyData ? 'Open Copilot' : 'Start Building'}
-        ctaIcon={hasAnyData ? 'chat' : 'rocket'}
+        ctaLabel={hasAnyData ? 'Continue Building' : 'Start Building'}
+        ctaIcon="rocket"
       />
 
 
