@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Sparkles, ArrowRight } from "lucide-react";
+import { ExternalLink, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +18,11 @@ export interface LessonCTA {
 interface LessonCTACardProps {
   cta: LessonCTA;
   completed: boolean;
+  variant?: "default" | "button-only" | "completed";
+  onClicked?: () => void;
 }
 
-export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
+export function LessonCTACard({ cta, completed, variant = "default", onClicked }: LessonCTACardProps) {
   const navigate = useNavigate();
   const [justCompleted, setJustCompleted] = useState(false);
 
@@ -63,7 +65,33 @@ export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
     } else if (cta.url) {
       window.open(cta.url, "_blank", "noopener,noreferrer");
     }
+    onClicked?.();
   };
+
+  if (variant === "completed") {
+    return (
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold text-foreground break-words leading-tight">{cta.title}</h3>
+        <div className="flex items-center gap-1.5 text-emerald-500 flex-shrink-0">
+          <span className="text-sm font-medium">Completed</span>
+          <CheckCircle2 className="h-4 w-4" />
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === "button-only") {
+    return (
+      <Button
+        variant={isUpgrade ? "default" : "outline"}
+        onClick={handleClick}
+        className="w-full gap-1.5 h-12 rounded-full"
+      >
+        {label}
+        <ArrowRight className="h-3.5 w-3.5" />
+      </Button>
+    );
+  }
 
   return (
     <div
