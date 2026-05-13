@@ -78,7 +78,6 @@ export function ArtifactsGrid() {
     artifacts,
     loading
   } = useArtifacts();
-  const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
   const { hasUse } = useUserFeatures();
   const { openChat } = useChatContext();
