@@ -1,12 +1,23 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useLesson } from "@/hooks/useLesson";
 import { useUserFeatures } from "@/hooks/useUserFeatures";
+import { useAuth } from "@/hooks/useAuth";
 import { LockedOverlay } from "@/components/paywall/LockedOverlay";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import {
   ChevronLeft,
   ChevronRight,
@@ -21,7 +32,7 @@ import {
   X,
   Check,
 } from "lucide-react";
-import { useRef, useCallback, useState } from "react";
+import { useRef, useCallback, useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { LessonCTACard } from "@/components/programs/LessonCTACard";
 import { LessonThumbnail } from "@/components/programs/LessonThumbnail";
@@ -30,10 +41,83 @@ import { isPaidCourse } from "@/lib/programAccess";
 export default function LessonPage() {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { lesson, loading, markComplete, logVideoWatch } = useLesson(courseId, lessonId);
   const { hasUse, loading: featuresLoading } = useUserFeatures();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [allLessonsOpen, setAllLessonsOpen] = useState(false);
+
+  const hasCtas = (lesson?.ctas?.length ?? 0) > 0;
+  const storageKey = user?.id && lessonId ? `lesson-cta-completed:${user.id}:${lessonId}` : null;
+
+  const [confirmedCtaIds, setConfirmedCtaIds] = useState<Set<string>>(new Set());
+  const [pendingCtaId, setPendingCtaId] = useState<string | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  // Hydrate from localStorage; if lesson is server-completed, treat all CTAs as confirmed.
+  useEffect(() => {
+    if (!storageKey || !lesson) return;
+    if (lesson.completed && hasCtas) {
+      setConfirmedCtaIds(new Set(lesson.ctas.map((c) => c.id)));
+      return;
+    }
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) setConfirmedCtaIds(new Set(JSON.parse(raw) as string[]));
+    } catch {
+      // ignore
+    }
+  }, [storageKey, lesson, hasCtas]);
+
+  // Trigger confirm dialog when user returns to tab after clicking a CTA.
+  useEffect(() => {
+    if (!pendingCtaId) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") setConfirmDialogOpen(true);
+    };
+    window.addEventListener("focus", onVisible);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onVisible);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [pendingCtaId]);
+
+  const handleCtaClicked = (ctaId: string) => {
+    setPendingCtaId(ctaId);
+  };
+
+  const handleConfirmYes = async () => {
+    if (!pendingCtaId || !lesson) return;
+    const next = new Set(confirmedCtaIds);
+    next.add(pendingCtaId);
+    setConfirmedCtaIds(next);
+    if (storageKey) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(Array.from(next)));
+      } catch {
+        // ignore
+      }
+    }
+    setPendingCtaId(null);
+    setConfirmDialogOpen(false);
+
+    const allDone = lesson.ctas.every((c) => next.has(c.id));
+    if (allDone && !lesson.completed) {
+      try {
+        await markComplete.mutateAsync();
+        toast.success("Lesson completed!");
+      } catch {
+        toast.error("Failed to mark lesson complete");
+      }
+    }
+  };
+
+  const handleConfirmNo = () => {
+    setPendingCtaId(null);
+    setConfirmDialogOpen(false);
+  };
+
 
   const handleTimeUpdate = useCallback(() => {
     logVideoWatch();
