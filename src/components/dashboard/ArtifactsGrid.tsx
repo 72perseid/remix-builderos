@@ -8,7 +8,7 @@ import { useArtifacts } from '@/hooks/useArtifacts';
 
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
-import { useChatContext } from '@/contexts/ChatContext';
+
 import { canAccessArtifact } from '@/lib/artifactAccess';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
