@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Sparkles, ArrowRight } from "lucide-react";
+import { ExternalLink, Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +18,11 @@ export interface LessonCTA {
 interface LessonCTACardProps {
   cta: LessonCTA;
   completed: boolean;
+  variant?: "default" | "button-only" | "completed";
+  onClicked?: () => void;
 }
 
-export function LessonCTACard({ cta, completed }: LessonCTACardProps) {
+export function LessonCTACard({ cta, completed, variant = "default", onClicked }: LessonCTACardProps) {
   const navigate = useNavigate();
   const [justCompleted, setJustCompleted] = useState(false);
 
