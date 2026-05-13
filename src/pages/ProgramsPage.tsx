@@ -172,12 +172,17 @@ export default function ProgramsPage() {
 
   const canUsePrograms = hasUse("programs");
 
-  const featuredFree = courses.filter((c) => c.is_featured && !isPaidCourse(c));
-  const featuredPaid = courses.filter((c) => c.is_featured && isPaidCourse(c));
-  const freeCourses = courses.filter((c) => !c.is_featured && !isPaidCourse(c));
-  const paidCourses = courses.filter((c) => !c.is_featured && isPaidCourse(c));
+  const isFlagship = (c: CourseWithProgress) =>
+    (c.course_name ?? "").trim().toLowerCase() === "dia vibe coding mba";
 
-  const hasPaid = featuredPaid.length + paidCourses.length > 0;
+  let flagshipCourses = courses.filter(isFlagship);
+  if (flagshipCourses.length === 0) {
+    flagshipCourses = courses.filter((c) => c.is_featured && isPaidCourse(c));
+  }
+  const flagshipIds = new Set(flagshipCourses.map((c) => c.id));
+  const complementaryCourses = courses
+    .filter((c) => !flagshipIds.has(c.id))
+    .sort((a, b) => Number(isPaidCourse(a)) - Number(isPaidCourse(b)));
 
   if (courses.length === 0) {
     return (
@@ -201,58 +206,59 @@ export default function ProgramsPage() {
           Comprehensive programs and supplementary courses to take you from idea to launch.
         </p>
       </div>
-      <div className="space-y-8">
-        {featuredFree.length > 0 && (
-          <div className="space-y-4">
-            {featuredFree.map((course) => (
-              <FeaturedCourseCard key={course.id} course={course} />
-            ))}
-          </div>
-        )}
-
-        {freeCourses.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {freeCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
-        )}
-
-        {hasPaid && (
-          <div className="space-y-4 pt-2">
+      <div className="space-y-10">
+        {flagshipCourses.length > 0 && (
+          <section className="space-y-4">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Premium Programs</h2>
+              <h2 className="text-lg font-semibold text-foreground">Flagship programs</h2>
               <p className="text-sm text-muted-foreground">
-                Advanced courses and flagship programs available with full access.
+                Our signature accelerator programs designed to transform your app idea into a thriving business
               </p>
             </div>
-            <div className="relative">
-              <div
-                className={
-                  !canUsePrograms
-                    ? "blur-md select-none pointer-events-none space-y-8"
-                    : "space-y-8"
-                }
-                aria-hidden={!canUsePrograms}
-              >
-                {featuredPaid.length > 0 && (
-                  <div className="space-y-4">
-                    {featuredPaid.map((course) => (
-                      <FeaturedCourseCard key={course.id} course={course} />
-                    ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {flagshipCourses.map((course) => {
+                const locked = isPaidCourse(course) && !canUsePrograms;
+                return (
+                  <div key={course.id} className="relative">
+                    <div
+                      className={locked ? "blur-md select-none pointer-events-none" : ""}
+                      aria-hidden={locked}
+                    >
+                      <CourseCard course={course} />
+                    </div>
+                    {locked && <LockedOverlay feature="programs" />}
                   </div>
-                )}
-                {paidCourses.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {paidCourses.map((course) => (
-                      <CourseCard key={course.id} course={course} />
-                    ))}
-                  </div>
-                )}
-              </div>
-              {!canUsePrograms && <LockedOverlay feature="programs" />}
+                );
+              })}
             </div>
-          </div>
+          </section>
+        )}
+
+        {complementaryCourses.length > 0 && (
+          <section className="space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Complementary Courses</h2>
+              <p className="text-sm text-muted-foreground">
+                Specialized courses to enhance specific skills and knowledge areas.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {complementaryCourses.map((course) => {
+                const locked = isPaidCourse(course) && !canUsePrograms;
+                return (
+                  <div key={course.id} className="relative">
+                    <div
+                      className={locked ? "blur-md select-none pointer-events-none" : ""}
+                      aria-hidden={locked}
+                    >
+                      <CourseCard course={course} />
+                    </div>
+                    {locked && <LockedOverlay feature="programs" />}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         )}
       </div>
     </div>
