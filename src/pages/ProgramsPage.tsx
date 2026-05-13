@@ -172,12 +172,17 @@ export default function ProgramsPage() {
 
   const canUsePrograms = hasUse("programs");
 
-  const featuredFree = courses.filter((c) => c.is_featured && !isPaidCourse(c));
-  const featuredPaid = courses.filter((c) => c.is_featured && isPaidCourse(c));
-  const freeCourses = courses.filter((c) => !c.is_featured && !isPaidCourse(c));
-  const paidCourses = courses.filter((c) => !c.is_featured && isPaidCourse(c));
+  const isFlagship = (c: CourseWithProgress) =>
+    (c.course_name ?? "").trim().toLowerCase() === "dia vibe coding mba";
 
-  const hasPaid = featuredPaid.length + paidCourses.length > 0;
+  let flagshipCourses = courses.filter(isFlagship);
+  if (flagshipCourses.length === 0) {
+    flagshipCourses = courses.filter((c) => c.is_featured && isPaidCourse(c));
+  }
+  const flagshipIds = new Set(flagshipCourses.map((c) => c.id));
+  const complementaryCourses = courses
+    .filter((c) => !flagshipIds.has(c.id))
+    .sort((a, b) => Number(isPaidCourse(a)) - Number(isPaidCourse(b)));
 
   if (courses.length === 0) {
     return (

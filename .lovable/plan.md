@@ -1,47 +1,46 @@
 ## Goal
-Make `hasUse('programs')` correctly return `false` for free-tier users so the "Premium Programs" section on `/programs` blurs with the `LockedOverlay` for them. Paid users (with their own `programs_access = true` from a paid product) are unaffected.
 
-## Root cause recap
-- `handle_new_user` enrolls every signup in the `Free` product.
-- The `Free` product currently has a non-zero `programs_duration_days`, so the `enforce_enrollment_access` trigger sets `programs_expires_at` far in the future and flips `programs_access = true`.
-- Result: every free user passes `hasUse('programs')` → no blur, ever.
+Rework `src/pages/ProgramsPage.tsx` so the layout matches the attached screenshot exactly: two sections — **Flagship programs** (DIA Vibe Coding MBA only, narrow card) and **Complementary Courses** (everything else, including the free intro to vibe coding) — with the wording from the screenshot.
 
-## Changes (database only — one migration)
+## Layout changes
 
-1. **Schema-safe data update on `products`** — set the Free product's `programs_duration_days` to `0` so future signups get no programs USE:
-   ```sql
-   UPDATE public.products
-   SET programs_duration_days = 0
-   WHERE product_name = 'Free';
-   ```
+```
+Flagship programs
+Our signature accelerator programs designed to transform your app idea into a thriving business
+[ DIA Vibe Coding MBA card — ~1/3 width, single column ]
 
-2. **Backfill existing Free-product enrollments** — revoke programs USE for users who only have the Free product:
-   ```sql
-   UPDATE public.enrollments e
-   SET programs_expires_at = NULL
-   FROM public.products p
-   WHERE e.product_id = p.id
-     AND p.product_name = 'Free';
-   ```
-   The existing `enforce_enrollment_access` trigger fires on UPDATE and will recompute `programs_access = false` automatically (since `programs_expires_at IS NULL`).
+Complementary Courses
+Specialized courses to enhance specific skills and knowledge areas.
+[ grid: 1 / 2 / 3 / 4 cols of small CourseCards — free + remaining paid ]
+```
 
-3. **Safety net** — re-run `enforce_enrollment_access` over every row so any drift is corrected:
-   ```sql
-   UPDATE public.enrollments SET updated_at = now();
-   ```
-   (Trigger fires on UPDATE; booleans realign with their `*_expires_at` columns.)
+- Page container stays `max-w-6xl mx-auto`.
+- Flagship card width: constrained to roughly one-third on desktop using a `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` wrapper and rendering the single card in the first cell (so it sits at the same column width as the complementary cards below). It uses the existing `CourseCard` component (not the wide `FeaturedCourseCard`) so its width matches the screenshot.
+- Complementary grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4` to match the 4-up row in the screenshot at wider widths; current viewport (1157px) renders 3-up which also matches.
 
-## What stays unchanged
-- No frontend changes. `ProgramsPage.tsx`, `useUserFeatures`, `LockedOverlay`, `isPaidCourse` all stay as-is.
-- Paid users with a non-Free product enrollment keep their `programs_access = true` because we only null out enrollments tied to the Free product.
-- `handle_new_user` keeps the same INSERT shape; with `programs_duration_days = 0` the new user's `programs_expires_at` will be `now()` → trigger sets `programs_access = false` immediately.
+## Categorization rules
 
-## Verification after running
-- Re-query: every Free-only user should show `programs_access = false`. Test-premium / paid users remain `true`.
-- Open `/programs` as `test-free@builderos.test` → free course visible and clickable, "Premium Programs" section visible below with blur + "Unlock our Programs" overlay.
-- Open `/programs` as `test-premium@builderos.test` or admin → both sections fully unlocked.
+- **Flagship**: courses whose `course_name` is `DIA Vibe Coding MBA` (case-insensitive trim). Falls back to: featured + paid if name match returns nothing, so renaming in the DB doesn't break it.
+- **Complementary**: every other course (free featured intro + all remaining paid + free non-featured), sorted: free first, then paid.
+- Drop the existing four buckets (`featuredFree`, `featuredPaid`, `freeCourses`, `paidCourses`) and the `FeaturedCourseCard` usage on this page.
+
+## Gating (kept, scoped tighter)
+
+- Free users still cannot open paid complementary courses. Implementation: wrap each paid card in the complementary grid with the existing blur + `LockedOverlay` pattern, but per-card instead of one big section overlay. Free cards (intro to vibe coding) and the flagship card stay fully interactive visually; click handler on locked cards already routes via `LockedOverlay`. (No change to `useUserFeatures` / `isPaidCourse` / `LockedOverlay`.)
+- If you'd rather keep one combined "Premium" overlay over the whole complementary grid like today, say so and I'll do that instead — screenshot doesn't show a locked state so I'm defaulting to per-card.
+
+## Copy changes
+
+- Section 1 heading: `Flagship programs`
+- Section 1 subtitle: `Our signature accelerator programs designed to transform your app idea into a thriving business`
+- Section 2 heading: `Complementary Courses`
+- Section 2 subtitle: `Specialized courses to enhance specific skills and knowledge areas.`
+- Page title `Programs` and its existing top description: keep (not shown in screenshot crop, but they're outside the two sections).
 
 ## Out of scope
-- Changing the access-group / REACH layer.
-- Modifying the `Free` product's `build_duration_days` or `calendar_duration_days` (already 0 in current behavior — those gates already work).
-- Any UI copy or layout changes.
+
+- No DB changes, no new images, no card visual redesign, no changes to `CourseCard` internals, no changes to gating logic in `useUserFeatures`, no changes to `/coaching` or other pages.
+
+## Files touched
+
+- `src/pages/ProgramsPage.tsx` (only)
