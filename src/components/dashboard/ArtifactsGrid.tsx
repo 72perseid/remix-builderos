@@ -106,21 +106,25 @@ export function ArtifactsGrid() {
   const hasAnyCompletion = Object.values(completionMap).some((v) => (v ?? 0) > 0);
   const hasAnyData = artifacts.length > 0 || hasAnyCompletion;
 
-  // Decide where the banner CTA should go when the user already has progress.
-  // Free tier (no build access) can only access business_model — always send
-  // them there. Paid users go to the first incomplete planning artifact.
+  // Decide where the banner CTA should go based on tier + completion.
+  // Always provide a forward action so users never loop back to a finished page.
   const PLANNING_ORDER: { type: ArtifactType; route: string }[] = [
     { type: 'business_model', route: '/business-model' },
     { type: 'validation', route: '/validation' },
     { type: 'product_brief', route: '/product-brief' },
     { type: 'ui_ux', route: '/ui-ux' },
   ];
-  const continueRoute = (() => {
-    if (!canBuild) return '/business-model';
-    const next = PLANNING_ORDER.find(
-      (s) => (completionMap[s.type] ?? 0) < 100,
-    );
-    return next?.route ?? '/business-model';
+  const continueCTA: { route: string; label: string; icon: 'rocket' | 'lock' | 'board' } = (() => {
+    if (!canBuild) {
+      const bmDone = (completionMap.business_model ?? 0) >= 100;
+      return bmDone
+        ? { route: '/coaching', label: 'Unlock the Builder Suite', icon: 'lock' }
+        : { route: '/business-model', label: 'Continue Building', icon: 'rocket' };
+    }
+    const next = PLANNING_ORDER.find((s) => (completionMap[s.type] ?? 0) < 100);
+    return next
+      ? { route: next.route, label: 'Continue Building', icon: 'rocket' }
+      : { route: '/project-board', label: 'Go to Project Board', icon: 'board' };
   })();
 
   const getCardStatus = (type: ArtifactType): ArtifactStatus => {
