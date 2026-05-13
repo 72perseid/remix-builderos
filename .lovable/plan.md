@@ -1,15 +1,24 @@
 ## Goal
-Auto-play the lesson video as soon as the player is ready — both when the lesson page opens and when navigating to the next lesson.
 
-## Change
-Single file: `src/pages/LessonPage.tsx`
+Stop the BuilderOS Architect banner from sending users back into the onboarding chat once they already have artifact progress. Keep it visible as a useful entry point, but route it to the existing Copilot sidebar instead.
 
-In the `<video>` element (around line 242):
-- Add `autoPlay`
-- Add `playsInline` (required for mobile autoplay)
-- Add `key={lesson.videoUrl}` so React remounts the player when the lesson changes, ensuring `autoPlay` re-fires on next/prev navigation
-- Keep `controls`, existing handlers, and `muted` state untouched
+## Behavior
 
-## Notes
-- Browsers block autoplay with sound. If the user reports the video not starting, the fallback is to also add `muted` (autoplay+muted is universally allowed). Not adding it by default to preserve audio on first play; we can flip if needed.
-- No changes to data fetching, routing, or business logic.
+In `src/components/dashboard/ArtifactsGrid.tsx`, the banner currently renders only when `!isOnboarded` and always navigates to `/onboarding?mode=setup`. Change to:
+
+- **Always render** the banner on the Artifacts page (drop the `!isOnboarded` gate).
+- **Two CTA modes**, decided by `hasAnyData` (already computed as `artifacts.length > 0`) OR any non-zero completion in `completionMap`:
+  - **No progress yet** → CTA label "Start Building", action navigates to `/onboarding?mode=setup` (current behavior).
+  - **Has progress** → CTA label "Open Copilot", action calls `useChatContext().openChat()` — opens the right-side Copilot sidebar, no onboarding re-entry.
+- Banner copy stays driven by the existing `hasData` prop in `ArchitectBanner` (already shows the "artifacts are ready… refine or regenerate" variant when true).
+
+## Files
+
+- `src/components/dashboard/ArtifactsGrid.tsx` — replace the `onStartBuilding` handler with a conditional that calls `openChat()` when there's progress, else `navigate('/onboarding?mode=setup')`. Remove the `!isOnboarded` wrapper so onboarded users still see the banner (now safely pointing at Copilot).
+- `src/components/dashboard/ArchitectBanner.tsx` — accept an optional `ctaLabel` prop (defaults to current "Start Building" / "Continue Building" logic) so the "has progress" state can render "Open Copilot" with a more appropriate icon (keep `Rocket` or switch to `MessageSquare` — minor).
+
+No changes to data fetching, routing config, onboarding flow, or business logic.
+
+## Why this fixes the bug
+
+The reported confusion is: completed onboarding → clicked banner → dropped back into onboarding chat. After this change, the only way back into `/onboarding` from the banner is when the app genuinely has zero artifact progress, which is the only state where re-entering onboarding is safe.

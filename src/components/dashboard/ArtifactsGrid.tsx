@@ -5,9 +5,10 @@ import { ArtifactCard, ArtifactStatus } from "./ArtifactCard";
 import { ArchitectBanner } from "./ArchitectBanner";
 import { ArtifactExportButton } from "./ArtifactExportButton";
 import { useArtifacts } from '@/hooks/useArtifacts';
-import { useProfile } from '@/hooks/useProfile';
+
 import { useProjectContext } from '@/contexts/ProjectContext';
 import { useUserFeatures } from '@/hooks/useUserFeatures';
+import { useChatContext } from '@/contexts/ChatContext';
 import { canAccessArtifact } from '@/lib/artifactAccess';
 import type { Database } from '@/integrations/supabase/types';
 type ArtifactType = Database['public']['Enums']['artifact_type'];
@@ -77,9 +78,9 @@ export function ArtifactsGrid() {
     artifacts,
     loading
   } = useArtifacts();
-  const { profile } = useProfile();
   const { selectedApp, refreshApps } = useProjectContext();
   const { hasUse } = useUserFeatures();
+  const { openChat } = useChatContext();
   const navigate = useNavigate();
 
   const canBuild = hasUse('build');
@@ -100,10 +101,11 @@ export function ArtifactsGrid() {
     product_brief: selectedApp?.pb_completion ?? null,
     ui_ux: selectedApp?.ux_completion ?? null,
   };
-  const isOnboarded = profile?.onboarded === true;
+  
 
-  // Check if user has any artifacts
-  const hasAnyData = artifacts.length > 0;
+  // Check if user has any artifact progress (existence OR any non-zero completion)
+  const hasAnyCompletion = Object.values(completionMap).some((v) => (v ?? 0) > 0);
+  const hasAnyData = artifacts.length > 0 || hasAnyCompletion;
   
   const getCardStatus = (type: ArtifactType): ArtifactStatus => {
     if (loading) return 'loading';
@@ -148,10 +150,13 @@ export function ArtifactsGrid() {
         <h1 className="text-2xl font-bold text-foreground">Artifacts</h1>
         <p className="text-muted-foreground mt-1">Generate and manage your project's key documents and deliverables</p>
       </div>
-      {/* Architect Banner - hidden after onboarding */}
-      {!isOnboarded && (
-        <ArchitectBanner onStartBuilding={() => navigate('/onboarding?mode=setup')} hasData={hasAnyData} />
-      )}
+      {/* Architect Banner — routes to Copilot once any progress exists, else into onboarding */}
+      <ArchitectBanner
+        onStartBuilding={() => (hasAnyData ? openChat() : navigate('/onboarding?mode=setup'))}
+        hasData={hasAnyData}
+        ctaLabel={hasAnyData ? 'Open Copilot' : 'Start Building'}
+        ctaIcon={hasAnyData ? 'chat' : 'rocket'}
+      />
 
 
       {/* Single column layout with Feature Planning and Launching */}
