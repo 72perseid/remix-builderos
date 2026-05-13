@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import { useArtifact } from '@/hooks/useArtifact';
-import { ArchitectBanner } from '@/components/dashboard/ArchitectBanner';
+
 import { useTasks } from '@/hooks/useTasks';
 import { useProfile } from '@/hooks/useProfile';
 import { Loader2, LayoutGrid, Plus, MoreHorizontal, X, CheckSquare, Calendar, ArrowRight, Trash2, AlignLeft, Tag, Flag, Lock, Sparkles, Check, Pencil } from 'lucide-react';
