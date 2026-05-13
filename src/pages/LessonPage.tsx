@@ -375,7 +375,26 @@ export default function LessonPage() {
             </TabsList>
 
             <TabsContent value="progress" className="mt-4 space-y-3">
-              {lesson.completed ? (
+              {hasCtas ? (
+                lesson.ctas.map((cta) =>
+                  confirmedCtaIds.has(cta.id) ? (
+                    <LessonCTACard
+                      key={cta.id}
+                      cta={cta}
+                      completed
+                      variant="completed"
+                    />
+                  ) : (
+                    <LessonCTACard
+                      key={cta.id}
+                      cta={cta}
+                      completed={false}
+                      variant="button-only"
+                      onClicked={() => handleCtaClicked(cta.id)}
+                    />
+                  )
+                )
+              ) : lesson.completed ? (
                 <div className="w-full flex items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-500">
                   <CheckCircle2 className="h-4 w-4" />
                   Lesson Completed
@@ -399,10 +418,6 @@ export default function LessonPage() {
                   )}
                 </Button>
               )}
-              {lesson.completed &&
-                lesson.ctas?.map((cta) => (
-                  <LessonCTACard key={cta.id} cta={cta} completed={lesson.completed} />
-                ))}
             </TabsContent>
 
             <TabsContent value="resources" className="mt-4 space-y-3">
