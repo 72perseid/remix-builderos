@@ -8,7 +8,7 @@ import { useUserFeatures } from "@/hooks/useUserFeatures";
 import { LockedOverlay } from "@/components/paywall/LockedOverlay";
 import { cn } from "@/lib/utils";
 
-const CALENDAR_ID = "michael@ambitiouslabs.io";
+const CALENDAR_ID = "coaches@ambitiouslabs.io";
 
 interface CalendarEvent {
   id: string;
